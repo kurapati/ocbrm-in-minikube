@@ -1,0 +1,260 @@
+---
+### Deployment Descriptor
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dm-oracle
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.ocbrm.dm_oracle.deployment.replicaCount }}
+  selector:
+    matchLabels:
+      application: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        application: {{ .Chart.Name }}
+        component: oms-dm-oracle
+      name: dm-oracle
+    spec:
+      containers:
+      - name: dm-oracle
+        image: "{{ .Values.imageRepository }}{{ .Values.ocbrm.dm_oracle.deployment.imageName }}:{{ .Values.ocbrm.dm_oracle.deployment.imageTag }}"
+#        command:
+#          - sleep
+#          - "3600"
+        {{- if eq .Values.ocbrm.virtual_time.enabled true }}
+        command: ["/bin/sh"]
+        args: ["-c", "sleep 10;/oms/entrypoint.sh dm_oracle"]
+        {{- end }}
+        ports:
+          - name: dm-pcp-port
+            containerPort: {{ .Values.ocbrm.dm_oracle.deployment.port }}
+        env:
+        {{- if eq .Values.ocbrm.existing_database true }}
+        - name: BRM_WALLET
+          value: "/oms/client"
+        {{- end }}
+        - name: INIT_DB
+          value: "{{ .Values.ocbrm.init_database }}"
+        - name: TZ
+          value: "{{ .Values.ocbrm.TZ }}"
+        - name: NLS_LANG
+          value: "{{ .Values.ocbrm.db.nls_lang }}"
+        - name: PIN_LOG_DIR
+          value: "{{ .Values.ocbrm.logDir }}"
+        - name: TNS_ADMIN
+          value: "{{ .Values.ocbrm.tnsAdmin }}"
+        - name: DM_DEBUG
+          value: "0x0001"
+        - name: DM_DEBUG2
+          value: "0x0001"
+        - name: DM_DEBUG3
+          value: "0x0001"
+        - name: SERVICE_FQDN
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: DM_ORACLE_SERVICE_HOST
+        - name: ENABLE_SSL
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: ENABLE_SSL
+        - name: ORACLE_CHARACTERSET
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: ORACLE_CHARACTERSET
+        - name: DM_ORACLE_SERVICE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: DM_ORACLE_SERVICE_PORT
+        - name: OLD_CLIENT
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: old_client
+        - name: OLD_ROOT
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: old_root
+        - name: BRM_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: brm_root_password
+        - name: CLIENT_WALLET_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: client_wallet_password
+        - name: ROOT_WALLET_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: root_wallet_password
+        - name: SERVER_WALLET_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: server_wallet_password
+        - name: OMS_SCHEMA_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: OMS_SCHEMA_USERNAME
+        - name: OMS_SCHEMA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: oms_schema_password
+        - name: BRM_CRYPT_KEY
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: brm_crypt_key
+        - name: OMS_DB_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: OMS_DB_SERVICE
+        - name: OMS_DB_ALIAS
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: OMS_DB_ALIAS
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: LOG_LEVEL
+        - name: DM_NO_FRONT_ENDS
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: DM_NO_FRONT_ENDS
+        - name: DM_NO_BACK_ENDS
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: DM_NO_BACK_ENDS
+        - name: DM_SHM_BIGSIZE
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: DM_SHM_BIGSIZE
+        - name: DM_MAX_PER_FE
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: DM_MAX_PER_FE
+        - name: DM_SHM_SEGMENT_SIZE
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: DM_SHM_SEGMENT_SIZE
+        - name: DM_NO_TRANS_BE_MAX
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: DM_NO_TRANS_BE_MAX
+        - name: DM_STMT_CACHE_ENTRIES
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: DM_STMT_CACHE_ENTRIES
+        - name: DM_SEQUENCE_CACHE_SIZE
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: DM_SEQUENCE_CACHE_SIZE
+        - name: VIRTUAL_TIME_SETTING
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: VIRTUAL_TIME_SETTING
+        - name: VIRTUAL_TIME_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: VIRTUAL_TIME_ENABLED
+        - name: SHARED_VIRTUAL_TIME_FILE
+          value: {{ .Values.ocbrm.virtual_time.pvt }}/pin_virtual_time_file
+        imagePullPolicy: {{ .Values.ocbrm.imagePullPolicy }}
+        terminationMessagePolicy: FallbackToLogsOnError
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - netstat -anp | grep LISTEN | grep {{ .Values.ocbrm.dm_oracle.deployment.port }} | grep dm
+          initialDelaySeconds: 120
+          periodSeconds: 20
+          failureThreshold: 5
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - netstat -anp | grep LISTEN | grep {{ .Values.ocbrm.dm_oracle.deployment.port }} | grep dm
+          initialDelaySeconds: 120
+          periodSeconds: 40
+          timeoutSeconds: 1
+        volumeMounts:
+        {{- if eq .Values.ocbrm.existing_database true }}
+        - name: wallet-pvc
+          mountPath: /oms/client
+        {{- end }}
+        - name: dm-oracle-pin-conf-volume
+          mountPath: /oms/pin.conf.tmpl
+          subPath: pin.conf
+        - name: dm-oracle-tnsnames-ora-volume
+          mountPath: {{ .Values.ocbrm.tnsAdmin }}
+        - name: oms-logs
+          mountPath: {{ .Values.ocbrm.logDir }}
+        - name: virtual-time-volume
+          mountPath: {{ .Values.ocbrm.virtual_time.pvt }}
+      hostname: dm-oracle
+      dnsPolicy: ClusterFirst
+      volumes:
+        {{- if eq .Values.ocbrm.existing_database true }}
+        - name: wallet-pvc
+          persistentVolumeClaim:
+            claimName: {{ .Values.ocbrm.wallet.pvc }}
+        {{- end }}
+        - name: dm-oracle-pin-conf-volume
+          configMap:
+            name: dm-oracle-pin-conf-config
+        - name: dm-oracle-tnsnames-ora-volume
+          configMap:
+            name: db-config
+            items:
+              - key: tnsnames.ora
+                path: tnsnames.ora
+              - key: sqlnet.ora
+                path: sqlnet.ora
+        - name: oms-logs
+          emptyDir: {}
+        - name: virtual-time-volume
+          persistentVolumeClaim:
+            claimName: virtual-time
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: dm-oracle
+  namespace: {{ .Release.Namespace }}
+  labels:
+    application: {{ .Chart.Name }}
+spec:
+  selector:
+    component: oms-dm-oracle
+  ports:
+  - name: dm-pcp-port
+    port: {{ .Values.ocbrm.dm_oracle.deployment.port }}
+    protocol: TCP
+  type: {{ .Values.ocbrm.dm_oracle.service.type }}

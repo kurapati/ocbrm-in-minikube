@@ -1,0 +1,219 @@
+# Default values for mychart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# For non-empty repository, "/" MUST be appended
+imageRepository: ""
+
+ocbrm:
+    imagePullPolicy: IfNotPresent
+    # Set init_database: false , if custom docker images are built
+    init_database: true
+    # Set existing_database: true , if existing database is used (non init-db )
+    existing_database: false
+    # Give the path where client wallet is copied inside hostPath ( existing_wallet: /scratch/wallet/client)
+    existing_wallet: /
+    TZ: UTC
+    logDir: /oms_logs
+    tnsAdmin: /oms/ora_k8
+    LOG_LEVEL: 1
+    ENABLE_SSL: 1
+    isSSLEnabled: true
+    brm_crypt_key: 
+    brm_root_pass: 
+    wallet:
+        client: 
+        server: 
+        root: 
+        pv: brm-wallet-pv
+        pvc: brm-wallet-pvc
+        storage: 50Mi
+    cm:
+        deployment:
+            replicaCount: 1
+            imageName: cm
+            imageTag: 12.0.0.2.0
+            host: cm
+            port: 11960
+            #Set load_localized to 0 to skip loading load_localized_strings in case of existing DB
+            load_localized: 1
+        service:
+            type: ClusterIP
+            dnsName: ocbrm.example.com
+
+    eai_js:
+        deployment:
+            replicaCount: 1
+            imageName: eai_js
+            imageTag: 12.0.0.2.0
+            host: eai-js
+            port: 11930
+        service:
+            type: ClusterIP
+
+    payload:
+        pv: brm-payload-pv
+        pvc: brm-payload-pvc
+        storage: 10Mi
+        path: /
+
+    dm_oracle:
+        deployment:
+            replicaCount: 1
+            imageName: dm_oracle
+            imageTag: 12.0.0.2.0
+            host: dm-oracle
+            port: 12950
+        service:
+            type: ClusterIP
+
+    dm_invoice:
+        deployment:
+            replicaCount: 1
+            imageName: dm_invoice
+            imageTag: 12.0.0.2.0
+            host: dm-invoice
+            port: 27777
+        service:
+            type: ClusterIP
+
+    storage_class:
+        name: standard
+
+    virtual_time:
+        enabled: false
+        pvt: /oms/virtual_time/shared
+        pvc: virtual-time
+        storage: 50Mi
+
+    db:
+        deployment:
+            imageName: init_db
+            imageTag: 12.0.0.2.0
+        host: localhost
+        port: 1521
+        service: pindb
+        alias: pindb
+        schemauser: pin
+        schemapass: 
+        schematablespace: pin
+        indextablespace: pinx
+        nls_lang: AMERICAN_AMERICA.AL32UTF8
+        charset: AL32UTF8
+        pipelineschemauser: pin
+        pipelineschemapass: 
+        pipelineschematablespace: pin
+        pipelineindextablespace: pinx
+        pipelinealias: PINDB
+        queuename: IFW_SYNC_QUEUE
+
+    realtime_pvc:
+        pvc: common-semaphore
+        path: /
+        storage: 50Mi
+
+    realtimepipe:
+        deployment:
+            replicaCount: 1
+            imageName: realtimepipe
+            imageTag: 12.0.0.2.0
+            port: 24000
+            rtp_num_thread: 8
+            rtp_num_pipe: 2
+            discount_trace: True
+            logPipeDir: /oms/ifw/log/pipeline
+            logProcessDir: /oms/ifw/log/process
+        service:
+            type: ClusterIP
+
+    batch_controller:
+        deployment:
+            replicaCount: 1
+        image: batch_controller
+        host: batch-controller
+        imageTag: 12.0.0.2.0
+        pvc:
+            path: /
+            archive: oms-uel-archive
+            reject: oms-uel-reject
+            input: oms-uel-input
+            storage: 50Mi
+
+    dm_ifw_sync:
+      deployment:
+        imageName: dm_ifw_sync
+        imageTag: 12.0.0.2.0
+        host: dm-ifw
+        port: 11999
+        replicaCount: 1
+      service:
+        type: ClusterIP
+
+    dm_eai:
+      deployment:
+        imageName: dm_eai
+        imageTag: 12.0.0.2.0
+        host: dm-eai
+        port: 11970
+        replicaCount: 1
+      service:
+        type: ClusterIP
+
+    dm_aq:
+      deployment:
+        imageName: dm_aq
+        imageTag: 12.0.0.2.0
+        host: dm-aq
+        port: 17513
+        replicaCount: 1
+      service:
+        type: ClusterIP
+
+    rel_daemon:
+      deployment:
+        imageName: rel_daemon
+        imageTag: 12.0.0.2.0
+        replicaCount: 1
+
+    batchpipe:
+        deployment:
+            replicaCount: 1
+            imageName: batch_pipeline
+            imageTag: 12.0.0.2.0
+            port: 24001
+            logPipeDir: /oms/ifw/log/pipeline
+            logProcessDir: /oms/ifw/log/process
+        service:
+            type: ClusterIP
+
+    formatter:
+      deployment:
+        imageName: formatter
+        imageTag: 12.0.0.2.0
+        replicaCount: 1
+        host: formatter
+        port: 22272
+        logLevel: 3
+        jsLogLevel: 3
+        pxsltLogLevel: 3
+      service:
+        type: ClusterIP
+
+    brm_apps:
+        deployment:
+            replicaCount: 1
+            imageName: brm_apps
+            imageTag: 12.0.0.2.0
+            host: brm-apps
+
+    cronjob:
+        deployment:
+            app_name: pin-collections-process
+            imageName: kubectl
+            imageTag: 12.0.0.2.0
+            schedule: "*/5 * * * *"
+            serviceAccountName: job-scheduler
+            app_dir: /oms/apps/pin_collections
+            app_cmd: pin_collections_process
+            app_cmd_args: "-verbose"
+

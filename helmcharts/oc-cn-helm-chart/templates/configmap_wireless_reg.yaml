@@ -1,0 +1,2668 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+   name: wirelessrating-reg-config
+   namespace: {{ .Release.Namespace }}
+   labels:
+    application: {{ .Chart.Name }}
+data:
+    wireless.reg.tmpl: |
+     ifw
+     {
+       Active              = TRUE
+       ProcessLoopTimeout  = 10
+       QueueRequestTimeout = 0
+     
+       ParallelLoadManager
+       {
+         Active = TRUE
+         NumberOfThreads = 20
+       }
+     
+       Instrumentation
+       {
+         #-----------------------------------------------------------
+         # ProbeBroker registry entries.
+         #    ProbeInfoFilePath - The path that contains all probe
+         #                        info files used by instrumented objects.
+         #-----------------------------------------------------------
+         ProbeBroker
+         {
+           ProbeInfoFilePath = ./instrumentation
+         }
+     
+         #-----------------------------------------------------------
+         # SnmpServer registry entries. (Optional)
+         #    Port - The SNMP AgentX port number.
+         #    ProcessDescription - The description of this process.
+         #                         If not specified, the process description
+         #                         has format as follows:
+         #                         <<user>>:<<process_name>>::<<registry_filename>>
+         #-----------------------------------------------------------
+         #SnmpServer
+         #{
+         #  Port = < SNMP AgentX Port >
+         #  ProcessDescription = ifw
+         #}
+     
+         #-----------------------------------------------------------
+         # HttpServer registry entries. (Optional)
+         #    Port - The Http port number.
+         #    StyleSheetFile - The full path name of style sheet file.
+         #    PortalLogoFile - The full path name of Portal logo file.
+         #-----------------------------------------------------------
+         #HttpServer
+         #{
+         #  Port = < HTTP Port >
+         #  StyleSheetFile = ./instrumentation/portal_omf.xsl
+         #  PortalLogoFile = ./instrumentation/portal_omf.gif
+         #}
+       }
+     
+       DiagnosticDataHandler   
+       {
+         DiagnosticFilePath = ./log
+         DiagnosticFileName = diagnostic.dat      
+       }
+     
+       LogMessageTable
+       {
+         MessageFilePath   = ./etc
+         MessageFileSuffix = .msg
+       }
+     
+       Semaphore
+       {
+         FilePath = ./semaphore
+         FileName = semaphore.reg
+         TimeBasedChecking = True
+       }
+     
+       Registry
+       {
+         FilePath           = ./info
+         FileName           = infoWIRELESS.reg
+         NiceFormatFileName = infoNiceWIRELESS.reg
+         Buffer
+         {
+           Size = 100
+         }
+         GracefulShutdown   = True
+       }
+     
+       ProcessLog
+       {
+         ModuleName = LOG
+         Module
+         {
+           ITO
+           {
+             WriteMessageKey  = True
+             FilePath          = ./log/process
+             FileName          = processWIRELESS
+             FileSuffix        = .log
+             ProcessName       = ifw
+             MessageGroup      = IFW
+             ShowOriginator    = TRUE
+           }
+           Buffer
+           {
+             Size = 1000
+           }
+         }
+       }
+      
+       MemoryMonitor
+       {
+         ScaleUnit = P
+         WarningFreeMemLimit = 10
+         ShutdownFreeMemLimit = 5
+       }
+     
+       DataPool
+       {
+         #-----------------------------------------------------------
+         # Database Connection IntegRate
+         #-----------------------------------------------------------
+         Login
+         {
+           ModuleName = DBC
+           Module
+           {
+             # Common
+             UserName           = {{ .Values.ocbrm.db.pipelineschemauser }}
+             DatabaseName       = {{ .Values.ocbrm.db.pipelinealias }}
+             AccessLib          = oci12c161
+             Connections        = 5
+             #ConvertToUpperCase = False
+             #UsableCheckTable   = IFW_DBVERSION
+           }
+         }
+     
+         #-----------------------------------------------------------
+         # Database Connection Infranet
+         #-----------------------------------------------------------
+         LoginInfranet 
+         { 
+           ModuleName = DBC 
+           Module 
+           {
+             # Common
+             UserName           = {{ .Values.ocbrm.db.schemauser }}
+             DatabaseName       = {{ .Values.ocbrm.db.alias }}
+             AccessLib          = oci12c161
+             Connections        = 5
+           } 
+         }  
+     
+         #-----------------------------------------------------------
+         # Database Connection Queue
+         #-----------------------------------------------------------
+         LoginQueue
+         {
+           ModuleName = DBC
+           Module
+           {
+             # Common
+             UserName           = {{ .Values.ocbrm.db.schemauser }}
+             DatabaseName       = {{ .Values.ocbrm.db.alias }}
+             AccessLib          = oci12c161
+             Connections        = 5
+             #ConvertToUpperCase = False
+             #UsableCheckTable   = IFW_DBVERSION
+           }
+         }
+     
+         #--------------------------------------------------------
+         # PortalConfig Data Module
+         #-----------------------------------------------------------
+         PortalConfigDataModule
+         {
+           ModuleName = DAT_PortalConfig
+           Module
+           {
+           # ReuseOnFailure = True
+             InfranetConnection = ifw.DataPool.LoginInfranet
+           }
+         }
+     
+         #--------------------------------------------------------
+         # Infranet Listener
+         #-----------------------------------------------------------
+         Listener 
+         { 
+           ModuleName = DAT_Listener 
+           Module 
+           { 
+             InfranetConnection = ifw.DataPool.LoginQueue
+             QueueName =  {{ .Values.ocbrm.db.queuename }}
+             LogEvents = TRUE
+             QueueLibrary = OracleQueue
+     
+     #       AckQueueName = RERATING_ACK_QUEUE 
+     #       AckQueueNameAMM = AMT_QUEUE
+             EventThreadAllocation
+             {
+       	   RecycleRequest = 1
+     #          OpenNewAcctCycle = 2
+     #          RecycleJob = 1
+             }
+     #       EnableInterLeavingStatistics = false
+     #       ProcessAllEvents             = true
+     #       InterleavingReqd             = false
+     #       MaxNumEvents                 = 900   # suggested min. value 900
+     #       MinNumEvents                 = 300   # suggested min. value 300
+     #       CheckInterval                = 60    # suggested min. value 60 [sec]
+     #       MaxEventProcessTime          = 60    # suggested min. value 60 [sec]
+     #       MaxCDRProcessTime            = 300   # suggested min. value 300 [sec]
+           } 
+         }
+     
+         #-----------------------------------------------------------
+         # Infranet Customer Data
+         #-----------------------------------------------------------
+         CustomerData
+         {
+           ModuleName = DAT_AccountBatch
+           Module
+           {
+             IntegrateConnection = ifw.DataPool.Login
+             InfranetConnection  = ifw.DataPool.LoginInfranet
+             PortalConfigDataModule = ifw.DataPool.PortalConfigDataModule
+             LogEvents           = True
+             LoadLogins          = False    
+             Connections         = 8    
+             InitialLoading      = True    
+             AddAliasList        = False    
+             ReadAccountBalances = False    
+             Threads             = 8
+             UseAsRouter         = False    
+             Listener            = ifw.DataPool.Listener
+     	
+     	## TimesTenEnabled should be set to True for TimesTen Enabled Installations
+     	TimesTenEnabled     = False 
+     
+             ##To enable UseLatestProductAndDiscount if you do NOT want to
+             ##consider the product creation time when establishing product validity.
+             ##If only the usage start and end times are considered, 
+             ##updates to product (like back-dated purchases) are validated immediately.
+     
+             #UseLatestProductAndDiscount = False
+     
+             ##To read System Product data from main table for rerating pipeline and
+             ##from the audit table for batch pipeline processing
+             #ReadSystemProductFromMain = False
+     
+             #ReadAllProducts     = False
+             #ReadPlans           = False
+     
+             ##Balance Group Monitor related registries:
+             # Below entry is obsolete now, as this config value is requested 
+             # from DAT_PortalConfig. If the below entry present, the value
+             # in DAT_PortalConfig cache will take higher priority. 
+             #ReadBalanceGroupMonitors = False
+     
+             #ThreadGroupSharingBalanceMonitorsHashMapSize = 1024
+     
+             ##Rating Product related registry setting:
+             # The default is true; meaning that the edr is enriched only with 
+             # purchasedProducts whose serviceId matches thelogin serviceId.
+             # If false, then the scope is widened and the edr is enriched with 
+             # all purchased products whose serviceType matches the login serviceType;
+             #EnrichRatingProductOnly = true
+     
+             ## Registry Values to override the default HashMap sizes
+             ## during the multi-threaded initialization operation.
+             #ThreadAccountHashMapSize               = 1024
+             #ThreadServiceHashMapSize               = 1024
+             #ThreadLoginHashMapSize                 = 1024
+             #ThreadGroupSharingDiscountsHashMapSize = 1024
+             #ThreadGroupSharingChargesHashMapSize   = 1024
+             #ThreadGroupSharingMonitorsHashMapSize  = 1024
+             #ThreadGroupSharingProfilesHashMapSize  = 1024
+             #ThreadEventOrderProfilesHashMapSize    = 1024
+             #ProfilesNotLoadedIntoEdr { FRIENDS_FAMILY }
+           }
+         }
+     
+         #-----------------------------------------------------------
+         # Zone Data Module
+         #-----------------------------------------------------------
+         ZoneDataModule
+         {
+           ModuleName = DAT_Zone
+           Module
+           {
+             ReuseOnFailure = FALSE
+             Source         = DataBase
+             MaxAge         = 0
+             DistCalcMode   = DISC
+             DataConnection = ifw.DataPool.Login
+             LoadZoneDescription = False
+             LoadZoneEntryName = False
+             CliMode       = DEC
+     
+             ZoneModels
+             {
+             }
+           }
+         }
+     
+     
+         #-----------------------------------------------------------
+         # USC Map Data Module
+         #-----------------------------------------------------------
+         USCDataModule
+         {
+           ModuleName = DAT_USC_Map
+           Module
+           {
+             Source         = DataBase
+             DataConnection = ifw.DataPool.Login
+             LoadZoneDescription = False
+             LoadZoneEntryName = False
+     #        PreCompiledDataDir = ./compiled_usc_data
+     #        NumberOfThreads = 5
+     #        UscGroups {  ALL_RATE }
+           }
+         }
+     
+         #-----------------------------------------------------------
+         # Prefix Description Data Module
+         #-----------------------------------------------------------
+         PrefixDescDataModule
+         { 
+           ModuleName = DAT_PrefixDesc 
+           Module 
+           { 
+             Source = Database 
+             DataConnection = ifw.DataPool.Login
+             ReuseOnFailure = false 
+             CLIBase = 10 
+           } 
+         }
+         #-----------------------------------------------------------
+         # Price Data Module
+         #-----------------------------------------------------------
+         PriceDataModule
+         {
+           ModuleName = DAT_PriceModel
+           Module
+           {
+             DataConnection = ifw.DataPool.Login
+             Listener = ifw.DataPool.Listener
+             LogEvents = false
+           }
+         }
+         #-----------------------------------------------------------
+         # Calendar Data Module
+         #-----------------------------------------------------------
+         CalendarDataModule
+         {
+           ModuleName = DAT_Calendar
+           Module
+           {
+             DataConnection = ifw.DataPool.Login
+           }
+         }
+         #-----------------------------------------------------------
+         # Rateplan Data Module
+         #-----------------------------------------------------------
+         RateplanDataModule
+         {
+           ModuleName = DAT_Rateplan
+           Module
+           {
+             DataConnection = ifw.DataPool.Login
+             Listener = ifw.DataPool.Listener
+             LogEvents = false
+           }
+         }
+         #-----------------------------------------------------------
+         # Time Data Module
+         #-----------------------------------------------------------
+         TimeDataModule
+         {
+           ModuleName = DAT_TimeModel
+           Module
+           {
+             DataConnection = ifw.DataPool.Login
+           }
+         }
+         #-----------------------------------------------------------
+         # DayRate Data Module
+         #-----------------------------------------------------------
+         DayRateDataModule
+         {
+           ModuleName = DAT_Dayrate
+           Module
+           {
+             DataConnection = ifw.DataPool.Login
+           }
+         }
+         #-----------------------------------------------------------
+         # Exchange Rate Data Module
+         #-----------------------------------------------------------    
+         ExchangeRateDataModule
+         {
+           ModuleName = DAT_ExchangeRate
+           Module
+           {
+             DataConnection = ifw.DataPool.Login
+             ReuseOnFailure = TRUE
+           }
+         }
+         #-----------------------------------------------------------
+         # Scenario Reader
+         #-----------------------------------------------------------
+         ScenarioReader
+         {
+           ModuleName = DAT_ScenarioReader
+           Module
+           {
+             DataConnection = ifw.DataPool.Login
+             Calendar       = 20000
+           }
+         }
+         #-----------------------------------------------------------
+         # Currency Data Module
+         #-----------------------------------------------------------
+         CurrencyDataModule 
+         {
+           ModuleName = DAT_Currency
+           Module
+           {
+             ReuseOnFailure = TRUE 
+             InfranetConnection  = ifw.DataPool.LoginInfranet
+           }
+         }
+         #-----------------------------------------------------------
+         # Discount Model Data Module
+         #-----------------------------------------------------------
+         DiscountModelDataModule
+         {
+           ModuleName = DAT_Discount
+           Module
+           {
+             InfranetConnection  = ifw.DataPool.LoginInfranet
+             IntegrateConnection = ifw.DataPool.Login
+             AccountDataModule   = ifw.DataPool.CustomerData
+     	PortalConfigDataModule = ifw.DataPool.PortalConfigDataModule
+           }
+         }
+         #-----------------------------------------------------------
+         # Balance Data Module
+         #-----------------------------------------------------------
+         BalanceDataModule
+         {
+           ModuleName = DAT_BalanceBatch
+           Module
+           {
+             InfranetConnection  = ifw.DataPool.LoginInfranet
+             DiscountDataModule  = ifw.DataPool.DiscountModelDataModule
+             AccountDataModule   = ifw.DataPool.CustomerData
+             PortalConfigDataModule = ifw.DataPool.PortalConfigDataModule
+             ListenerDataModule  = ifw.DataPool.Listener
+             BalanceDirectory    = ./data/balance
+             UseFlexibleConsumptionRule = True #Default Value = True 
+             LogEvents           = True
+             LogTransactions     = True
+           }
+         }
+         #--------------------------------------------------------
+         # ModelSelector Data Module
+         #-----------------------------------------------------------
+         ModelSelectorDataModule
+         {
+           ModuleName = DAT_ModelSelector
+           Module
+           {
+     	ListenerDataModule  = ifw.DataPool.Listener
+             IntegrateConnection = ifw.DataPool.Login
+             LogEvents           = True
+           }
+         }
+         #-----------------------------------------------------------
+         # ItemAssign Data Module
+         #-----------------------------------------------------------
+         ItemAssignDataModule
+         {
+           ModuleName = DAT_ItemAssign
+           Module
+           {
+             InfranetConnection  = ifw.DataPool.LoginInfranet
+             AccountDataModule  = ifw.DataPool.CustomerData
+     	PortalConfigDataModule = ifw.DataPool.PortalConfigDataModule
+             ItemPoidReservedRangeUnitSize = 10000
+           }
+         }
+         #--------------------------------------------------------
+         # Recycling Data
+         #-----------------------------------------------------------
+         RecyclingData
+         {
+           ModuleName = DAT_Recycle
+           Module
+           {
+             Listener = ifw.DataPool.Listener
+             LogEvents = True
+             ControlPath = ./database/Oracle/Scripts/Suspense 
+             ParameterFile = parameter.isc
+             QueueFileName       = RecycleJobIds_wireless.dat
+             QueueFilePath       = ./data
+             ProcessCount        = 50
+             PipelineCategory    = RatingPipeline
+           }
+         }
+       } # end of data pool
+       
+       TransactionIdController
+       { 
+         Source = File
+         
+         Generator
+         {
+           FileName = ./tam/TransactionIDsWIRELESS.dat
+           Increment = 200
+         }
+       }
+     
+       SequencerPool
+       {
+       }
+     
+       Pipelines
+       {
+         PRE_PROCESS
+         {
+           Active = True
+           RejectStream = RejectOutput
+           TransactionManager
+           {
+             RedoEnabled = True #False
+             SingleTransaction = False
+             WriteToLogEnabled = True
+             BinaryLogFileName = ./tam/binaryLogFilePRE_PROCESS.dat
+           }
+           #---------------------------------
+           EdrFactory
+           {
+             DataConnection = ifw.DataPool.Login
+             Description = ./formatDesc/Portal/containerDesc.dsc
+             UsageStatistic = ./log/statistic/edrStatisticPRE_PROCESS.txt
+             EdrVersionDataConnection = ifw.DataPool.LoginInfranet
+           }
+           #---------------------------------
+           DataDescription  
+           {
+             Standard
+             {
+               ModuleName = Standard
+               Module
+               {
+                 StreamFormats
+                 {
+                   SIMPLESAMPLE = ./formatDesc/Formats/Sample/SIMPLESAMPLE_v1.dsc
+                   SOL42_SUSPENSE = ./formatDesc/Formats/Solution42/SOL42_V670_REL.dsc
+                 }
+                 InputMapping
+                 {
+                   SIMPLESAMPLE = ./formatDesc/Formats/Sample/SIMPLESAMPLE_v1_InMap.dsc
+                 }
+                 OutputMapping
+                 {
+                   EDR_OUTPUT = ./formatDesc/Formats/Solution42/SOL42_V670_REL_OutMap.dsc
+                 }
+               }
+             }
+           }
+     
+           #---------------------------------
+           # Pipeline Log Section
+           #---------------------------------
+           PipelineLog
+           {
+             ModuleName = LOG
+             Module
+             {
+               ITO
+               {
+                 FilePath = /oms/ifw/log/pipeline
+                 FileName = pipeline_PRE_PROCESS.log
+                 ProcessName = ifw
+                 MessageGroup = IFW
+                 ShowOriginator = True
+                 SuppressErrors
+                 {
+                   ERR_SPEC_VERSION_INVALID
+                   ERR_RELEASE_VERSION_INVALID
+            
+                 }
+               }
+     
+               Buffer
+               {
+                 Size = 1000
+               }
+             }
+            }# Pipeline log
+          InputBuffer
+           {
+             Size = 100
+           }
+     
+           OutputBuffer
+           {
+             Size = 100
+           }
+     
+           #---------------------------------
+           # Input section
+           #---------------------------------
+           Input
+           {
+             UnitsPerTransaction = 1
+     
+             InputModule
+             {
+               ModuleName = INP_GenericStream
+               Module
+               {
+                 DefaultOutput = EdrOutput
+                 Grammar = ./formatDesc/Formats/Sample/SIMPLESAMPLE_v1_InGrammar.dsc
+     
+                 InputStream
+                 {
+                   ModuleName = EXT_InFileManager
+                   Module
+                   {
+                     InputPath = /oms/ifw/data
+                     InputPrefix = test
+                     InputSuffix     = .edr
+     
+                     DonePath = /oms/ifw/data/done
+                     DonePrefix = test_PREPROCESS
+                     DoneSuffix = .done
+     
+                     ErrorPath = ./data/error
+                     ErrorPrefix = test_PREPROCESS
+                     ErrorSuffix = .err
+     
+                     TempPrefix = tmp_PREPROCESS
+                     Replace = TRUE
+                     InputDirEmptyTimeout = 10
+                   }
+                 }
+               }
+             }
+           }
+     
+           #---------------------------------
+           # Functions Section
+           #---------------------------------
+           Functions
+           {
+             Standard
+             {
+               FunctionPool
+               {
+                 #--------------------------------------------------
+                 # Rejection
+                 #--------------------------------------------------
+                 Rejection
+                 {
+                   ModuleName = FCT_Reject
+                   Module
+                   {
+                     Active          = True
+                     NotifyOnReject  = True
+                     UseRejectStream = True
+                     StreamMap
+                     {
+                     }
+     
+                   }
+                 }
+               } # end FunctionPool
+             } # end Standard
+           } # end Functions
+     
+           #---------------------------------
+           # Output Section
+           #---------------------------------
+           Output
+           {
+             ChargePrecision = 3
+             WriteDefaultEdr = False
+             SpecificationVersionNumber = 2
+             SequenceGeneration = Unit
+             #Unit - Transaction
+     
+             MaxErrorRates
+             {
+               INF_EDR_REJECTED = 90
+               ERR_CUST_NOT_FOUND = 55
+               ERR_CHARGED_ZONE_NOT_FOUND = 55
+             }
+             
+             #---------------------------------
+             OutputCollection 
+             {
+             #----------------------------------------------
+             # The DevNull stream
+             #---------------------------------------------------
+             DevNull
+             {
+               ModuleName = OUT_DevNull
+               Module
+               {
+             }
+             } # end of DevNull
+     
+             ##--------------------------------------------------------------------
+             ## Output stream for rejected events
+             ##--------------------------------------------------------------------
+             RejectOutput
+             {
+               ModuleName = OUT_Reject
+               Module
+               {
+                 DeleteEmptyStream = TRUE # defaults to TRUE
+                 OutputStream
+                 {
+                   ModuleName = EXT_OutFileManager
+                   Module
+                   {
+                     OutputPath = ./data/reject
+                     OutputPrefix = test_PREPROCESS
+                     OutputSuffix = .data
+                     TempPrefix   = tmp_PREPROCESS
+                     TempDataPath    = ./data/reject
+                     TempDataPrefix  = pre.tmp.
+                     TempDataSuffix  = .pre
+                     Replace = TRUE
+                   }
+                 }
+               }
+             } # end of RejectOutput
+     
+             #-----------------------------
+             EdrOutput
+             {
+               ModuleName = OUT_GenericStream
+               ProcessType = PREPROCESS_PIPELINE
+               Module
+               {
+                 Grammar = ./formatDesc/Formats/Solution42/SOL42_V670_REL_OutGrammar.dsc
+                 DeleteEmptyStream = True
+                 OutputStream
+                 {
+                   ModuleName = EXT_OutFileManager
+                   Module
+                   {
+                     OutputPath = /oms/ifw/data/edr
+                     OutputPrefix = test
+                     OutputSuffix = .edr
+                     TempPrefix = tmp_PREPROCESS
+                     TempDataPath = ./data/edr
+                     TempDataPrefix = new.tmp.
+                     TempDataSuffix = .edr
+                     Replace = True
+                     AppendSequenceNumber = False
+                   }
+                 }
+               }
+             } # end of EdrOutput
+             } # end of OutputCollection
+     
+             #-------------------------------
+             OutputLog
+             {
+               FilePath = ./log/stream
+               FileName = stream
+               FilePrefix = log_
+               FileSuffix = .log
+               SuppressErrors
+               {
+                 ERR_SPEC_VERSION_INVALID
+                 ERR_RELEASE_VERSION_INVALID
+               }
+             } # end of OutputLog
+     
+             #-------------------------------
+             EdrTraceEnabled = False
+         	EdrTrace
+         	{
+                 TraceLog
+                 {
+                      FilePath   = ./log/edrLog
+                      FileName   = edrTraceLog
+                      FilePrefix = log_
+                      FileSuffix = .log
+                 }
+     
+                 TraceStartPoint =  Input
+                 TraceEndPoint   = Output
+     
+         	} # END EdrTrace
+     
+           } # END Output
+         } # END PreProcessPipeline
+     
+         #-----------------------------------
+         PRE_RECYCLE
+         {
+           Active                      = TRUE
+           MobileCountryCode           = 262
+           NationalAccessCode          = 0
+           InternationalAccessCode     = 00
+           InternationalAccessCodeSign = +
+           NetworkDestinationCode      = 172
+           RejectStream                = DevNull
+           TransactionManager
+           {
+             RedoEnabled       = True #False
+             SingleTransaction = False
+             WriteToLogEnabled = True
+             BinaryLogFileName = ./tam/binaryLogFilePRE_RECYCLE.dat
+           }
+           EdrFactory
+           {
+             DataConnection = ifw.DataPool.Login
+             Description = ./formatDesc/Portal/containerDesc.dsc
+             UsageStatistic = ./data/log/edrStatisticPRE_RECYCLE.txt
+             EdrVersionDataConnection = ifw.DataPool.LoginInfranet
+           }
+           DataDescription
+           {
+             Standard
+             {
+               ModuleName = Standard
+               Module
+               {
+                 StreamFormats
+                 {
+                   EDR_OUTPUT = ./formatDesc/Formats/Solution42/SOL42_V670_REL.dsc
+                 }
+                 InputMapping
+                 {
+                 }
+                 OutputMapping
+                 {
+                   EDR_OUTPUT = ./formatDesc/Formats/Solution42/SOL42_V670_REL_OutMap.dsc
+                 }
+               }
+             }
+           } # end of DataDescription
+           PipelineLog
+           {
+             ModuleName = LOG
+             Module
+             {
+               ITO
+               {
+                 FilePath = ./log/pipeline
+                 FileName = pipeline_PRE_RECYCLE.log
+                 ProcessName = ifw
+                 MessageGroup = IFW
+                 ShowOriginator = TRUE
+               }
+               Buffer
+               {
+                 Size = 500
+               }
+             }
+           } # end of PipelineLog
+           InputBuffer
+           {
+             BlockTransfer = TRUE
+             Size = 2000
+             BlockSize = 500
+           }
+           OutputBuffer
+           {
+             BlockTransfer = TRUE
+             Size = 2000
+             BlockSize = 500
+           }
+           #-------------------------------------------------------------------
+           # Input section
+           Input
+           {
+             UnitsPerTransaction = 1
+             InputModule
+             {
+               ModuleName  = INP_Recycle
+               Module
+               {
+                 DefaultOutput       = PreRecycleOutput 
+                 RecyclingDataModule = ifw.DataPool.RecyclingData
+                 InfranetConnection = ifw.DataPool.LoginInfranet
+                 InputStream
+                 {
+                   ModuleName = EXT_InEasyDB
+                   Module
+                   {
+                     DataConnection        = ifw.DataPool.LoginInfranet
+                     ControlPath           = ./database/Oracle/Scripts/Suspense 
+                     FileName              = DB
+                     FileNameExtension     = true
+                     InputPrefix           = sol42_
+                     InputSuffix           = .dat
+                     FieldDelimiter        = \t
+                     RecordDelimiter       = \n
+                     ParameterFile         = parameter.isc
+                     SqlHeader             = RecycleHeader.sql
+                     SqlDetail             = StdRecycleDetail.sql
+                     Replace               = true
+                     SynchronizeWithOutput = true
+                     NumberOfRows          = 1000
+                   }
+                 } # end of InputStream
+               }
+             } # end of InputModule
+           } # end of Input
+     
+           #---------------------------------------------------------------
+           # Function section
+           #-----------------------------------------------------------------
+           Functions
+           {
+             PreProcessing
+             {
+               FunctionPool
+               {
+                 #--------------------------------------------------
+                 # IRule to split EDR into original pipelines
+                 #--------------------------------------------------
+                 PipelineSplit
+                 {
+                   ModuleName = FCT_IRules
+                   Module
+                   {
+                     Active = TRUE
+                     Source = File
+                     Rules
+                     {
+                     }
+                     Descriptions
+                     {
+                       PipelineSplit = ./iScriptLib/iScriptLib_Suspense/IRL_PipelineSplitting.irl
+                     }
+                   }
+                 }
+               } # END FunctionPool
+             } # END PreProcessing
+           } # END Functions
+     
+           #--------------------------------------------------
+           # Output Section
+           #--------------------------------------------------
+           Output
+           {
+             WriteDefaultEdr            = False
+             DeleteEmptyFile            = True
+     
+             MaxErrorRates
+             {
+             }
+             OutputCollection
+             {
+               #----------------------------------------------------------------
+               # The DevNull stream
+               #---------------------------------------------------------------
+               DevNull
+               {
+                 ModuleName = OUT_DevNull
+                 Module
+                 {
+                 }
+               } # end of DevNull
+     
+               #--------------------------------------------------------------------
+               # The EDR output stream
+               #--------------------------------------------------------------------
+               PreRecycleOutput
+               {
+                 ModuleName = OUT_GenericStream
+                 ProcessType = RECYCLING_PIPELINE
+                 EventType = /recycle_suspended_usage
+                 Module
+                 {
+                   Grammar = ./formatDesc/Formats/Solution42/SOL42_V670_REL_OutGrammar.dsc
+                   DeleteEmptyStream         = True
+                   OutputStream
+                   {
+                     ModuleName = EXT_OutFileManager
+                     Module
+                     {
+                       OutputPath    = /oms/ifw/data/edr
+                       OutputPrefix  = test_recycle
+                       OutputSuffix  = .edr
+                       TempPrefix    = tmp_PRERECYCLE
+                       TempDataPath  = /oms/ifw/data/edr
+                       TempDataPrefix = recycle.tmp.
+                       TempDataSuffix = .edr
+                       Replace = TRUE
+                     }
+                   }
+                 }
+               } # end of PreRecycleOutput
+             }
+     
+             OutputLog
+             {
+               FilePath        = ./log/stream
+               FileName        = stream
+               FilePrefix      = Stream_
+               FileSuffix      = .log
+     
+               SuppressErrors
+               {
+                 ERR_SPEC_VERSION_INVALID
+                 ERR_RELEASE_VERSION_INVALID
+               }
+             }
+     
+             SequenceGeneration = Unit
+     
+             #-------------------------------
+             EdrTraceEnabled = False
+             EdrTrace
+             {
+                 TraceLog
+                 {
+                      FilePath   = ./log/edrLog
+                      FileName   = edrTraceLog
+                      FilePrefix = log_
+                      FileSuffix = .log
+                 }
+     
+                 TraceStartPoint =  Input
+                 TraceEndPoint   = Output
+     
+             } # END EdrTrace
+     
+     
+           } # END Output
+         } # END PreRecyclePipeline
+     
+         ALL_RATE
+         {
+           Active                      = true
+           
+           CountryCode                 = 49
+           MobileCountryCode           = 262
+           NationalAccessCode          = 0
+           InternationalAccessCode     = 00
+           InternationalAccessCodeSign = +
+           NetworkDestinationCode      = 172
+           RejectStream                = SuspenseCreateOutput
+           
+           TransactionManager
+           {
+             RedoEnabled = True #False
+             SingleTransaction = False
+             WriteToLogEnabled = True
+             BinaryLogFileName = ./tam/binaryLogFileWIRELESS.dat
+           }
+           
+           EdrFactory 
+           { 
+             DataConnection = ifw.DataPool.Login 
+             Description =  ./formatDesc/Portal/containerDesc.dsc
+             UsageStatistic = ./log/statistic/edrStatisticWIRELESS.txt 
+             EdrVersionDataConnection = ifw.DataPool.LoginInfranet
+           }
+     
+           DataDescription
+           {
+             Standard
+             {
+               ModuleName = Standard
+               Module
+               {
+                 StreamFormats
+                 {
+                   SOL42_FORINPUT =./formatDesc/Formats/Solution42/SOL42_V670_REL_FORINPUT.dsc
+                   EVENT_LOADER = ./formatDesc/Formats/Solution42/V670_EVENT_LOADER.dsc
+                   SUSPENSE_CREATE_OUTPUT = ./formatDesc/Formats/SuspenseHandling/SuspendedUsageCreation.dsc
+                   SUSPENSE_UPDATE_OUTPUT = ./formatDesc/Formats/SuspenseHandling/SuspendedUsageUpdate.dsc
+                 }
+     
+                 InputMapping
+                 {
+                   SOL42 = ./formatDesc/Formats/Solution42/SOL42_V670_REL_InMap.dsc
+                 }
+     
+                 OutputMapping
+                 {
+                   EVENT_LOADER = ./formatDesc/Formats/Solution42/V670_EVENT_LOADER_OutMap.dsc
+                   SUSPENSE_CREATE_OUTPUT = ./formatDesc/Formats/SuspenseHandling/SuspendedUsageCreationMapping.dsc
+                   SUSPENSE_UPDATE_OUTPUT = ./formatDesc/Formats/SuspenseHandling/SuspendedUsageUpdateMapping.dsc
+                 }
+               }
+             }
+           } # end of DataDescription
+     
+           PipelineLog 
+           { 
+             ModuleName = LOG
+             Module 
+             { 
+               ITO 
+               { 
+                 WriteMessageKey  = True
+                 FilePath = /oms/ifw/log/pipeline
+                 FileName = pipeline_ALL_RATE.log
+                 ProcessName = ifw
+                 MessageGroup = IFW
+                 ShowOriginator = TRUE
+               }
+     
+               Buffer 
+               { 
+                 Size = 500
+               } 
+             } 
+           } # end of PipelineLog
+     
+     
+           InputBuffer
+           {
+             BlockTransfer = False
+             Size = 1
+             BlockSize = 1
+           }
+     
+           OutputBuffer
+           {
+             BlockTransfer = False
+             Size = 1
+             BlockSize = 1
+           }
+           
+           #------------------------------------------------------------------------
+           # Input section
+           #------------------------------------------------------------------------
+           Input
+           {
+             UnitsPerTransaction = 1
+     
+             InputModule
+             {
+               ModuleName  = INP_GenericStream
+               Module
+               {
+                 Grammar = ./formatDesc/Formats/Solution42/SOL42_V670_REL_InGrammar.dsc
+                 DefaultOutput = TELOutput
+     
+                 InputStream
+                 {
+                   ModuleName = EXT_InFileManager
+                   Module
+                   {
+                     InputDirEmptyTimeout = 10
+     
+                     InputPath   = /oms/ifw/data/edr
+                     InputPrefix = test
+                     InputSuffix = .edr
+      
+                     DonePath    = /oms/ifw/data/done
+                     DonePrefix  = test_ALLRATE
+                     DoneSuffix  = .done
+                
+                     ErrorPath   = /oms/ifw/data/error
+                     ErrorPrefix = test_ALLRATE
+                     ErrorSuffix = .err
+     
+                     TempPrefix  = tmp_ALLRATE
+       
+                     Replace     = TRUE
+                   }
+                 } # end of InputStream
+               }
+             } # end of InputModule
+           } # end of Input
+     
+           
+           #------------------------------------------------------------------------
+           # Function section
+           #------------------------------------------------------------------------
+           Functions 
+           {
+             Processing
+             {
+               FunctionPool
+               {
+                 #---------------------------------------------------
+                 # PreSuspense FCT
+                 #---------------------------------------------------
+                 PreSuspense
+                 {
+                   ModuleName = FCT_PreSuspense
+                   Module
+                   {
+                     Active = True
+                   }
+                 }
+     
+                 #--------------------------------------------------
+                 # Service Code Mapping
+                 #--------------------------------------------------
+                 ServiceCodeMap 
+                 { 
+                   ModuleName = FCT_ServiceCodeMap
+                   Module 
+                   { 
+                     Active             = TRUE
+                     DataConnection     = ifw.DataPool.Login
+                     MapGroup           = ALL_RATE
+                   } 
+                 } 
+                 #--------------------------------------------------
+                 # Usage Class Mapping
+                 #--------------------------------------------------
+                 UsageClassMap
+                 {
+                   ModuleName = FCT_UsageClassMap 
+                   Module 
+                   { 
+                     Active              = TRUE
+                     DataConnection      = ifw.DataPool.Login
+                     OverwriteUsageClass = False 
+                     MapGroup            = ALL_RATE
+                     #OptimizeFor        = Memory
+                   } 
+                 }
+     
+                 #--------------------------------------------------
+                 # Discarding (of events)
+                 #--------------------------------------------------
+                 EventDiscarding
+                 {
+                   ModuleName = FCT_Discard
+                   Module
+                   {
+                     Active = TRUE
+                     DataConnection = ifw.DataPool.Login
+                     Function       = Discard
+                     StreamName     = DevNull
+                   }
+                 }
+     
+                 #--------------------------------------------------
+                 # Duplicate Check
+                 #--------------------------------------------------
+                 DuplicateCheck
+                 {
+                   ModuleName = FCT_DuplicateCheck
+                   Module
+                   {
+                     Active = FALSE
+                     Path = ./data/dup
+                     FileName = calls.duplicate
+                     StreamName = DuplicateOutput
+                     BufferLimit = 20020601
+                     SearchKey = DETAIL.A_NUMBER
+                     StoreLimit = 20020601
+     
+                     Fields
+                     {
+                       1 = DETAIL.BASIC_SERVICE
+                       2 = DETAIL.B_NUMBER
+                     }
+                   }
+                 }
+     
+               
+                 #--------------------------------------------------
+                 # Call Assembling 
+                 #--------------------------------------------------
+                 CallAssembling 
+                 { 
+                   ModuleName = FCT_CallAssembling 
+                   Module 
+                   { 
+                     Active = False 
+     
+                     Path = . 
+                     FileName = calls 
+     
+                     RejectMissingChain = False
+                   } 
+                 } 
+     
+                 #--------------------------------------------------
+                 # Prefix Description
+                 #--------------------------------------------------
+                 PrefixDesc
+                 {
+                   ModuleName = FCT_PrefixDesc
+                   Module
+                   {
+                     Active = False
+                     PrefixDataModule = ifw.DataPool.PrefixDescDataModule
+                   }
+                 }
+      
+                 #--------------------------------------------------
+                 # Check TwinTalk profiles
+                 #--------------------------------------------------             
+              #   TwinTalkPlugIn
+              #   {
+              #     ModuleName = FCT_IScript
+              #     Module
+              #     {
+              #       Active = False
+              #       Source = FILE
+              #       Scripts
+              #       {
+              #         TwinTalkIScript
+              #         {
+              #           FileName = ./iScriptLib/iScriptLib_Standard/ISC_TwinTalkEnabler.isc
+     
+              #         }
+              #       }
+              #     }
+              #   }
+     
+                 #--------------------------------------------------
+                 # Infranet Customer
+                 #--------------------------------------------------
+                 CustomerSearch 
+                 { 
+                   ModuleName = FCT_Account
+                   Module 
+                   { 
+                     Active         = TRUE
+                     DataModule     = ifw.DataPool.CustomerData
+                     #DisableRatingProductCheck  = False
+                   }
+                 } 
+     
+     ##----------------------------------------------------------------------
+     ##         Deprecated because of the introduction of EDR Trace
+     ##----------------------------------------------------------------------    
+     ##          EdrDump_CustomerSearch_post
+     ##          {
+     ##            ModuleName = FCT_EdrDump
+     ##            Module
+     ##            {
+     ##              Active   = False
+     ##              FileName = ./data/dump/CustomerSearch_post.dump
+     ##            }
+     ##          } 
+     ##----------------------------------------------------------------------
+     
+     ## Exclusive Feature DroppedCall         
+     ##          #--------------------------------------------------
+     ##          # Dropped Call
+     ##          #--------------------------------------------------
+     ##          #   DroppedCall
+     ##          #   {
+     ##          #       ModuleName = FCT_DroppedCall
+     ##          #       Module
+     ##          #       {
+     ##          #          Active = False
+     ##          #          FilePath = ./data/
+     ##          #          FileName = dropped_call
+     ##          #          TempPrefix = tmp_
+     ##          # 
+     ##          #          # OOB field which will be used to detect dropped call (mandatory) 
+     ##          #          CheckField
+     ##          #          {
+     ##          #             Name = DETAIL.CALL_COMPLETION_INDICATOR
+     ##          #             Value = 5 
+     ##          #          }
+     ##          #
+     ##          #          SameBillCycle = True 
+     ##          #
+     ##          #          WrittenFields
+     ##          #          {
+     ##          #            1 = DETAIL.RECORD_TYPE  
+     ##          #          }
+     ##          #  
+     ##          #          AddedFields
+     ##          #          {             
+     ##          #            Field1       
+     ##          #            {
+     ##          #               ContinuationCallField = DETAIL.DROPPED_CALL_QUANTITY 
+     ##          #               DroppedCallField      = DETAIL.DURATION 
+     ##          #            } 
+     ##          #          } 
+     ##          #       } 
+     ##          #   }  
+     
+     #--------------------------------------------------
+                 # Profile Label
+                 #--------------------------------------------------
+     ##            ProfileLabel
+     ##            {
+     ##              ModuleName = FCT_IScript
+     ##              Module
+     ##              {
+     ##                Active = False
+     ##                Source = FILE
+     ##                Scripts
+     ##                {
+     ##                  ProfileLabel
+     ##                  {
+     ##                    ProfileName = FRIENDS_FAMILY
+     ##                    LabelSeparator = ,
+     ##                    FileName = ./iScriptLib/iScriptLib_Standard/ISC_ProfileLabel.isc
+     ##                  }
+     ##                }
+     ##              }
+     ##            }
+     
+                 #--------------------------------------------------
+                 # Profile analysis
+                 #--------------------------------------------------
+                 ProfileAnalyzer
+                 {
+                   ModuleName = FCT_IScript
+                   Module
+                   {
+                     Active = False
+                     Source = FILE
+                     Scripts
+                     {
+                       ProfileAnalyzer
+                       {
+                         ProfileName = FRIENDS_FAMILY
+                         LabelSeparator = ,
+                         FileName = ./iScriptLib/iScriptLib_Standard/ISC_ProfileAnalyzer.isc
+                       }
+                     }
+                   }
+                 }
+     
+                 #--------------------------------------------------
+                 # Usage Type Mapping
+                 #--------------------------------------------------
+                 UsageType
+                 {
+                    ModuleName = FCT_IRules
+                    Module
+                    {
+                      Active = TRUE
+                      Source = File
+                      Descriptions
+                      {
+                        UsageTypeDetermination= ./iScriptLib/iScriptLib_Standard/IRL_UsageType.irl
+                      }
+                    }
+                 }
+     
+                 #--------------------------------------------------
+                 # FCT_Filter_Set registry entry fields.
+                 #--------------------------------------------------
+                 # Filter_Set FCT
+                 #---------------------------
+                 Filter_Set
+                 {
+                   ModuleName                = FCT_Filter_Set
+                   Module
+                   {
+                     Active                   = False
+                     DiscountDataModule       = ifw.DataPool.DiscountModelDataModule
+                     AccountDataModule        = ifw.DataPool.CustomerData
+                     InfranetConnection       = ifw.DataPool.LoginInfranet
+                   }
+                 }
+     
+                 #--------------------------------------------------
+                 # Get the Least Cost As Per Market Segment and the
+                 # the product priority for each edr.
+                 #--------------------------------------------------
+                 LeastCostPerEDR
+                 {
+                    ModuleName = FCT_IRules
+                    Module
+                    {
+                      Active = False
+                      Source = File
+                      Descriptions
+                      {
+                        LeastCostCheck= ./iScriptLib/iScriptLib_Standard/IRL_LeastCostPerEDR.irl
+                      }
+                    }
+                 }
+     
+                 #--------------------------------------------------
+                 # Get the Promotion Saving as per the product attributes
+                 #--------------------------------------------------
+                 PromotionalSavingPerEDR
+                 {
+                    ModuleName = FCT_IRules
+                    Module
+                    {
+                      Active = False
+                      Source = File
+                      Descriptions
+                      {
+                        PromotionalSaving = ./iScriptLib/iScriptLib_Standard/IRL_PromotionalSavingPerEDR.irl
+                      }
+                    }
+                 }
+     
+                 #--------------------------------------------------
+                 # Customer Individual Rating
+                 #--------------------------------------------------
+                 CustomerRating
+                 { 
+                   ModuleName = FCT_CustomerRating 
+                   Module 
+                   { 
+                     Active            = TRUE
+                     Mode              = CUSTOMER 
+                     DataConnection    = ifw.DataPool.Login 
+                     DefaultRateplan   = Standard
+                     LeastCostRating   = False
+                     PromotionalSaving = False
+                   } 
+                 }
+     
+      
+                 #--------------------------------------------------
+                 # Pre-Rating (Zoning)
+                 #--------------------------------------------------
+                 PreRatingZone
+                 {
+                   ModuleName = FCT_PreRating
+                   Module
+                   {
+                     Active = TRUE
+                     RateplanDataModule = ifw.DataPool.RateplanDataModule
+                     ZoneDataModule = ifw.DataPool.ZoneDataModule
+                   }
+                 }
+     
+                 #--------------------------------------------------
+                 # Access Point Name Mapping (after zoning)
+                 #--------------------------------------------------              
+                 APNMap
+                 {
+                   ModuleName = FCT_APN_Map 
+                   Module 
+                   { 
+                     Active         = TRUE
+                     DataConnection = ifw.DataPool.Login
+                     APNGroup {} 
+                   }
+                 } 
+     
+                 #--------------------------------------------------
+                 # Usage Scenario Mapping
+                 #--------------------------------------------------
+                 UsageScenarioMap
+                 {
+                   ModuleName = FCT_USC_Map
+                   Module
+                   {
+                     Active = TRUE
+                     DataModule = ifw.DataPool.USCDataModule
+                     DefaultUSCGroup = ALL_RATE
+                   }
+                 }
+     
+     
+                 #--------------------------------------------------
+                 # Rate Service Class Mapping
+                 #--------------------------------------------------              
+                 RateServiceClassMap 
+                 { 
+                   ModuleName = FCT_RSC_Map 
+                   Module 
+                   {
+                     Active          = FALSE 
+                     DataConnection  = ifw.DataPool.Login
+                     DefaultRscGroup = ALL_RATE
+                   } 
+                 }
+     
+     ##----------------------------------------------------------------------
+     ##         Deprecated because of the introduction of EDR Trace
+     ##----------------------------------------------------------------------
+     ##          EdrDump_MainRating_pre
+     ##          {
+     ##            ModuleName = FCT_EdrDump
+     ##            Module
+     ##            {
+     ##              Active   = False
+     ##              FileName = ./data/dump/MainRating_pre.dump
+     ##            }
+     ##          }          
+     ##----------------------------------------------------------------------
+     
+                 # Main Rating (Pricing)
+                 #--------------------------------------------------
+                 MainRating
+                 {
+                   ModuleName = FCT_MainRating
+                   Module
+                   {
+                     Active                  = TRUE
+                     RateplanDataModule      = ifw.DataPool.RateplanDataModule
+                     CalendarDataModule      = ifw.DataPool.CalendarDataModule
+                     TimeDataModule          = ifw.DataPool.TimeDataModule
+                     PriceDataModule         = ifw.DataPool.PriceDataModule
+                     CurrencyDataModule      = ifw.DataPool.CurrencyDataModule
+                     ModelSelectorDataModule = ifw.DataPool.ModelSelectorDataModule
+                   }
+                 }
+      	
+     ##----------------------------------------------------------------------
+     ##         Deprecated because of the introduction of EDR Trace
+     ##----------------------------------------------------------------------
+     ##          EdrDump_MainRating_post
+     ##          {
+     ##            ModuleName = FCT_EdrDump
+     ##            Module
+     ##            {
+     ##              Active   = False
+     ##              FileName = ./data/dump/MainRating_post.dump
+     ##            }
+     ##          }   
+     ##----------------------------------------------------------------------
+     
+                 #--------------------------------------------------
+                 # Special Dayrates
+                 #--------------------------------------------------
+                 SpecialDayRate
+                 {
+                   ModuleName = FCT_Dayrate
+                   Module
+                   {
+                     Active = TRUE
+                     DayrateDataModule = ifw.DataPool.DayRateDataModule
+                   }
+                 }
+     
+                 #--------------------------------------------------
+                 # Rate Adjustment
+                 #--------------------------------------------------
+                 RateAdjustment
+                 {
+                   ModuleName = FCT_RateAdjust
+                   Module
+                   {
+                     Active         = TRUE
+                     Source         = Database
+                     DataConnection = ifw.DataPool.Login
+                   }
+                 }
+     
+                #--------------------------------------------------
+                 # Rounding (Rating)
+                 #--------------------------------------------------
+                 Round_Rating
+                 {
+                   ModuleName = FCT_Rounding
+                   Module
+                   {
+                     Active             = TRUE
+                     CurrencyDataModule = ifw.DataPool.CurrencyDataModule
+                     Mode               = RATING
+                   }
+                 } 
+      
+                 #--------------------------------------------------
+                 # Discount Analysis
+                 #--------------------------------------------------
+                 DiscountAnalysisModule
+                 {
+                   ModuleName = FCT_DiscountAnalysis
+                   Module
+                   {
+                     Active                   = TRUE
+                     DiscountModelDataModule  = ifw.DataPool.DiscountModelDataModule
+                     Filter_SetModule         = ifw.Pipelines.ALL_RATE.Functions.Processing.FunctionPool.Filter_Set 
+                     ModelSelectorDataModule  = ifw.DataPool.ModelSelectorDataModule
+     
+                   } 
+                 }
+     
+     
+                 #--------------------------------------------------
+                 # Discounting
+                 #--------------------------------------------------
+                 ApolloDiscountModule
+                 {
+                   ModuleName = FCT_Discount
+                   Module
+                   {
+                     Active                   = TRUE
+                     DiscountDataModule       = ifw.DataPool.DiscountModelDataModule
+                     BalanceDataModule        = ifw.DataPool.BalanceDataModule
+                     AccountDataModule        = ifw.DataPool.CustomerData
+                     CurrencyDataModule       = ifw.DataPool.CurrencyDataModule
+                     DiscountMoreThanPossible = False 
+                     BackOut                  = False 
+                     SupportBundleERA         = False
+                     IgnoreEDROnDeadlock      = False
+       		     IgnoreEDROnDiscountError = False
+     		     IgnoreEDROnLock          = False
+                     DiscountTrace = {{ .Values.ocbrm.realtimepipe.deployment.discount_trace }}
+                   } 
+                 }
+     	    
+     ##----------------------------------------------------------------------
+     ##         Deprecated because of the introduction of EDR Trace
+     ##----------------------------------------------------------------------
+     ##         EdrDump_Discounting_post
+     ##          {
+     ##            ModuleName = FCT_EdrDump
+     ##            Module
+     ##            {
+     ##              Active   = False
+     ##              FileName = ./data/dump/Discounting_post.dump
+     ##            }
+     ##          }          
+     ##----------------------------------------------------------------------
+     
+                 #--------------------------------------------------
+                 # Rounding (Discounting)
+                 #--------------------------------------------------
+                 Round_Discounting
+                 {
+                   ModuleName = FCT_Rounding
+                   Module
+                   {
+                     Active             = TRUE
+                     CurrencyDataModule = ifw.DataPool.CurrencyDataModule
+                     Mode               = Discounting
+                   }
+                 }
+     
+                 #-------------------------------------------------
+                 # Least Cost Rating
+                 #-------------------------------------------------
+                 LeastCostRating
+                 {
+                   ModuleName = FCT_IScript
+                   Module
+                   {
+                     Active = False
+                     Source = FILE
+                     Scripts
+                     {
+                       LeastCostRating
+                       {
+                         Resource = Saving_Resource_Id
+                         Resource_id = 1000096
+                         FileName = ./iScriptLib/iScriptLib_Standard/ISC_LeastCost.isc
+                       }
+                     }
+                   }
+                 }
+     
+     #            #--------------------------------------------------
+     #            # FirstUsageNotify FCT
+     #            #---------------------------
+     #            FirstUsageNotify
+     #            {
+     #              ModuleName = FCT_FirstUsageNotify
+     #              Module
+     #              {
+     #                Active = True
+     #                AccountDataModule       = ifw.DataPool.CustomerData
+     #                RejectModule            = ifw.Pipelines.ALL_RATE.Functions.Processing.FunctionPool.Rejection
+     #                FirstUsageNotifyOutput  = FirstUsageNotifyOutput
+     #              }
+     #            }
+     
+                 #--------------------------------------------------
+                 # ApplyBalance
+                 #--------------------------------------------------
+                 ApolloApplyBalanceModule
+                 {
+                   ModuleName = FCT_ApplyBalance
+                   Module
+                   {
+                     Active                       = TRUE
+                     DiscountDataModule           = ifw.DataPool.DiscountModelDataModule
+                     BalanceDataModule            = ifw.DataPool.BalanceDataModule
+                     DiscountFunctionalModule     = Functions.Processing.FunctionPool.ApolloDiscountModule
+                     PortalConfigDataModule       = ifw.DataPool.PortalConfigDataModule
+                     #NumberOfNotificationLimit   = 1000
+                     #NotificationOutputDirectory = ./data/out/notifybalancebreach
+                     #NotificationOutputPrefix    = balancebreach_
+                   }
+                 }
+     
+     
+                 #--------------------------------------------------
+                 # Exchange Rate Calculation
+                 #--------------------------------------------------              
+                 ExchangeRate
+                 {
+                   ModuleName  = FCT_ExchangeRate
+                   Module
+                   {
+                     Active                 = FALSE
+                     ExchangeRateDataModule = ifw.DataPool.ExchangeRateDataModule
+                     RatingDateBilling      = CDR
+                     RatingDateHome         = SYSTEM
+                     HomeCurrency           = EUR
+                     ErrorMessages          = FALSE
+                     Mode                   = Reverse
+                   }
+                 }
+                 #--------------------------------------------------
+                 # Taxation PlugIn
+                 #--------------------------------------------------
+     
+                 #TaxModule
+                 #{
+                 # ModuleName = FCT_IScript
+                 #  Module
+                 # {
+                 #    Active = TRUE
+                 #    Source = FILE
+                 #    Scripts
+                 #    {
+                 #      TaxScript
+                 #      {
+                 #        FlatTaxRate = 5
+                 #        TaxCode = FLAT
+                 #        TaxType = 16
+                 #        TaxCodeMapFilePath = < Location of taxcodes_map file >
+                 #        FileName = ./iScriptLib/iScriptLib_Tax/ISC_TaxCalc.isc
+                 #      }
+                 #    }
+                 #  }
+                 #}
+     
+     
+                 #--------------------------------------------------
+                 # Rounding (Taxation)
+                 #--------------------------------------------------
+                 #Round_Taxation
+                 #{
+                 #  ModuleName = FCT_Rounding
+                 #  Module
+                 #  {
+                 #    Active             = TRUE
+                 #    CurrencyDataModule = ifw.DataPool.CurrencyDataModule
+                 #    Mode               = Taxation
+                 #  }
+                 #}
+                 #--------------------------------------------------
+                 # ItemAssign PlugIn
+                 #--------------------------------------------------
+                 FlexibleItemAssignment
+                 {
+                   ModuleName = FCT_ItemAssign
+                   Module
+                   {
+                      Active     = TRUE
+                      DataModule     = ifw.DataPool.ItemAssignDataModule
+                   }
+                 }
+     
+                 #--------------------------------------------------
+                 # EventDataDump PlugIn
+                 #--------------------------------------------------
+                 #EventDataDump
+                 #{
+                 #  ModuleName = FCT_DataDump
+                 #  Module
+                 #  {
+                 #    Active             = FALSE
+                 #    RateplanDataModule = ifw.DataPool.RateplanDataModule
+                 #    PriceDataModule    = ifw.DataPool.PriceDataModule
+                 #    DiscountDataModule = ifw.DataPool.DiscountModelDataModule
+                 #    BalanceDataModule  = ifw.DataPool.BalanceDataModule
+                 #    AccountDataModule  = ifw.DataPool.CustomerData
+                 #    NumberOfEvents      = 10 # Default 
+                 #  }
+                 #}
+     
+                 #----------------------------------------------------------------
+                 # Add Infranet Billing Record (plugin version)
+                 #----------------------------------------------------------------
+                 AddInfranetBillingRecord
+                 {
+                   ModuleName = FCT_BillingRecord
+                   Module
+                   {
+                     Active = TRUE
+                     CurrencyType = R
+                     CurrencyDataModule = ifw.DataPool.CurrencyDataModule
+                     ItemAssignDataModule     = ifw.DataPool.ItemAssignDataModule
+                     AccountDataModule  = ifw.DataPool.CustomerData
+                     BalanceDataModule        = ifw.DataPool.BalanceDataModule
+                     PortalConfigDataModule   = ifw.DataPool.PortalConfigDataModule
+                   }
+                 }
+     
+                 #--------------------------------------------------
+                 # Split Output per ServiceCode
+                 #--------------------------------------------------              
+                 ServiceOutputSplit
+                 {
+                   ModuleName = FCT_IRules
+                   Module
+                   {
+                     Active = TRUE
+                     Source = File
+                     Rules
+                     {
+                     }
+                     Descriptions
+                     {
+                       ServiceCodeSplit = ./iScriptLib/iScriptLib_Standard/IRL_EventTypeSplitting.irl
+                     }
+                   }
+                 }
+     
+                 #--------------------------------------------------
+                 # Split Output per ObjectCacheType
+                 #--------------------------------------------------
+                 ObjectCacheTypeOutputSplit
+                 {
+                   ModuleName = FCT_IScript
+                   Module
+                   {
+                     Active = TRUE
+                     Source = File
+                     Scripts
+                     {
+                       ObjectCacheTypeOutputSplit
+                       {
+                         FileName = ./iScriptLib/iScriptLib_Standard/ISC_ObjectCacheTypeOutputSplitter.isc
+                       }
+                     }
+                   }
+                 }
+     
+                 #--------------------------------------------------
+                 # Aggregation
+                 #--------------------------------------------------
+                 Aggregate
+                 {
+                   ModuleName = FCT_AggreGate
+                   Module
+                   {
+                    Active = False
+     
+                      ScenarioReaderDataModule = ifw.DataPool.ScenarioReader
+     
+                      Scenarios
+                      {
+                      }
+     
+                      ResultFile
+                      {
+                        TempSuffix = .tmp
+                        DoneSuffix = .dat
+                        WriteEmptyFile = FALSE
+                      }
+     
+                      ControlFile
+                      {
+                        Suffix = .ctl
+                        DataFilePath = TRUE
+                      }
+                   }
+                 }  
+     
+                 #--------------------------------------------------
+                 # Rejection
+                 #--------------------------------------------------
+                 Rejection
+                 {
+                   ModuleName = FCT_Reject
+                   Module
+                   {
+                     Active          = True 
+                     NotifyOnReject  = True 
+                     UseRejectStream = True 
+                     StreamMap 
+                     {
+                       INF_IGNORE_ON_DISCOUNTACCOUNT_DEADLOCK = DiscountDeadlockOutput
+                       INF_IGNORE_ON_DISCOUNT_ERROR           = DiscountErrorOutput
+     		  INF_IGNORE_ON_BALANCEGROUP_LOCK        = DiscountErrorOutput 
+                     }
+     		
+     		# This is required if FCT_CallAssembing module is being used.
+     		CallAssemblingModule = ifw.Pipelines.ALL_RATE.Functions.Processing.FunctionPool.CallAssembling
+                   }
+                 }
+     
+                 #---------------------------
+                 # Suspense FCT
+                 #---------------------------
+                 Suspense
+                 {
+                   ModuleName  = FCT_Suspense
+                   Module
+                   {
+                     Active = True
+                     SuspenseCreateStream     = SuspenseCreateOutput
+                     SuspenseUpdateStream     = SuspenseUpdateOutput
+                     DataConnection           = ifw.DataPool.LoginInfranet
+                     LogTestResults           = False
+                     PipelineCategory         = RatingPipeline
+                     RecycleLog
+                     {
+                     } 
+                   }
+                 }
+     
+     ##----------------------------------------------------------------------
+     ##         Deprecated because of the introduction of EDR Trace
+     ##----------------------------------------------------------------------
+     ##          EdrDump_Suspense_post
+     ##          {
+     ##            ModuleName = FCT_EdrDump
+     ##            Module
+     ##            {
+     ##              Active   = False
+     ##              FileName = ./data/dump/Suspense_post.dump
+     ##            }
+     ##          }
+     ##----------------------------------------------------------------------
+     
+               } #END FunctionPool
+             }
+           } # END Functions
+     
+           #--------------------------------------------------
+           # Output Section
+           #--------------------------------------------------
+           Output
+           {
+             WriteDefaultEdr            = False
+     
+             MaxErrorRates
+             {
+               INF_EDR_REJECTED = 90
+             }
+     
+             #-------------------------------------------
+             # Multithreaded writing. This is recommended
+             # when EDRs are associated with multiple
+             # output streams.
+             #------------------------------------------
+             MultiThreading
+             {
+                Active = False      # Defaults to False
+                NumberOfThreads = 1 # Number of threads spawned. Defaults to 1
+                BatchSize = 0       # The number of EDRs cached before sent for writing. Defaults to 0
+             }
+     
+     
+             OutputCollection
+             {
+               #--------------------------------------------------------------------
+               # The DevNull stream
+               #--------------------------------------------------------------------
+               DevNull
+               {
+                 ModuleName = OUT_DevNull
+                 Module
+                 { 
+                 } 
+               } # end of DevNull
+     
+               ##--------------------------------------------------------------------
+               ## Output stream for duplicate events
+               ##--------------------------------------------------------------------
+               DuplicateOutput
+               {
+                 ModuleName = OUT_Reject
+                 Module
+                 {
+                   DeleteEmptyStream = TRUE # defaults to TRUE 
+                   OutputStream
+                   {
+                     ModuleName = EXT_OutFileManager
+                     Module
+                     {
+                       OutputPath = ./data/reject
+                       OutputPrefix = test
+                       OutputSuffix = .dup
+                       TempPrefix   = tmp
+                       TempDataPath    = ./data/reject
+                       TempDataPrefix  = dup.tmp.
+                       TempDataSuffix  = .data
+                       Replace = TRUE
+                     }
+                   }
+                 } 
+               } # end of DuplicateOutput          
+     
+               #--------------------------------------------------------------------
+               # Output stream for no balance events
+               #--------------------------------------------------------------------
+               DiscountErrorOutput
+               {
+                 ModuleName = OUT_Reject
+                 Module
+                 {
+                   DeleteEmptyStream = TRUE # defaults to TRUE
+     	
+                   OutputStream
+                   {
+                     ModuleName = EXT_OutFileManager
+                     Module
+                     {
+                       OutputPath = ./data/discountError
+                       OutputPrefix = test
+                       OutputSuffix = .dsc
+                       TempPrefix   = tmp
+                       TempDataPath    = ./data/discountError
+                       TempDataPrefix  = dsc.tmp.
+                       TempDataSuffix  = .data
+                       Replace = TRUE
+                     }
+                   }
+                 }
+               }
+     
+               #--------------------------------------------------------------------
+     	  # Output stream for dead-locked events.
+     	  #--------------------------------------------------------------------
+     	  DiscountDeadlockOutput
+     	  {
+     	    ModuleName = OUT_Reject
+     	    Module
+     	    {
+     	      DeleteEmptyStream = TRUE # defaults to TRUE
+     	      OutputStream
+     	      {
+     	        ModuleName = EXT_OutFileManager
+     	        Module
+     	        {
+     		  OutputPath = ./data/discountError
+     		  OutputPrefix = test
+     		  OutputSuffix = .dlk
+     		  TempPrefix   = tmp
+     		  TempDataPath    = ./data/discountError
+     		  TempDataPrefix  = dlk.tmp.
+     		  TempDataSuffix  = .data
+     		  Replace = TRUE
+     		}
+     	      }
+     	    }
+     	  }  # end of DiscountDeadlockOutput
+      
+               #--------------------------------------------------------------------
+               # The /service/gsm/telephony output stream
+               #--------------------------------------------------------------------
+               TELOutput
+               {
+                 ModuleName = OUT_GenericStream
+     
+                 ProcessType = RATING_PIPELINE
+                 EventType = /event/delayed/session/telco/gsm
+     
+                 Module
+                 {
+                   Grammar = ./formatDesc/Formats/Solution42/V670_EVENT_LOADER_OutGrammar.dsc
+                    
+                   DeleteEmptyStream = True # defaults to TRUE
+     
+                   OutputStream
+                   {
+                     ModuleName = EXT_OutFileManager
+                     Module
+                     {
+                       OutputPath = ./data/out
+                       OutputPrefix = test_TEL
+                       OutputSuffix = .out
+                       TempPrefix   = .
+     
+                       TempDataPath    = ./data/out
+                       TempDataPrefix  = tel.tmp.
+                       TempDataSuffix  = .data
+     
+                       Replace = TRUE
+                     }
+                   }
+                 }
+               } # end of TELOutput
+     
+     #          CONV_TELOutput
+     #          {
+     #            ModuleName = OUT_GenericStream
+     #
+     #            ProcessType = RATING_PIPELINE
+     #            EventType = /event/delayed/session/telco/gsm
+     #            ObjectCacheType = CONVERGENT
+     #
+     #            Module
+     #            {
+     #              Grammar = ./formatDesc/Formats/Solution42/V670_EVENT_LOADER_OutGrammar.dsc
+     #
+     #              DeleteEmptyStream = True # defaults to TRUE
+     #
+     #              OutputStream
+     #              {
+     #                ModuleName = EXT_OutFileManager
+     #                Module
+     #                {
+     #                  OutputPath = ./data/out
+     #                  OutputPrefix = test_CONV_TEL
+     #                  OutputSuffix = .out
+     #                  TempPrefix   = .
+     #
+     #                  TempDataPath    = ./data/out
+     #                  TempDataPrefix  = CONV_tel.tmp.
+     #                  TempDataSuffix  = .data
+     #
+     #                  Replace = TRUE
+     #                }
+     #              }
+     #            }
+     #          } # end of CONV_TELOutput
+     
+               #--------------------------------------------------------------------
+               # The /service/ip/gprs output stream
+               #--------------------------------------------------------------------
+               GPRSIPOutput
+               {
+                 ModuleName = OUT_GenericStream
+     
+                 ProcessType = RATING_PIPELINE
+                 EventType = /event/delayed/session/gprs
+     
+                 Module
+                 {
+                   Grammar = ./formatDesc/Formats/Solution42/V670_EVENT_LOADER_OutGrammar.dsc
+                   DeleteEmptyStream = True # defaults to TRUE
+     
+                   OutputStream
+                   {
+                     ModuleName = EXT_OutFileManager
+                     Module
+                     {
+                       OutputPath = ./data/out
+                       OutputPrefix = test_GPRSIP
+                       OutputSuffix = .out
+                       TempPrefix   = .
+     
+                       TempDataPath    = ./data/out
+                       TempDataPrefix  = gprs_ip.tmp.
+                       TempDataSuffix  = .data
+     
+                       Replace = TRUE
+                     }
+                   }
+                 }
+               } # end of GPRSIPOutput
+     
+     #          CONV_GPRSIPOutput
+     #          {
+     #            ModuleName = OUT_GenericStream
+     #
+     #            ProcessType = RATING_PIPELINE
+     #            EventType = /event/delayed/session/gprs
+     #            ObjectCacheType = CONVERGENT
+     #
+     #            Module
+     #            {
+     #              Grammar = ./formatDesc/Formats/Solution42/V670_EVENT_LOADER_OutGrammar.dsc
+     #              DeleteEmptyStream = True # defaults to TRUE
+     #
+     #              OutputStream
+     #              {
+     #                ModuleName = EXT_OutFileManager
+     #                Module
+     #                {
+     #                  OutputPath = ./data/out/gprs
+     #                  OutputPrefix = test_CONV_GPRSIP
+     #                  OutputSuffix = .out
+     #                  TempPrefix   = .
+     #
+     #                  TempDataPath    = ./data/out/gprs
+     #                  TempDataPrefix  = CONV_gprs_ip.tmp.
+     #                  TempDataSuffix  = .data
+     #
+     #                  Replace = TRUE
+     #                }
+     #              }
+     #            }
+     #          } # end of CONV_GPRSIPOutput
+     
+     	  #--------------------------------------------------------------------
+               # The /service/telco/gprs output stream
+               #--------------------------------------------------------------------
+               GPRSTELCOOutput
+               {
+                 ModuleName = OUT_GenericStream
+     
+                 ProcessType = RATING_PIPELINE
+                 EventType = /event/delayed/session/telco/gprs
+     
+                 Module
+                 {
+                   Grammar = ./formatDesc/Formats/Solution42/V670_EVENT_LOADER_OutGrammar.dsc
+                   DeleteEmptyStream = True # defaults to TRUE
+     
+                   OutputStream
+                   {
+                     ModuleName = EXT_OutFileManager
+                     Module
+                     {
+                       OutputPath = ./data/out
+                       OutputPrefix = test_GPRSTELCO
+                       OutputSuffix = .out
+                       TempPrefix   = .
+     
+                       TempDataPath    = ./data/out
+                       TempDataPrefix  = gprs_telco.tmp.
+                       TempDataSuffix  = .data
+     
+                       Replace = TRUE
+                     }
+                   }
+                 }
+               } # end of GPRSTELCOOutput
+     
+     #          CONV_GPRSTELCOOutput
+     #          {
+     #            ModuleName = OUT_GenericStream
+     #
+     #            ProcessType = RATING_PIPELINE
+     #            EventType = /event/delayed/session/telco/gprs
+     #            ObjectCacheType = CONVERGENT
+     #
+     #            Module
+     #            {
+     #              Grammar = ./formatDesc/Formats/Solution42/V670_EVENT_LOADER_OutGrammar.dsc
+     #              DeleteEmptyStream = True # defaults to TRUE
+     #
+     #              OutputStream
+     #              {
+     #                ModuleName = EXT_OutFileManager
+     #                Module
+     #                {
+     #                  OutputPath = ./data/out/gprs
+     #                  OutputPrefix = test_CONV_GPRSTELCO
+     #                  OutputSuffix = .out
+     #                  TempPrefix   = .
+     #
+     #                  TempDataPath    = ./data/out/gprs
+     #                  TempDataPrefix  = CONV_gprs_telco.tmp.
+     #                  TempDataSuffix  = .data
+     #
+     #                  Replace = TRUE
+     #                }
+     #              }
+     #            }
+     #          } # end of CONV_GPRSTELCOOutput
+     
+               #--------------------------------------------------------------------
+               # The /service/telco/gsm/fax output stream
+               #--------------------------------------------------------------------
+               FAXOutput
+               {
+                 ModuleName = OUT_GenericStream
+     
+                 ProcessType = RATING_PIPELINE
+                 EventType = /event/delayed/session/telco/gsm
+     
+                 Module
+                 {
+                   Grammar = ./formatDesc/Formats/Solution42/V670_EVENT_LOADER_OutGrammar.dsc
+                   DeleteEmptyStream = True # defaults to TRUE
+     
+                   OutputStream
+                   {
+                     ModuleName = EXT_OutFileManager
+                     Module
+                     {
+                       OutputPath = ./data/out
+                       OutputPrefix = test_FAX
+                       OutputSuffix = .out
+                       TempPrefix   = .
+     
+                       TempDataPath    = ./data/out
+                       TempDataPrefix  = fax.tmp.
+                       TempDataSuffix  = .data
+     
+                       Replace = TRUE
+                     }
+                   }
+                 }
+               } # end of FaxOutput
+     
+     #          CONV_FAXOutput
+     #          {
+     #            ModuleName = OUT_GenericStream
+     #
+     #            ProcessType = RATING_PIPELINE
+     #            EventType = /event/delayed/session/telco/gsm
+     #            ObjectCacheType = CONVERGENT
+     #
+     #            Module
+     #            {
+     #              Grammar = ./formatDesc/Formats/Solution42/V670_EVENT_LOADER_OutGrammar.dsc
+     #              DeleteEmptyStream = True # defaults to TRUE
+     #
+     #              OutputStream
+     #              {
+     #                ModuleName = EXT_OutFileManager
+     #                Module
+     #                {
+     #                  OutputPath = ./data/out/gsm/fax
+     #                  OutputPrefix = test_CONV_FAX
+     #                  OutputSuffix = .out
+     #                  TempPrefix   = .
+     #
+     #                  TempDataPath    = ./data/out/gsm/fax
+     #                  TempDataPrefix  = CONV_fax.tmp.
+     #                  TempDataSuffix  = .data
+     #
+     #                  Replace = TRUE
+     #                }
+     #              }
+     #            }
+     #          } # end of CONV_FaxOutput
+               #--------------------------------------------------------------------
+               # The /service/telco/gsm/sms output stream
+               #--------------------------------------------------------------------
+               SMSOutput
+               {
+                 ModuleName = OUT_GenericStream
+     
+                 ProcessType = RATING_PIPELINE
+                 EventType = /event/delayed/session/telco/gsm
+     
+                 Module
+                 {
+                   Grammar = ./formatDesc/Formats/Solution42/V670_EVENT_LOADER_OutGrammar.dsc
+                   DeleteEmptyStream = True # defaults to TRUE
+     
+                   OutputStream
+                   {
+                     ModuleName = EXT_OutFileManager
+                     Module
+                     {
+                       OutputPath = ./data/out
+                       OutputPrefix = test_SMS
+                       OutputSuffix = .out
+                       TempPrefix   = .
+     
+                       TempDataPath    = ./data/out
+                       TempDataPrefix  = sms.tmp.
+                       TempDataSuffix  = .data
+     
+                       Replace = TRUE
+                     }
+                   }
+                 }
+               } # end of SMSOutput
+     
+     #          CONV_SMSOutput
+     #          {
+     #            ModuleName = OUT_GenericStream
+     #
+     #            ProcessType = RATING_PIPELINE
+     #            EventType = /event/delayed/session/telco/gsm
+     #            ObjectCacheType = CONVERGENT
+     #
+     #            Module
+     #            {
+     #              Grammar = ./formatDesc/Formats/Solution42/V670_EVENT_LOADER_OutGrammar.dsc
+     #              DeleteEmptyStream = True # defaults to TRUE
+     #
+     #              OutputStream
+     #              {
+     #                ModuleName = EXT_OutFileManager
+     #                Module
+     #                {
+     #                  OutputPath = ./data/out/gsm/sms
+     #                  OutputPrefix = test_CONV_SMS
+     #                  OutputSuffix = .out
+     #                  TempPrefix   = .
+     #
+     #                  TempDataPath    = ./data/out/gsm/sms
+     #                  TempDataPrefix  = CONV_sms.tmp.
+     #                  TempDataSuffix  = .data
+     #
+     #                  Replace = TRUE
+     #                }
+     #              }
+     #            }
+     #          } # end of CONV_SMSOutput
+     
+         
+               #--------------------------------------------------------------------
+               # The /service/wap output stream
+               #--------------------------------------------------------------------
+               WAPOutput
+               {
+                 ModuleName = OUT_GenericStream
+     
+                 ProcessType = RATING_PIPELINE
+                 EventType = /event/delayed/activity/wap/interactive
+     
+                 Module
+                 {
+                   Grammar = ./formatDesc/Formats/Solution42/V670_EVENT_LOADER_OutGrammar.dsc
+                   DeleteEmptyStream = True # defaults to TRUE
+     
+                   OutputStream
+                   {
+                     ModuleName = EXT_OutFileManager
+                     Module
+                     {
+                       OutputPath = ./data/out
+                       OutputPrefix = test_WAP
+                       OutputSuffix = .out
+                       TempPrefix   = .
+     
+                       TempDataPath    = ./data/out
+                       TempDataPrefix  = wap.tmp.
+                       TempDataSuffix  = .data
+     
+                       Replace = TRUE
+                     }
+                   }
+                 }
+               } # end of WAPOutput
+     
+     #          CONV_WAPOutput
+     #          {
+     #            ModuleName = OUT_GenericStream
+     #
+     #            ProcessType = RATING_PIPELINE
+     #            EventType = /event/delayed/activity/wap/interactive
+     #            ObjectCacheType = CONVERGENT
+     #
+     #            Module
+     #            {
+     #              Grammar = ./formatDesc/Formats/Solution42/V670_EVENT_LOADER_OutGrammar.dsc
+     #              DeleteEmptyStream = True # defaults to TRUE
+     #
+     #              OutputStream
+     #              {
+     #                ModuleName = EXT_OutFileManager
+     #                Module
+     #                {
+     #                  OutputPath = ./data/out/wap
+     #                  OutputPrefix = test_CONV_WAP
+     #                  OutputSuffix = .out
+     #                  TempPrefix   = .
+     #
+     #                  TempDataPath    = ./data/out/wap
+     #                  TempDataPrefix  = CONV_wap.tmp.
+     #                  TempDataSuffix  = .data
+     #
+     #                  Replace = TRUE
+     #                }
+     #              }
+     #            }
+     #          } # end of CONV_WAPOutput
+     
+               #--------------------------------------------------------------------
+               # SuspenseCreateOutput stream
+               #--------------------------------------------------------------------
+               SuspenseCreateOutput
+               {
+                 ModuleName = OUT_GenericStream
+                 EventType = /suspended_usage
+                 Module
+                 {
+                   Grammar = ./formatDesc/Formats/SuspenseHandling/SuspendedUsageCreationGrammar.dsc
+                   DeleteEmptyStream = True
+                   OutputStream
+                   {
+                     ModuleName = EXT_OutFileManager
+                     Module
+                     {
+                       OutputPath = ./data/reject
+                       OutputPrefix = suspense_create_
+                       OutputSuffix = .out
+                       TempPrefix = tmp
+                       TempDataPath = ./data/reject
+                       TempDataPrefix = susp.create.tmp.
+                       TempDataSuffix = .data
+                       Replace = True
+                       AppendSequenceNumber = False
+                     }
+                   }
+                 }
+               } # end of SuspenseCreateOutput
+     
+               #--------------------------------------------------------------------
+               # SuspenseUpdateOutput stream
+               #--------------------------------------------------------------------
+               SuspenseUpdateOutput
+               {
+                 ModuleName = OUT_GenericStream
+                 EventType = /tmp_suspended_usage
+     
+                 Module
+                 {
+                   Grammar = ./formatDesc/Formats/SuspenseHandling/SuspendedUsageUpdateGrammar.dsc
+                   DeleteEmptyStream = True
+     
+                   OutputStream
+                   {
+                     ModuleName = EXT_OutFileManager
+                     Module
+                     {
+                       OutputPath = ./data/reject
+                       OutputPrefix = suspense_update_
+                       OutputSuffix = .out
+                       TempPrefix = tmp
+                       TempDataPath = ./data/reject
+                       TempDataPrefix = susp.update.tmp.
+                       TempDataSuffix = .data
+                       Replace = True
+                       AppendSequenceNumber = False
+                     }
+                   }
+                 }
+               } # end of SuspenseUpdateOutput
+             } # end of OutputCollection
+     
+             OutputLog
+             {
+               FilePath        = ./log/stream
+               FileName        = stream
+               FilePrefix      = Stream_
+               FileSuffix      = .log
+     
+               SuppressErrors
+               {
+                 ERR_SPEC_VERSION_INVALID
+                 ERR_RELEASE_VERSION_INVALID
+                 ERR_INPUT_TEMP_FILE_NOT_MOVED_TO_DONE_ERR
+               }
+             }
+             
+             SequenceGeneration = Unit
+     
+     	#-------------------------------
+             EdrTraceEnabled = False
+             EdrTrace
+             {
+                 TraceLog
+                 {
+                      FilePath   = ./log/edrLog
+                      FileName   = edrTraceLog
+                      FilePrefix = log_
+                      FileSuffix = .log
+                 }
+     
+                 TraceStartPoint =  Input
+                 TraceEndPoint   = Output
+     
+             } # END EdrTrace
+     
+             
+           } # end of Output    
+           
+         } # END ALL_RATE
+     
+       } # END Pipelines
+     
+     } # END ifw
+     

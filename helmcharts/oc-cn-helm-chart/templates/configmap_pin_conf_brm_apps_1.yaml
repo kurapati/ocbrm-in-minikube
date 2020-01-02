@@ -1,0 +1,4368 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pin-conf-config-brm-apps-1
+  namespace: {{ .Release.Namespace }}
+  labels:
+      application: {{ .Chart.Name }}
+data:
+  pin_billd.conf: |
+    #************************************************************************
+    # Configuration Entries for Logging Problems with the Billing Programs
+    #
+    #
+    # Use these entries to specify how the billing applications log
+    # information about their activity.
+    #
+    # This configuration file is automatically installed and configured with
+    # default values during Portal installation. You can edit this file to:
+    #   -- change the default values of the entries.
+    #   -- disable an entry by inserting a crosshatch (#) at the start of
+    #        the line.
+    #   -- enable a commented entry by removing the crosshatch (#).
+    # 
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # When editing this file, follow the instructions in each section.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #************************************************************************
+
+
+    #======================================================================
+    #
+    # You can edit this file to suit your specific configuration:
+    #  -- You can change the default values of an entry.
+    #  -- You can exclude an optional entry by adding the # symbol
+    #     at the beginning of the line.
+    #  -- You can include a commented entry by removing the # symbol.
+    #
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # To edit this file, follow the instructions in the commented sections.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #======================================================================
+
+    #=======================================================================
+    # ptr_virtual_time
+    # 
+    # Enables the use of pin_virtual_time to advance Portal time, and 
+    # specifies the shared file for use by all Portal mangers.
+    #
+    # The entry has 2 values
+    #
+    # #/Empty       to disable / enable pin_virtual_time in all pin.conf files
+    #               default = #     (disable)
+    #
+    # <filepath>    location and name of the pin_virtual_time file shared by all Portal managers.
+    #               default = ${PIN_HOME}/lib/pin_virtual_time_file
+    #
+    #=======================================================================
+    #- - pin_virtual_time {{ .Values.ocbrm.virtual_time.pvt }}/pin_virtual_time_file
+
+
+    #========================================================================
+    # cm_ptr
+    # 
+    # Specifies a pointer to the CM or CMMP. 
+    #
+    # Use a separate entry for each CM or CMMP. If testnap can't find the
+    # first CM or CMMP, it looks for the next in the list.
+    #
+    # Each entry includes three values:
+    # 
+    #     <protocol> = "ip", for this release
+    #     <host>     = the name or IP address of the computer running the
+    #                    CM or CMMP
+    #     <port>     = the TCP port number of the CM or CMMP on this computer
+    #
+    # The port number should match a corresponding cm_ports entry with
+    # the same port number in the CM or CMMP configuration file. The 
+    # default, 11960, is a commonly specified port for the CM or CMMP.
+    #========================================================================
+    - nap cm_ptr ip {{ .Values.ocbrm.cm.deployment.host }} {{ .Values.ocbrm.cm.deployment.port }}
+
+
+    #========================================================================
+    # logfile
+    #
+    # Specifies the path to the log file for the sample application
+    #========================================================================
+    - sample_act    logfile sample_act.pinlog
+    - sample_del    logfile sample_del.pinlog
+    - sample_app    logfile sample_app.pinlog 
+    - sample_search logfile sample_search.pinlog 
+    - sample_who    logfile sample_who.pinlog
+
+
+    #========================================================================
+    # login_type
+    #
+    # Specifies whether the login name and password are required.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = Only a user ID is required.
+    #    1 = (Default) Both a name and a password are required.
+    #
+    # By default, CMs require a user login and password when requesting an open
+    # context using PCM_CONTEXT_OPEN. However, you can remove this authentication
+    # requirement by configuring the CM with a cm_login_module of
+    # cm_login_null.so
+    #========================================================================
+    - nap login_type 1
+
+
+    #========================================================================
+    # login_name
+    #
+    # Specifies the login name to use when testnap connects to the CM. 
+    #========================================================================
+    - nap login_name root.0.0.0.1
+
+
+    #========================================================================
+    # login_pw
+    #
+    # Specifies the password to use when testnap connects to the CM.
+    #========================================================================
+    #- nap login_pw
+
+    #========================================================================
+    # userid
+    #
+    # Specifies the database number and service type for the Portal
+    # database. 
+    #
+    # The CM uses the database number to identify the Portal database 
+    # and to connect to the correct Data Manager. For connections that don't
+    # require a login name and password, the CM also passes the service
+    # type to the database.
+    #
+    # The database number, in the form 0.0.0.N, is the number assigned to 
+    # your Portal database when you installed the system. The default
+    # is 0.0.0.1.
+    #
+    # The service type is /service/pcm_client and the ID is 1.
+    # DO NOT change these values.
+    #========================================================================
+    - - userid 0.0.0.1 /service/pcm_client 1
+
+
+    #========================================================================
+    # Deadlock Retry Count
+    #
+    # Specified the number of attempts to bill an account again in 
+    # case of a deadlock error.
+    #
+    # This entry is required for SQL Server databases.  For other databases,
+    # this is an optional parameter.  For better performance this count 
+    # should be set depending on the volumes of the accounts to be billed.
+    #
+    #========================================================================
+    - pin_bill_accts  deadlock_retry_count  20
+
+
+    #========================================================================
+    # logfile
+    #
+    # Specifies the full path to the log file for the billing application.
+    #
+    # You can enter any valid path.
+    #========================================================================
+    - pin_billd logfile ${PIN_LOG_DIR}/pin_billd/pin_billd.pinlog
+
+
+    #========================================================================
+    # config_billing_delay
+    #
+    # Specifies a delay for disabling the automatic triggering of billing
+    #
+    # If the system is configured to record delayed batch usage events in
+    # Portal, this entry lets you specify the delay, in days, before the
+    # billing is run. The value cannot be more days than one accounting cycle.
+    #
+    # When the pin_bill_accts application runs as part of the
+    # daily program pin_bill_day, it waits through the specified  delay to
+    # pick up accounts for billing. However, if a real-time or batch event
+    # triggers billing during this delay, cycle fees are charged as if there
+    # were no delay (without running the complete billing).
+    #
+    # By default, this configuration parameter is disabled, so the autobilling
+    # trigger is enabled. This is a system-wide parameter only.
+    #
+    # This entry is the same as one in the CM configuration file
+    #
+    # In the enabled entry below, the billing run is not delayed but avoids auto
+    # triggering of billing
+    #========================================================================
+    #- pin_bill_accts     config_billing_delay 10
+
+
+
+    #======================================================================
+    #  Enforce billing.
+    #
+    #  To record the billing state correctly if billing delay feature is on.
+    #======================================================================
+    - pin_bill_accts enforce_billing  1
+
+
+    #========================================================================
+    # loglevel
+    #
+    # Specifies how much information the billing application logs.
+    # 
+    # The value for this entry can be:
+    #
+    #    0 = no logging
+    #    1 = (Default) log error messages only
+    #    2 = log error messages and warnings
+    #    3 = log error, warning, and debugging messages
+    #========================================================================
+    - pin_billd loglevel {{ .Values.ocbrm.LOG_LEVEL }}
+
+
+    #========================================================================
+    # merchant
+    #
+    # The merchant entry is not supported in this release. DO NOT change 
+    # this entry.
+    #========================================================================
+    - pin_billd merchant XXX
+
+
+    #========================================================================
+    # minimum
+    #
+    # Specifies the minimum balance for retrieving accounts during
+    # credit-card collection (pin_collect).
+    #
+    # Use this entry to set a minimum threshold for the amount due on an
+    # account when searching for accounts for collection. The pin_collect
+    # billing application retrieves only those accounts with pending
+    # receivables greater than the minimum you specify. This improves
+    # collection performance by filtering out accounts that have either no
+    # balance due or a very small balance due.
+    #
+    # The minimum value is expressed in the account currency. If you do
+    # business in more than one currency, set the minimum low enough to
+    # retrieve accounts in any of the currencies. For example, if you have
+    # accounts in both dollars and yen, setting the minimum at "1.00" flags
+    # an account with a minimum pending receivable of either one dollar or
+    # one yen.
+    #
+    # This entry does not specify the amount below which you won't charge a
+    # customer's credit card. You set that amount in a billing policy,
+    # PCM_OP_BILL_POL_PRE_COLLECT, which lets you specify minimum values for
+    # each account currency. 
+    #========================================================================
+    - pin_billd minimum 2.00
+
+
+    #========================================================================
+    # Performance Entries
+    #
+    # Specify how the billing application processes accounts.
+    #
+    #     children   = the number of threads used to process the accounts
+    #     per_batch  = the number of accounts processed by each child
+    #     fetch_size = the number of accounts cached in system memory
+    #                    before processing
+    #
+    # You can edit these entries to improve performance of billing
+    # applications. Different billing applications process accounts
+    # differently, so you usually need to configure these entries differently
+    # for each application. To specify an entry for a single billing
+    # application, replace the generic name "pin_billd" with the specific 
+    # name of the application. For example, you might have these entries:
+    #
+    #    - pin_collect      per_batch    240
+    #    - pin_bill_accts   per_batch   3000
+    #
+    # For a complete explanation of setting these variables for best
+    # performance, see the online document "Portal Configuration
+    # and Tuning Guide."
+    #
+    # Note: The invoice-generation application doesn't use the pin_billd
+    #       default values. You must set the values for that application
+    #       independently. See the guidelines for those entries elsewhere
+    #       in this configuration file.
+    #========================================================================
+    - pin_billd     children        5
+    - pin_billd     per_batch       1000
+    - pin_billd     fetch_size      5000
+
+
+    #========================================================================
+    # set_error_status
+    #
+    # This entry is used to set the PIN_BILL_ERROR(4) value to billing status 
+    # field of billinfo object for the subordordinate accounts and parent accounts 
+    # if the billing failed for subordinate accounts due to some reason.
+    # 
+    # By default, this configuration parameter is disabled, and the billing_status 
+    # is not updated by pin_bill_accts.
+    #
+    # If the value of the entry is 1 , the billing status is updated with 
+    # PIN_BILL_ERROR value for both both subordinate and parent billinfo objects
+    #
+    # If the value is 0 (zero) the billing_status is not updated with the 
+    # PIN_BILL_ERROR value.
+    #
+    #========================================================================
+    #- pin_bill_accts set_error_status 1
+
+
+    #=====================================================================
+    # hotlist 
+    # 
+    # Use this entry to set the location (path and filename) of the hot 
+    # list file. 
+    # 
+    # A hot list is a file containing an array of poids, which need to be 
+    # handled by the mta application's working threads first. This 
+    # allows some threads to begin working on some known large or complex 
+    # accounts/bills as early as possible. The array of poids might be 
+    # hard-coded in the host list file, or possibly the file could be 
+    # generated by some other application. 
+    # 
+    # The array of poids must be in flist format. Refer to the example 
+    # files in the distribution for more information about this file. 
+    #======================================================================
+    - pin_mta hotlist hotlist
+
+
+    #========================================================================
+    # mta_logfile 
+    # 
+    # Specifies the full path to the log file used by this MTA application. 
+    # 
+    # You can enter any valid path. 
+    #======================================================================== 
+    - pin_mta logfile ${PIN_LOG_DIR}/pin_billd/pin_mta.pinlog
+
+
+    #======================================================================
+    # loglevel 
+    # 
+    # How much information the applications should log. 
+    # 
+    # The value for this entry can be: 
+    #  -- 0: no logging 
+    #  -- 1: log error messages only 
+    #  -- 2: log error messages and warnings 
+    #  -- 3: log error messages, warnings, and debugging messages 
+    #======================================================================
+    - pin_mta loglevel {{ .Values.ocbrm.LOG_LEVEL }}
+
+
+    #======================================================================
+    # max_errs 
+    # 
+    # Use this entry to set the max errors that can be ignored in the app. 
+    # This parameter is optional. If left unspecified, max_errs = fetch_size 
+    #======================================================================
+    - pin_mta max_errs 5000
+
+
+    #====================================================================== 
+    # monitor 
+    # 
+    # Use this entry to set the path and name of shared memory map file. 
+    # This binary file stores information about the running mta application. 
+    # With the help of another application (like pin_mta_monitor), you can 
+    # view and modify the number of threads that are running in the MTA 
+    # application without interrupting the application. 
+    # 
+    #======================================================================
+    - pin_mta monitor monitor
+
+
+    #====================================================================== 
+    # multi_db 
+    # 
+    # Enables or disables the multidatabase capability of MTA. 
+    # 
+    # If you enable multi_db, MTA uses global searching instead of the 
+    # normal searching. The value for this entry can be: 
+    # 
+    #    0 = (Default) Disable global searching 
+    #    1 = Enable global searching 
+    #====================================================================== 
+    - pin_mta multi_db 0
+
+
+    #======================================================================
+    # Performance Parameters 
+    # 
+    # These parameters govern how the MTA applications pulls data from the 
+    # database and tranfers it to the application space. They also 
+    # define how many threads (children) are used to process the data in 
+    # the application. 
+    # 
+    #  -- children:   number of threads used to process the accounts in the 
+    #                 application 
+    #  -- per_batch:  number of accounts processed by each child 
+    #  -- per_step:   number of accounts returned in each database search 
+    #  -- fetch_size: number of accounts cached in application memory 
+    #                 before processing starts 
+    # 
+    # Not all application use all these performance parameters. For example, 
+    # pin_inv_accts does not use per_batch. 
+    # 
+    # You can edit these entries to improve the performance of MTA 
+    # applications. You typically need to configure these parameters 
+    # differently for each application. To specify an entry for 
+    # a specific MTA application, replace the generic "pin_mta" 
+    # name with the specific name of the application. In the following 
+    # example pin_inv_accts will use 50000 for the fetch size whereas other 
+    # applications using this configuration file will use 30000 for the 
+    # fetch_size : 
+    #   - pin_mta          fetch_size  30000 
+    #   - pin_inv_accts    fetch_size  50000 
+    # 
+    # For a complete explanation of setting these variables 
+    # for best performance, see "Improving System Performance" in 
+    # the online documentation. 
+    # 
+    #======================================================================
+    - pin_mta       children        5
+    - pin_mta       per_batch       500
+    - pin_mta       per_step        1000
+    - pin_mta       fetch_size      5000
+
+
+    #======================================================================
+    #unset_error_status
+    # 
+    # Specifies whether the billing status of the billinfo object is to be 
+    # set to PIN_BILL_ERROR in case of billing error. 
+    # 
+    # The value for this entry can be: 
+    # 
+    #    0 = (Default) Sets the billing status in the billinfo object. 
+    #    1 = Does not set the billing status in the billinfo object. 
+    # 
+    # By default when an error is encountered while billing, the status of 
+    # billinfo object is set to PIN_BILL_ERROR. 
+    #======================================================================
+    - pin_bill_accts unset_error_status 0
+
+
+    #======================================================================
+    # enable_ara
+    #
+    # To enable ARA Feature
+    # The value for this entry can be:
+    #  -- 0: Disabled
+    #  -- 1: Enabled
+    #======================================================================
+    - pin_mta enable_ara 0
+    - nap enable_ssl {{ .Values.ocbrm.ENABLE_SSL }}
+
+  pin_export_price.conf: |
+    #************************************************************************
+    # Configuration file for the testnap utility
+    #
+    #
+    # You use testnap to manually interact with the database and to test your
+    # custom applications.
+    #
+    # This configuration file is automatically installed and configured with
+    # default values during Portal installation. You can edit this file to:
+    #   -- change the default values of the entries.
+    #   -- disable an entry by inserting a crosshatch (#) at the start of
+    #        the line.
+    #   -- enable a commented entry by removing the crosshatch (#).
+    # 
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # When editing this file, follow the instructions in each section.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #************************************************************************
+
+
+    #======================================================================
+    #
+    # You can edit this file to suit your specific configuration:
+    #  -- You can change the default values of an entry.
+    #  -- You can exclude an optional entry by adding the # symbol
+    #     at the beginning of the line.
+    #  -- You can include a commented entry by removing the # symbol.
+    #
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # To edit this file, follow the instructions in the commented sections.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #======================================================================
+
+    #=======================================================================
+    # ptr_virtual_time
+    # 
+    # Enables the use of pin_virtual_time to advance Portal time, and 
+    # specifies the shared file for use by all Portal mangers.
+    #
+    # The entry has 2 values
+    #
+    # #/Empty       to disable / enable pin_virtual_time in all pin.conf files
+    #               default = #     (disable)
+    #
+    # <filepath>    location and name of the pin_virtual_time file shared by all Portal managers.
+    #               default = ${PIN_HOME}/lib/pin_virtual_time_file
+    #
+    #=======================================================================
+    #- - pin_virtual_time {{ .Values.ocbrm.virtual_time.pvt }}/pin_virtual_time_file
+
+    #========================================================================
+    # cm_ptr
+    # 
+    # Specifies a pointer to the CM or CMMP. 
+    #
+    # Use a separate entry for each CM or CMMP. If testnap can't find the
+    # first CM or CMMP, it looks for the next in the list.
+    #
+    # Each entry includes three values:
+    # 
+    #     <protocol> = "ip", for this release
+    #     <host>     = the name or IP address of the computer running the
+    #                    CM or CMMP
+    #     <port>     = the TCP port number of the CM or CMMP on this computer
+    #
+    # The port number should match a corresponding cm_ports entry with
+    # the same port number in the CM or CMMP configuration file. The 
+    # default, 11960, is a commonly specified port for the CM or CMMP.
+    #========================================================================
+    - nap cm_ptr ip {{ .Values.ocbrm.cm.deployment.host }} {{ .Values.ocbrm.cm.deployment.port }}
+
+    #========================================================================
+    # logfile
+    #
+    # Specifies the path to the log file for the sample application
+    #========================================================================
+    - sample_act    logfile sample_act.pinlog
+    - sample_del    logfile sample_del.pinlog
+    - sample_app    logfile sample_app.pinlog 
+    - sample_search logfile sample_search.pinlog 
+    - sample_who    logfile sample_who.pinlog
+
+
+    #========================================================================
+    # login_type
+    #
+    # Specifies whether the login name and password are required.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = Only a user ID is required.
+    #    1 = (Default) Both a name and a password are required.
+    #
+    # By default, CMs require a user login and password when requesting an open
+    # context using PCM_CONTEXT_OPEN. However, you can remove this authentication
+    # requirement by configuring the CM with a cm_login_module of
+    # cm_login_null.so
+    #========================================================================
+    - nap login_type 1
+
+
+    #========================================================================
+    # login_name
+    #
+    # Specifies the login name to use when testnap connects to the CM. 
+    #========================================================================
+    - nap login_name root.0.0.0.1
+
+
+    #========================================================================
+    # login_pw
+    #
+    # Specifies the password to use when testnap connects to the CM.
+    #========================================================================
+    #- nap login_pw
+
+    #========================================================================
+    # userid
+    #
+    # Specifies the database number and service type for the Portal
+    # database. 
+    #
+    # The CM uses the database number to identify the Portal database 
+    # and to connect to the correct Data Manager. For connections that don't
+    # require a login name and password, the CM also passes the service
+    # type to the database.
+    #
+    # The database number, in the form 0.0.0.N, is the number assigned to 
+    # your Portal database when you installed the system. The default
+    # is 0.0.0.1.
+    #
+    # The service type is /service/pcm_client and the ID is 1.
+    # DO NOT change these values.
+    #========================================================================
+    - - userid 0.0.0.1 /service/pcm_client 1
+
+
+    #========================================================================
+    # hotlist
+    #
+    # Specifies the location (path and file name) of the hot-list file.
+    #
+    # A hot list is a file containing an array of POIDs that need to be
+    # handled by the MTA application's working threads first. This priority
+    # lets some threads begin working on some known large or complex accounts
+    # and bills as early as possible. The array of POIDs might be hard-coded
+    # in the file that lists hosts, or the file could be generated by some
+    # other application.
+    #
+    # The array of POIDs must be in flist format. Refer to the example
+    # files in the distribution for more information about the hot-list file.
+    #========================================================================
+    - pin_mta hotlist hotlist
+
+
+    #========================================================================
+    # mta_logfile
+    #
+    # Specifies the full path to the log file used by this MTA application.
+    #
+    # You can enter any valid path.
+    #========================================================================
+    - pin_mta logfile ${PIN_LOG_DIR}/pin_export_price/pin_export_price.pinlog
+
+
+    #========================================================================
+    # loglevel
+    #
+    # Specifies how much information the applications log.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = no logging
+    #    1 = (Default) log error messages only
+    #    2 = log error messages and warnings
+    #    3 = log error, warning, and debugging messages
+    #========================================================================
+    - pin_mta loglevel {{ .Values.ocbrm.LOG_LEVEL }}
+
+
+    #========================================================================
+    # max_errs
+    # 
+    # Specifies the maximum number of errors that the application can ignore.
+    #
+    # This entry is optional. By default, max_errs = fetch_size.
+    #========================================================================
+    - pin_mta max_errs 5000
+
+
+    #========================================================================
+    # monitor
+    #
+    # Specifies the location of shared memory (the memory-map file).
+    #
+    # Use this entry to set the path and name of a shared memory-map file.
+    # This binary file stores information about the running MTA application.
+    # With help from another application such as pin_mta_monitor, you can
+    # view and adjust the number of threads that are running in the MTA
+    # application without interrupting it.
+    #========================================================================
+    - pin_mta monitor monitor
+
+
+    #========================================================================
+    # multi_db
+    #
+    # Enables or disables the multidatabase capability of MTA.
+    #
+    # If you enable multi_db, MTA uses global searching instead of the
+    # normal searching. The value for this entry can be:
+    #
+    #    0 = (Default) Disable global searching
+    #    1 = Enable global searching
+    #========================================================================
+    - pin_mta multi_db 0
+
+
+    #========================================================================
+    # mta_performance
+    #
+    # Performance Parameters
+    # 
+    # The entries below govern how the MTA applications pull data from the
+    # database and tranfer the data to the application space. They also
+    # define how many threads (children) are used to process the data in
+    # the application.
+    #
+    #    children   = number of threads used to process the accounts in the
+    #                 application
+    #    per_batch  = number of accounts processed by each child
+    #    per_step   = number of accounts returned in each database search
+    #    fetch_size = number of accounts cached in application memory
+    #                 before processing starts
+    #
+    # Some applications do not use all of these performance parameters. For
+    # example, pin_inv_accts does not use per_batch.
+    #
+    # You can edit these entries to improve performance of MTA applications.
+    # Different MTA applications process accounts differently, so you
+    # usually need to configure these entries differently for each
+    # application. To specify an entry for a single MTA application, replace 
+    # the generic name "pin_mta" with the name of the specific application.
+    # For example, you might have these entries:
+    #
+    #    - pin_mta          fetch_size  30000
+    #    - pin_inv_accts    fetch_size  50000
+    #
+    # For a complete explanation of setting these variables for best
+    # performance, see the online document "Portal Configuration and
+    # Tuning Guide."
+    #========================================================================
+    - pin_mta       children        5
+    - pin_mta       per_batch       500
+    - pin_mta       per_step        1000
+    - pin_mta       fetch_size      5000
+
+
+    #========================================================================
+    # respawn_threads
+    # 
+    # Respawns worker threads if they exit due to an error. Threads are
+    # respawned if necessary after every search cycle.
+    # Valid options are :-
+    # 0 - No respawning , 1 - respawn threads
+    # The default is 0 for no respawning.
+    #========================================================================
+    - nap enable_ssl {{ .Values.ocbrm.ENABLE_SSL }}
+  pin_inv.conf: |
+    #************************************************************************
+    # Configuration File for Multithreading Application (MTA) Framework
+    #
+    # This configuration file controls how MTA (MultiThreraded Application)
+    # programs run. Several MTA applications, such as pin_inv_accts and
+    # pin_inv_export, can use this file. Some parameter names and values are
+    # generic; each of the generic entries begins with "- pin_mta", as in
+    # this example:
+    #
+    #   - pin_mta        fetch_size  30000
+    #
+    # Every other parameter name and value is specific to one application
+    # and begins with that application's name, as in this example:
+    #
+    #   - pin_inv_accts  fetch_size  40000
+    #
+    # Application-specific values always override generic values.
+    #
+    # You can edit this configuration file to suit your specific configuration:
+    #  -- You can change the default values of a parameter
+    #  -- You can exclude a parameter by adding the # symbol
+    #     at the beginning of the line
+    #  -- You can uncomment a parameter by removing the # symbol.
+    #
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # When editing this file, follow the instructions in each section.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #************************************************************************
+
+
+    #======================================================================
+    #
+    # You can edit this file to suit your specific configuration:
+    #  -- You can change the default values of an entry.
+    #  -- You can exclude an optional entry by adding the # symbol
+    #     at the beginning of the line.
+    #  -- You can include a commented entry by removing the # symbol.
+    #
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # To edit this file, follow the instructions in the commented sections.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #======================================================================
+
+    #=======================================================================
+    # ptr_virtual_time
+    # 
+    # Enables the use of pin_virtual_time to advance Portal time, and 
+    # specifies the shared file for use by all Portal mangers.
+    #
+    # The entry has 2 values
+    #
+    # #/Empty       to disable / enable pin_virtual_time in all pin.conf files
+    #               default = #     (disable)
+    #
+    # <filepath>    location and name of the pin_virtual_time file shared by all Portal managers.
+    #               default = ${PIN_HOME}/lib/pin_virtual_time_file
+    #
+    #=======================================================================
+    #- - pin_virtual_time {{ .Values.ocbrm.virtual_time.pvt }}/pin_virtual_time_file
+
+    #========================================================================
+    # cm_ptr
+    # 
+    # Specifies a pointer to the CM or CMMP. 
+    #
+    # Use a separate entry for each CM or CMMP. If testnap can't find the
+    # first CM or CMMP, it looks for the next in the list.
+    #
+    # Each entry includes three values:
+    # 
+    #     <protocol> = "ip", for this release
+    #     <host>     = the name or IP address of the computer running the
+    #                    CM or CMMP
+    #     <port>     = the TCP port number of the CM or CMMP on this computer
+    #
+    # The port number should match a corresponding cm_ports entry with
+    # the same port number in the CM or CMMP configuration file. The 
+    # default, 11960, is a commonly specified port for the CM or CMMP.
+    #========================================================================
+    - nap cm_ptr ip {{ .Values.ocbrm.cm.deployment.host }} {{ .Values.ocbrm.cm.deployment.port }}
+
+    #========================================================================
+    # logfile
+    #
+    # Specifies the path to the log file for the sample application
+    #========================================================================
+    - sample_act    logfile sample_act.pinlog
+    - sample_del    logfile sample_del.pinlog
+    - sample_app    logfile sample_app.pinlog 
+    - sample_search logfile sample_search.pinlog 
+    - sample_who    logfile sample_who.pinlog
+
+
+    #========================================================================
+    # login_type
+    #
+    # Specifies whether the login name and password are required.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = Only a user ID is required.
+    #    1 = (Default) Both a name and a password are required.
+    #
+    # By default, CMs require a user login and password when requesting an open
+    # context using PCM_CONTEXT_OPEN. However, you can remove this authentication
+    # requirement by configuring the CM with a cm_login_module of
+    # cm_login_null.so
+    #========================================================================
+    - nap login_type 1
+
+
+    #========================================================================
+    # login_name
+    #
+    # Specifies the login name to use when testnap connects to the CM. 
+    #========================================================================
+    - nap login_name root.0.0.0.1
+
+
+    #========================================================================
+    # login_pw
+    #
+    # Specifies the password to use when testnap connects to the CM.
+    #========================================================================
+    #- nap login_pw 
+
+    #========================================================================
+    # userid
+    #
+    # Specifies the database number and service type for the Portal
+    # database. 
+    #
+    # The CM uses the database number to identify the Portal database 
+    # and to connect to the correct Data Manager. For connections that don't
+    # require a login name and password, the CM also passes the service
+    # type to the database.
+    #
+    # The database number, in the form 0.0.0.N, is the number assigned to 
+    # your Portal database when you installed the system. The default
+    # is 0.0.0.1.
+    #
+    # The service type is /service/pcm_client and the ID is 1.
+    # DO NOT change these values.
+    #========================================================================
+    - - userid 0.0.0.1 /service/pcm_client 1
+
+
+    #========================================================================
+    # hotlist
+    #
+    # Specifies the location (path and file name) of the hot-list file.
+    #
+    # A hot list is a file containing an array of POIDs that need to be
+    # handled by the MTA application's working threads first. This priority
+    # lets some threads begin working on some known large or complex accounts
+    # and bills as early as possible. The array of POIDs might be hard-coded
+    # in the file that lists hosts, or the file could be generated by some
+    # other application.
+    #
+    # The array of POIDs must be in flist format. Refer to the example
+    # files in the distribution for more information about the hot-list file.
+    #========================================================================
+    - pin_mta hotlist hotlist
+
+
+    #========================================================================
+    # mta_logfile
+    #
+    # Specifies the full path to the log file used by this MTA application.
+    #
+    # You can enter any valid path.
+    #========================================================================
+    - pin_mta logfile ${PIN_LOG_DIR}/pin_inv/pin_inv.pinlog
+
+
+    #========================================================================
+    # loglevel
+    #
+    # Specifies how much information the applications log.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = no logging
+    #    1 = (Default) log error messages only
+    #    2 = log error messages and warnings
+    #    3 = log error, warning, and debugging messages
+    #========================================================================
+    - pin_mta loglevel {{ .Values.ocbrm.LOG_LEVEL }}
+
+
+    #========================================================================
+    # max_errs
+    # 
+    # Specifies the maximum number of errors that the application can ignore.
+    #
+    # This entry is optional. By default, max_errs = fetch_size.
+    #========================================================================
+    - pin_mta max_errs 5000
+
+
+    #========================================================================
+    # monitor
+    #
+    # Specifies the location of shared memory (the memory-map file).
+    #
+    # Use this entry to set the path and name of a shared memory-map file.
+    # This binary file stores information about the running MTA application.
+    # With help from another application such as pin_mta_monitor, you can
+    # view and adjust the number of threads that are running in the MTA
+    # application without interrupting it.
+    #========================================================================
+    - pin_mta monitor monitor
+
+
+    #========================================================================
+    # multi_db
+    #
+    # Enables or disables the multidatabase capability of MTA.
+    #
+    # If you enable multi_db, MTA uses global searching instead of the
+    # normal searching. The value for this entry can be:
+    #
+    #    0 = (Default) Disable global searching
+    #    1 = Enable global searching
+    #========================================================================
+    - pin_mta multi_db 0
+
+
+    #========================================================================
+    # mta_performance
+    #
+    # Performance Parameters
+    # 
+    # The entries below govern how the MTA applications pull data from the
+    # database and tranfer the data to the application space. They also
+    # define how many threads (children) are used to process the data in
+    # the application.
+    #
+    #    children   = number of threads used to process the accounts in the
+    #                 application
+    #    per_batch  = number of accounts processed by each child
+    #    per_step   = number of accounts returned in each database search
+    #    fetch_size = number of accounts cached in application memory
+    #                 before processing starts
+    #
+    # Some applications do not use all of these performance parameters. For
+    # example, pin_inv_accts does not use per_batch.
+    #
+    # You can edit these entries to improve performance of MTA applications.
+    # Different MTA applications process accounts differently, so you
+    # usually need to configure these entries differently for each
+    # application. To specify an entry for a single MTA application, replace 
+    # the generic name "pin_mta" with the name of the specific application.
+    # For example, you might have these entries:
+    #
+    #    - pin_mta          fetch_size  30000
+    #    - pin_inv_accts    fetch_size  50000
+    #
+    # For a complete explanation of setting these variables for best
+    # performance, see the online document "Portal Configuration and
+    # Tuning Guide."
+    #========================================================================
+    - pin_mta       children        5
+    - pin_mta       per_batch       500
+    - pin_mta       per_step        1000
+    - pin_mta       fetch_size      5000
+
+
+    #========================================================================
+    # respawn_threads
+    # 
+    # Respawns worker threads if they exit due to an error. Threads are
+    # respawned if necessary after every search cycle.
+    # Valid options are :-
+    # 0 - No respawning , 1 - respawn threads
+    # The default is 0 for no respawning.
+    #========================================================================
+    - pin_mta respawn_threads 0
+
+
+    #************************************************************************
+    # Configuration File for Portal Invoicing Applications
+    #
+    #
+    # This configuration file is automatically installed and configured with
+    # default values during Portal installation. You can edit this file to:
+    #   -- change the default values of the entries.
+    #   -- disable an entry by inserting a crosshatch (#) at the start of
+    #        the line.
+    #   -- enable a commented entry by removing the crosshatch (#).
+    # 
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # When editing this file, follow the instructions in each section.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #************************************************************************
+    #
+    #========================================================================
+    # Entries for pin_inv_accts
+    #
+    # These entries are used for pin_inv_accts configuration only.
+    #
+    # Note: Enable these entries only if you want different applications
+    #       configured differently.
+    #========================================================================
+    #
+    #- pin_inv_accts        children        5
+    #- pin_inv_accts        per_batch       500
+    #- pin_inv_accts        per_step        1000
+    #- pin_inv_accts        fetch_size      5000
+    #- pin_inv_accts        hotlist         hot_list
+    #- pin_inv_accts        monitor         monitor
+    #- pin_inv_accts        max_errs        1
+    #- pin_inv_accts        multi_db        0
+    #
+    #========================================================================
+    # Default database number
+    #
+    # Specifies the default database number for searching.
+    #========================================================================
+    - pin_inv_accts database 0.0.0.1 /search 0
+
+
+    #========================================================================
+    # Entries for pin_inv_export
+    #
+    # These entries are used for pin_inv_export configuration only.
+    #
+    # Note: Enable these entries only if you want different applications
+    #       configured differently.
+    #========================================================================
+    #
+    #- pin_inv_export        children        5
+    #- pin_inv_export        per_batch       500
+    #- pin_inv_export        per_step        1000
+    #- pin_inv_export        fetch_size      5000
+    #- pin_inv_export        hotlist         hot_list
+    #- pin_inv_export        monitor         monitor
+    #- pin_inv_export        max_errs        1
+    #- pin_inv_export        multi_db        0
+    #
+    #========================================================================
+    # Export format
+    #
+    # Specifies one of these formats for exported files:
+    #
+    #    text/plain
+    #    text/pin_flist
+    #    text/xml
+    #    text/html (Default)
+    #    text/doc1 (Raw file)
+    #
+    # You can also specify an arbitrary mime type, such as text/xslt.
+    # In this case, the mime type must be understood by the formatting opcode.
+    #========================================================================
+    - pin_inv_export  invoice_fmt text/xml
+    #
+    #========================================================================
+    # Invoice directory
+    #
+    # Specifies the directory for exporting invoices
+    #========================================================================
+    - pin_inv_export  export_dir ./invoice_dir
+    #
+    #========================================================================
+    # Default database number
+    #
+    # Specifies the default database number for searching.
+    #========================================================================
+    - pin_inv_export database 0.0.0.1 /search 0
+
+
+    #========================================================================
+    # Entries for pin_inv_send
+    #
+    # These entries are used for pin_inv_send configuration only.
+    #
+    # Note: Enable these entries only if you want different applications
+    #       configured differently.
+    #========================================================================
+    #
+    #- pin_inv_send        children        5
+    #- pin_inv_send        per_batch       500
+    #- pin_inv_send        per_step        1000
+    #- pin_inv_send        fetch_size      5000
+    #- pin_inv_send        hotlist         hot_list
+    #- pin_inv_send        monitor         monitor
+    #- pin_inv_send        max_errs        1
+    #- pin_inv_send        multi_db        0
+    #
+    #========================================================================
+    # pin_inv_send header information
+    #
+    # (UNIX only) Specifies the email subject and the name and email address
+    # of the sender.
+    #
+    # Note: The "from" entry seems to have higher priority than the "sender" 
+    #       entry; that is, if you configure the "from" entry, only the "From"
+    #       email address will be shown, regardless of whether you have
+    #       configured the "sender" entry.
+    #========================================================================
+    #- pin_inv_send          sender          Portal Software Inc.
+    #- pin_inv_send          from            billing
+    #- pin_inv_send          subject         Invoice - Online Service
+    #
+    #========================================================================
+    # pin_inv_send invoice format
+    #
+    # Specifies one of these four formats:
+    #
+    #    text/pin_flist
+    #    text/xml
+    #    text/html (Default)
+    #    text/doc1 (Raw file)
+    #
+    # You can also specify an arbitrary mime type, such as text/xslt.
+    # In this case, the mime type must be understood by the formatting opcode.
+    #========================================================================
+    #- pin_inv_send       invoice_fmt     text/html
+    #
+    #========================================================================
+    # Invoice data format for non-invoice accounts
+    #
+    # Specifies, for non-invoice accounts, whether to print or email the
+    # invoice data.
+    #
+    # This entry works for non-invoice accounts only. The value for this
+    # entry can be:
+    #
+    #    0       = email
+    #    Nonzero = (Default) print
+    #========================================================================
+    #- pin_inv_send delivery_preference  1
+    #
+    #========================================================================
+    # Email format for invoice accounts
+    #
+    # Specifies, for invoice accounts, whether to attach the invoice in the
+    # email or to include it in the email body.
+    #
+    # The value for this entry can be:
+    #
+    #    0       = (Default) Include invoice in email body.
+    #    Nonzero = Attach the invoice
+    #========================================================================
+    #- pin_inv_send         email_option      0
+    #
+    #========================================================================
+    # Customized email message
+    #
+    # If you choose to send invoices as email attachments, you can include a
+    # customized message in the email body. This entry specifies the path to
+    # a text file containing that customized message.
+    #
+    # Note: This option takes effect only if the email format for invoice
+    #       accounts (pin_inv_send email_option, above) is set to 1.
+    #========================================================================
+    #- pin_inv_send         email_body      ./letter
+    #
+    #========================================================================
+    # Default database number
+    #
+    # Specifies the default database number for searching.
+    #========================================================================
+    - pin_inv_send database 0.0.0.1 /search 0
+
+
+    #========================================================================
+    # Entries for pin_inv_upgrade
+    #
+    # These entries are used for pin_inv_upgrade configuration only.
+    #
+    # Note: Enable these entries only if you want different applications
+    #       configured differently.
+    #========================================================================
+    #
+    #- pin_inv_upgrade        children        5
+    #- pin_inv_upgrade        per_batch       500
+    #- pin_inv_upgrade        per_step        1000
+    #- pin_inv_upgrade        fetch_size      5000
+    #- pin_inv_upgrade        hotlist         hot_list
+    #- pin_inv_upgrade        monitor         monitor
+    #- pin_inv_upgrade        max_errs        1
+    #- pin_inv_upgrade        multi_db        0
+    #
+    #========================================================================
+    # Default database number
+    #
+    # Specifies the default database number for searching.
+    #========================================================================
+    - pin_inv_upgrade database 0.0.0.1 /search 0
+
+
+    #======================================================================
+    # enable_ara
+    #
+    # To enable ARA Feature
+    # The value for this entry can be:
+    #  -- 0: Disabled
+    #  -- 1: Enabled
+    #======================================================================
+    - pin_mta enable_ara 0
+    - nap enable_ssl {{ .Values.ocbrm.ENABLE_SSL }}
+
+  pin_trial_bill.conf: |
+    #************************************************************************
+    # Configuration File for Multithreading Application (MTA) Framework
+    #
+    # This configuration file controls how MTA (MultiThreraded Application)
+    # programs run. Several MTA applications, such as pin_inv_accts and
+    # pin_inv_export, can use this file. Some parameter names and values are
+    # generic; each of the generic entries begins with "- pin_mta", as in
+    # this example:
+    #
+    #   - pin_mta        fetch_size  30000
+    #
+    # Every other parameter name and value is specific to one application
+    # and begins with that application's name, as in this example:
+    #
+    #   - pin_inv_accts  fetch_size  40000
+    #
+    # Application-specific values always override generic values.
+    #
+    # You can edit this configuration file to suit your specific configuration:
+    #  -- You can change the default values of a parameter
+    #  -- You can exclude a parameter by adding the # symbol
+    #     at the beginning of the line
+    #  -- You can uncomment a parameter by removing the # symbol.
+    #
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # When editing this file, follow the instructions in each section.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #************************************************************************
+    
+    
+    #======================================================================
+    #
+    # You can edit this file to suit your specific configuration:
+    #  -- You can change the default values of an entry.
+    #  -- You can exclude an optional entry by adding the # symbol
+    #     at the beginning of the line.
+    #  -- You can include a commented entry by removing the # symbol.
+    #
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # To edit this file, follow the instructions in the commented sections.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #======================================================================
+    
+    #=======================================================================
+    # ptr_virtual_time
+    # 
+    # Enables the use of pin_virtual_time to advance Portal time, and 
+    # specifies the shared file for use by all Portal mangers.
+    #
+    # The entry has 2 values
+    #
+    # #/Empty       to disable / enable pin_virtual_time in all pin.conf files
+    #               default = #     (disable)
+    #
+    # <filepath>    location and name of the pin_virtual_time file shared by all Portal managers.
+    #               default = ${PIN_HOME}/lib/pin_virtual_time_file
+    #
+    #=======================================================================
+    #- - pin_virtual_time {{ .Values.ocbrm.virtual_time.pvt }}/pin_virtual_time_file    
+    
+    #========================================================================
+    # cm_ptr
+    # 
+    # Specifies a pointer to the CM or CMMP. 
+    #
+    # Use a separate entry for each CM or CMMP. If testnap can't find the
+    # first CM or CMMP, it looks for the next in the list.
+    #
+    # Each entry includes three values:
+    # 
+    #     <protocol> = "ip", for this release
+    #     <host>     = the name or IP address of the computer running the
+    #                    CM or CMMP
+    #     <port>     = the TCP port number of the CM or CMMP on this computer
+    #
+    # The port number should match a corresponding cm_ports entry with
+    # the same port number in the CM or CMMP configuration file. The 
+    # default, 11960, is a commonly specified port for the CM or CMMP.
+    #========================================================================
+    - nap cm_ptr ip {{ .Values.ocbrm.cm.deployment.host }} {{ .Values.ocbrm.cm.deployment.port }}
+    
+    
+    #========================================================================
+    # logfile
+    #
+    # Specifies the path to the log file for the sample application
+    #========================================================================
+    - sample_act    logfile sample_act.pinlog
+    - sample_del    logfile sample_del.pinlog
+    - sample_app    logfile sample_app.pinlog 
+    - sample_search logfile sample_search.pinlog 
+    - sample_who    logfile sample_who.pinlog
+    
+    
+    #========================================================================
+    # login_type
+    #
+    # Specifies whether the login name and password are required.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = Only a user ID is required.
+    #    1 = (Default) Both a name and a password are required.
+    #
+    # By default, CMs require a user login and password when requesting an open
+    # context using PCM_CONTEXT_OPEN. However, you can remove this authentication
+    # requirement by configuring the CM with a cm_login_module of
+    # cm_login_null.so
+    #========================================================================
+    - nap login_type 1
+    
+    
+    #========================================================================
+    # login_name
+    #
+    # Specifies the login name to use when testnap connects to the CM. 
+    #========================================================================
+    - nap login_name root.0.0.0.1
+    
+    
+    #========================================================================
+    # login_pw
+    #
+    # Specifies the password to use when testnap connects to the CM.
+    #========================================================================
+    #- nap login_pw
+    
+    
+    #========================================================================
+    # userid
+    #
+    # Specifies the database number and service type for the Portal
+    # database. 
+    #
+    # The CM uses the database number to identify the Portal database 
+    # and to connect to the correct Data Manager. For connections that don't
+    # require a login name and password, the CM also passes the service
+    # type to the database.
+    #
+    # The database number, in the form 0.0.0.N, is the number assigned to 
+    # your Portal database when you installed the system. The default
+    # is 0.0.0.1.
+    #
+    # The service type is /service/pcm_client and the ID is 1.
+    # DO NOT change these values.
+    #========================================================================
+    - - userid 0.0.0.1 /service/pcm_client 1
+    
+    
+    #========================================================================
+    # hotlist
+    #
+    # Specifies the location (path and file name) of the hot-list file.
+    #
+    # A hot list is a file containing an array of POIDs that need to be
+    # handled by the MTA application's working threads first. This priority
+    # lets some threads begin working on some known large or complex accounts
+    # and bills as early as possible. The array of POIDs might be hard-coded
+    # in the file that lists hosts, or the file could be generated by some
+    # other application.
+    #
+    # The array of POIDs must be in flist format. Refer to the example
+    # files in the distribution for more information about the hot-list file.
+    #========================================================================
+    - pin_mta hotlist hotlist
+    
+    
+    #========================================================================
+    # mta_logfile
+    #
+        # Specifies the full path to the log file used by this MTA application.
+    #
+    # You can enter any valid path.
+    #========================================================================
+    - pin_mta logfile ${PIN_LOG_DIR}/pin_trial_bill/pin_trial_bill.pinlog
+    
+    
+    #========================================================================
+    # loglevel
+    #
+    # Specifies how much information the applications log.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = no logging
+    #    1 = (Default) log error messages only
+    #    2 = log error messages and warnings
+    #    3 = log error, warning, and debugging messages
+    #========================================================================
+    - pin_mta loglevel {{ .Values.ocbrm.LOG_LEVEL }}
+    
+    
+    #========================================================================
+    # max_errs
+    # 
+    # Specifies the maximum number of errors that the application can ignore.
+    #
+    # This entry is optional. By default, max_errs = fetch_size.
+    #========================================================================
+    - pin_mta max_errs 5000
+    
+    
+    #========================================================================
+    # monitor
+    #
+    # Specifies the location of shared memory (the memory-map file).
+    #
+    # Use this entry to set the path and name of a shared memory-map file.
+    # This binary file stores information about the running MTA application.
+    # With help from another application such as pin_mta_monitor, you can
+    # view and adjust the number of threads that are running in the MTA
+    # application without interrupting it.
+    #========================================================================
+    - pin_mta monitor monitor
+    
+    
+    #========================================================================
+    # multi_db
+    #
+    # Enables or disables the multidatabase capability of MTA.
+    #
+    # If you enable multi_db, MTA uses global searching instead of the
+    # normal searching. The value for this entry can be:
+    #
+    #    0 = (Default) Disable global searching
+    #    1 = Enable global searching
+    #========================================================================
+    - pin_mta multi_db 0
+    
+    
+    #========================================================================
+    # mta_performance
+    #
+    # Performance Parameters
+    # 
+    # The entries below govern how the MTA applications pull data from the
+    # database and tranfer the data to the application space. They also
+    # define how many threads (children) are used to process the data in
+    # the application.
+    #
+    #    children   = number of threads used to process the accounts in the
+    #                 application
+    #    per_batch  = number of accounts processed by each child
+    #    per_step   = number of accounts returned in each database search
+    #    fetch_size = number of accounts cached in application memory
+    #                 before processing starts
+    #
+    # Some applications do not use all of these performance parameters. For
+    # example, pin_inv_accts does not use per_batch.
+    #
+    # You can edit these entries to improve performance of MTA applications.
+    # Different MTA applications process accounts differently, so you
+    # usually need to configure these entries differently for each
+    # application. To specify an entry for a single MTA application, replace 
+    # the generic name "pin_mta" with the name of the specific application.
+    # For example, you might have these entries:
+    #
+    #    - pin_mta          fetch_size  30000
+    #    - pin_inv_accts    fetch_size  50000
+    #
+    # For a complete explanation of setting these variables for best
+    # performance, see the online document "Portal Configuration and
+    # Tuning Guide."
+    #========================================================================
+    - pin_mta       children        5
+    - pin_mta       per_batch       500
+    - pin_mta       per_step        1000
+    - pin_mta       fetch_size      5000
+    
+    
+    #========================================================================
+    # respawn_threads
+    # 
+    # Respawns worker threads if they exit due to an error. Threads are
+    # respawned if necessary after every search cycle.
+    # Valid options are :-
+    # 0 - No respawning , 1 - respawn threads
+    # The default is 0 for no respawning.
+    #========================================================================
+    - pin_mta respawn_threads 0
+    
+    
+    #************************************************************************
+    # Configuration File for Portal Trial Billing Applications
+    #
+    #
+    # This configuration file is automatically installed and configured with
+    # default values during Portal installation. You can edit this file to:
+    #   -- change the default values of the entries.
+    #   -- disable an entry by inserting a crosshatch (#) at the start of
+    #        the line.
+    #   -- enable a commented entry by removing the crosshatch (#).
+    # 
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # When editing this file, follow the instructions in each section.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #************************************************************************
+    #
+    #========================================================================
+    # Entries for pin_trial_bill_accts
+    #
+    # These entries are used for pin_trial_bill_accts configuration only.
+    #
+    # Note: Enable these entries only if you want different applications
+    #       configured differently.
+    #========================================================================
+    #
+    #- pin_trial_bill_accts        children        5
+    #- pin_trial_bill_accts        per_batch       500
+    #- pin_trial_bill_accts        per_step        1000
+    #- pin_trial_bill_accts        fetch_size      5000
+    #- pin_trial_bill_accts        hotlist         hot_list
+    #- pin_trial_bill_accts        monitor         monitor
+    #- pin_trial_bill_accts        max_errs        1
+    #- pin_trial_bill_accts        multi_db        0
+    #
+    #========================================================================
+    # Default database number
+    #
+    # Specifies the default database number for searching.
+    #========================================================================
+    - pin_trial_bill_accts database 0.0.0.1 /search 0
+    
+    
+    #======================================================================
+    #  The trial billing threshold
+    #
+    #  Specifies the maximum number of accounts pin_trial_bill_accts can
+    #  retrieve from the search and trial-bill.
+    #  No threshold is used by default in the search.
+    #======================================================================
+    #- pin_trial_bill_accts threshold 1000
+    
+    #======================================================================
+    # Entries for pin_trial_bill_purge
+    #
+    # These entries are used in the pin_trial_bill_purge configuration only.
+    #
+    #======================================================================
+    
+    #- pin_trial_bill_purge        children        5
+    #- pin_trial_bill_purge        per_batch       500
+    #- pin_trial_bill_purge        per_step        1000
+    #- pin_trial_bill_purge        fetch_size      5000
+    #- pin_trial_bill_purge        hotlist         hot_list
+    #- pin_trial_bill_purge        monitor         monitor
+    #- pin_trial_bill_purge        max_errs        1
+    
+    #======================================================================
+    # Default DB number for the search.
+    #
+    # Specifies the default database number for searching.
+    #========================================================================
+    - pin_trial_bill_purge database 0.0.0.1 /search 0
+    
+    
+    #======================================================================
+    # enable_ara
+    #
+    # To enable ARA Feature
+    # The value for this entry can be:
+    #  -- 0: Disabled
+    #  -- 1: Enabled
+    #======================================================================
+    - pin_mta enable_ara 0
+    - nap enable_ssl {{ .Values.ocbrm.ENABLE_SSL }}
+
+  pin_generate_analytics.conf: |
+        #************************************************************************
+        # Configuration File for Multithreading Application (MTA) Framework
+        #
+        # This configuration file controls how MTA (MultiThreraded Application)
+        # programs run. Several MTA applications, such as pin_inv_accts and
+        # pin_inv_export, can use this file. Some parameter names and values are
+        # generic; each of the generic entries begins with "- pin_mta", as in
+        # this example:
+        #
+        #   - pin_mta        fetch_size  30000
+        #
+        # Every other parameter name and value is specific to one application
+        # and begins with that application's name, as in this example:
+        #
+        #   - pin_inv_accts  fetch_size  40000
+        #
+        # Application-specific values always override generic values.
+        #
+        # You can edit this configuration file to suit your specific configuration:
+        #  -- You can change the default values of a parameter
+        #  -- You can exclude a parameter by adding the # symbol
+        #     at the beginning of the line
+        #  -- You can uncomment a parameter by removing the # symbol.
+        #
+        # Before you make any changes to this file, save a backup copy.
+        #
+        # When editing this file, follow the instructions in each section.
+        # For more information on the general syntax of configuration entries,
+        # see "Reference Guide to Portal Configuration Files" in the Portal
+        # online documentation.
+        #************************************************************************
+
+
+        #======================================================================
+        #
+        # You can edit this file to suit your specific configuration:
+        #  -- You can change the default values of an entry.
+        #  -- You can exclude an optional entry by adding the # symbol
+        #     at the beginning of the line.
+        #  -- You can include a commented entry by removing the # symbol.
+        #
+        # Before you make any changes to this file, save a backup copy.
+        #
+        # To edit this file, follow the instructions in the commented sections.
+        # For more information on the general syntax of configuration entries,
+        # see "Reference Guide to Portal Configuration Files" in the Portal
+        # online documentation.
+        #======================================================================
+
+        #=======================================================================
+        # ptr_virtual_time
+        #
+        # Enables the use of pin_virtual_time to advance Portal time, and
+        # specifies the shared file for use by all Portal mangers.
+        #
+        # The entry has 2 values
+        #
+        # #/Empty       to disable / enable pin_virtual_time in all pin.conf files
+        #               default = #     (disable)
+        #
+        # <filepath>    location and name of the pin_virtual_time file shared by all Portal managers.
+        #               default = ${PIN_HOME}/lib/pin_virtual_time_file
+        #
+        #=======================================================================
+        #- - pin_virtual_time {{ .Values.ocbrm.virtual_time.pvt }}/pin_virtual_time_file
+
+        #========================================================================
+        # cm_ptr
+        #
+        # Specifies a pointer to the CM or CMMP.
+        #
+        # Use a separate entry for each CM or CMMP. If testnap can't find the
+        # first CM or CMMP, it looks for the next in the list.
+        #
+        # Each entry includes three values:
+        #
+        #     <protocol> = "ip", for this release
+        #     <host>     = the name or IP address of the computer running the
+        #                    CM or CMMP
+        #     <port>     = the TCP port number of the CM or CMMP on this computer
+        #
+        # The port number should match a corresponding cm_ports entry with
+        # the same port number in the CM or CMMP configuration file. The
+        # default, 11960, is a commonly specified port for the CM or CMMP.
+        #========================================================================
+        - nap cm_ptr ip {{ .Values.ocbrm.cm.deployment.host }} {{ .Values.ocbrm.cm.deployment.port }}
+
+
+        #========================================================================
+        # logfile
+        #
+        # Specifies the path to the log file for the sample application
+        #========================================================================
+        - sample_act    logfile sample_act.pinlog
+        - sample_del    logfile sample_del.pinlog
+        - sample_app    logfile sample_app.pinlog
+        - sample_search logfile sample_search.pinlog
+        - sample_who    logfile sample_who.pinlog
+
+
+        #========================================================================
+        # login_type
+        #
+        # Specifies whether the login name and password are required.
+        #
+        # The value for this entry can be:
+        #
+        #    0 = Only a user ID is required.
+        #    1 = (Default) Both a name and a password are required.
+        #
+        # By default, CMs require a user login and password when requesting an open
+        # context using PCM_CONTEXT_OPEN. However, you can remove this authentication
+        # requirement by configuring the CM with a cm_login_module of
+        # cm_login_null.so
+        #========================================================================
+        - nap login_type 1
+
+
+        #========================================================================
+        # login_name
+        #
+        # Specifies the login name to use when testnap connects to the CM.
+        #========================================================================
+        - nap login_name root.0.0.0.1
+
+
+        #========================================================================
+        # login_pw
+        #
+        # Specifies the password to use when testnap connects to the CM.
+        #========================================================================
+        #- nap login_pw
+
+
+        #========================================================================
+        # userid
+        #
+        # Specifies the database number and service type for the Portal
+        # database.
+        #
+        # The CM uses the database number to identify the Portal database
+        # and to connect to the correct Data Manager. For connections that don't
+        # require a login name and password, the CM also passes the service
+        # type to the database.
+        #
+        # The database number, in the form 0.0.0.N, is the number assigned to
+        # your Portal database when you installed the system. The default
+        # is 0.0.0.1.
+        #
+        # The service type is /service/pcm_client and the ID is 1.
+        # DO NOT change these values.
+        #========================================================================
+        - - userid 0.0.0.1 /service/pcm_client 1
+
+
+        #========================================================================
+        # hotlist
+        #
+        # Specifies the location (path and file name) of the hot-list file.
+        #
+        # A hot list is a file containing an array of POIDs that need to be
+        # handled by the MTA application's working threads first. This priority
+        # lets some threads begin working on some known large or complex accounts
+        # and bills as early as possible. The array of POIDs might be hard-coded
+        # in the file that lists hosts, or the file could be generated by some
+        # other application.
+        #
+        # The array of POIDs must be in flist format. Refer to the example
+        # files in the distribution for more information about the hot-list file.
+        #========================================================================
+        - pin_mta hotlist hotlist
+
+
+        #========================================================================
+        # mta_logfile
+        #
+            # Specifies the full path to the log file used by this MTA application.
+        #
+        # You can enter any valid path.
+        #========================================================================
+        - pin_mta logfile  ${PIN_LOG_DIR}/pin_generate_analytics/pin_generate_analytics.pinlog
+
+
+        #========================================================================
+        # loglevel
+        #
+        # Specifies how much information the applications log.
+        #
+        # The value for this entry can be:
+        #
+        #    0 = no logging
+        #    1 = (Default) log error messages only
+        #    2 = log error messages and warnings
+        #    3 = log error, warning, and debugging messages
+        #========================================================================
+        - pin_mta loglevel {{ .Values.ocbrm.LOG_LEVEL }}
+
+
+        #========================================================================
+        # max_errs
+        #
+        # Specifies the maximum number of errors that the application can ignore.
+        #
+        # This entry is optional. By default, max_errs = fetch_size.
+        #========================================================================
+        - pin_mta max_errs 5000
+
+
+        #========================================================================
+        # monitor
+        #
+        # Specifies the location of shared memory (the memory-map file).
+        #
+        # Use this entry to set the path and name of a shared memory-map file.
+        # This binary file stores information about the running MTA application.
+        # With help from another application such as pin_mta_monitor, you can
+        # view and adjust the number of threads that are running in the MTA
+        # application without interrupting it.
+        #========================================================================
+        - pin_mta monitor monitor
+
+
+        #========================================================================
+        # multi_db
+        #
+        # Enables or disables the multidatabase capability of MTA.
+        #
+        # If you enable multi_db, MTA uses global searching instead of the
+        # normal searching. The value for this entry can be:
+        #
+        #    0 = (Default) Disable global searching
+        #    1 = Enable global searching
+        #========================================================================
+        - pin_mta multi_db 0
+
+
+        #========================================================================
+        # mta_performance
+        #
+        # Performance Parameters
+        #
+        # The entries below govern how the MTA applications pull data from the
+        # database and tranfer the data to the application space. They also
+        # define how many threads (children) are used to process the data in
+        # the application.
+        #
+        #    children   = number of threads used to process the accounts in the
+        #                 application
+        #    per_batch  = number of accounts processed by each child
+        #    per_step   = number of accounts returned in each database search
+        #    fetch_size = number of accounts cached in application memory
+        #                 before processing starts
+        #
+        # Some applications do not use all of these performance parameters. For
+        # example, pin_inv_accts does not use per_batch.
+        #
+        # You can edit these entries to improve performance of MTA applications.
+        # Different MTA applications process accounts differently, so you
+        # usually need to configure these entries differently for each
+        # application. To specify an entry for a single MTA application, replace
+        # the generic name "pin_mta" with the name of the specific application.
+        # For example, you might have these entries:
+        #
+        #    - pin_mta          fetch_size  30000
+        #    - pin_inv_accts    fetch_size  50000
+        #
+        # For a complete explanation of setting these variables for best
+        # performance, see the online document "Portal Configuration and
+        # Tuning Guide."
+        #========================================================================
+        - pin_mta       children        5
+        - pin_mta       per_batch       500
+        - pin_mta       per_step        1000
+        - pin_mta       fetch_size      5000
+
+
+        #========================================================================
+        # respawn_threads
+        #
+        # Respawns worker threads if they exit due to an error. Threads are
+        # respawned if necessary after every search cycle.
+        # Valid options are :-
+        # 0 - No respawning , 1 - respawn threads
+        # The default is 0 for no respawning.
+        #========================================================================
+        - pin_mta respawn_threads 0
+
+        #========================================================================
+        # Deadlock Retry Count
+        #
+        # Specified the number of attempts to bill an account again in
+        # case of a deadlock error.
+        #
+        # This entry is required for SQL Server databases.  For other databases,
+        # this is an optional parameter.  For better performance this count
+        # should be set depending on the volumes of the accounts to be billed.
+        #
+        #========================================================================
+        - pin_generate_analytics  deadlock_retry_count  20
+
+
+        #========================================================================
+        # logfile
+        #
+        # Specifies the full path to the log file for the pin_generate_analytics
+        # application.
+        #
+        # You can enter any valid path.
+        #========================================================================
+        - pin_generate_analytics logfile ${PIN_LOG_DIR}/pin_generate_analytics/pin_generate_analytics.pinlog
+
+        #========================================================================
+        # loglevel
+        #
+        # Specifies how much information the generate analytics application logs.
+        #
+        # The value for this entry can be:
+        #
+        #    0 = no logging
+        #    1 = (Default) log error messages only
+        #    2 = log error messages and warnings
+        #    3 = log error, warning, and debugging messages
+        #========================================================================
+        - pin_generate_analytics loglevel {{ .Values.ocbrm.LOG_LEVEL }}
+
+        - nap enable_ssl {{ .Values.ocbrm.ENABLE_SSL }}
+
+  partition_utils.values: |
+        #
+        #	@(#)%Portal Version: partition_utils.values:PlatformR2Int:3:2006-Sep-12 03:35:19 %
+        #
+        # Copyright (c) 1996, 2015, Oracle and/or its affiliates. All rights reserved.
+        #
+        #	This material is the confidential property of Oracle Corporation or its
+        #	licensors and may be used, reproduced, stored or transmitted only in
+        #	accordance with a valid Oracle license or sublicense agreement.
+        #
+
+        #===============================================================================
+        #  Database Connection Parameters
+        #
+        #  Provides the Oracle connection information for using sqlplus to connect to
+        #  the Infranet database.
+        #===============================================================================
+
+        #===============
+        # Database alias
+        #===============
+        $MAIN_DB{'alias'} = "{{ .Values.ocbrm.db.alias }}";
+
+
+        #==============
+        # Database user
+        #==============
+        $MAIN_DB{'user'} = "{{ .Values.ocbrm.db.schemauser }}";
+
+
+        #==================
+        # Database password
+        #==================
+        #$MAIN_DB{'password'} = "";
+
+
+        #===============================================================================
+        #  Adding Partitions - First New Partition
+        #
+        #  Limits how many days into the future new partitions can be added.
+        #  By default, the utility restricts the user from adding new partitions beyond
+        #  90 days in the future.
+        #===============================================================================
+        $MAX_ADD_REAL{'start_date'} = 90;     # Valid range in [2-180]
+        $MAX_ADD_DELAYED{'start_date'} = 90;  # Valid range in [2-180]
+
+        #===============================================================================
+        #  Adding Partitions - Number of New Partitions
+        #
+        #  Limits the number of new partitions added, based on the partition type.
+        #  By default, the utility restricts the user from creating more than 60 daily
+        #  partitions, or 15 weekly partitions, or 12 monthly partitions.
+        #===============================================================================
+        $MAX_ADD_REAL{'daily_quantity'} = 60;      # Valid range in [1-150]
+        $MAX_ADD_REAL{'weekly_quantity'} = 15;     # Valid range in [1-80]
+        $MAX_ADD_REAL{'monthly_quantity'} = 12;     # Valid range in [1-24]
+        $MAX_ADD_DELAYED{'daily_quantity'} = 60;   # Valid range in [1-150]
+        $MAX_ADD_DELAYED{'weekly_quantity'} = 15;  # Valid range in [1-80]
+        $MAX_ADD_DELAYED{'monthly_quantity'} = 12;  # Valid range in [1-24]
+
+        #===============================================================================
+        #  Adding Partitions - Width of New Partitions
+        #
+        #  Limits the width of new partitions added, based on the partition type.
+        #  By default, the utility restricts the user from creating daily partitions
+        #  wider than 5 days, weekly partitions wider than 3 weeks, and monthly
+        #  partitions wider than 2 months.
+        #===============================================================================
+        $MAX_ADD_REAL{'daily_width'} = 30;       # Valid range in [1-30]
+        $MAX_ADD_REAL{'weekly_width'} = 3;      # Valid range in [1-10]
+        $MAX_ADD_REAL{'monthly_width'} = 2;     # Valid range in [1-6]
+        $MAX_ADD_DELAYED{'daily_width'} = 5;    # Valid range in [1-30]
+        $MAX_ADD_DELAYED{'weekly_width'} = 3;   # Valid range in [1-10]
+        $MAX_ADD_DELAYED{'monthly_width'} = 2;  # Valid range in [1-6]
+
+        #===============================================================================
+        #  Removing Partitions - Required Age of Partitions
+        #
+        #  Limits the age of partitions removed.  By default, the utility restricts the
+        #  user from removing partitions less than 45 days old.
+        #===============================================================================
+        $MAX_REMOVE_REAL{'older_than'} = 45;     # valid range: >= 1
+        $MAX_REMOVE_DELAYED{'older_than'} = 45;  # valid range: >= 1
+
+        #===============================================================================
+        #  Purging Partitions - Minimum required percent of Purgable Data
+        #  Partitions will be purged only when purgable poids in event_bal_impact_t > PURGE_THRESHOLD
+        #===============================================================================
+        $PURGE_THRESHOLD = 70;     # valid range: >= 60 and <100
+
+        #===============================================================================
+        #  Purging Partitions - Required number
+        #  Number of processes to run in parallel. Default value = 2
+        #  Max. limit depends on the system resources such as:
+        #  Max. number of processes that system allows
+        #  Max. number of sqlplus sessions that database server allows
+        #===============================================================================
+        $NUM_OF_PROCESSES = 2; # valid range: >= 1 and <=10
+
+        #===============================================================================
+        #  Purging Partitions - Required number
+        #  Number of records to be deleted in chunk
+        #===============================================================================
+        $MAX_DEL_REC_CHUNK = 1000; # valid range: >= 500 and <=5000
+
+        #===============================================================================
+        #  Purging Partitions - Required number
+        #  If the purgable poids < this value then delete_in_place approach will be chosen.
+        #  DELETE_IN_PLACE method will be chosen either purgable events  < 5 %
+        #  or purgable records < MAX_DEL_REC in the partition of the table.
+        #===============================================================================
+        $MAX_DEL_REC = 10000; # valid range: >=1000 and <=20000
+
+        #===============================================================================
+        #  This parameter is used by pin_close_items
+        #  Batch size for Commit.
+        #  Database Commit is called for batches of size given here.
+        #===============================================================================
+        $COMMIT_BUNDLE_SIZE = 10000
+
+  pin_subscription.conf: |
+    #************************************************************************
+    # Configuration File for Triggering flexible Cycle Forward, Cycle
+    # Rollover, Expired Discount Cleanup and Expire Sub-balance cleanup.
+    #
+    #
+    # This configuration file is automatically installed and configured with
+    # default values during Portal installation. You can edit this file to:
+    #   -- change the default values of the entries.
+    #   -- disable an entry by inserting a crosshatch (#) at the start of
+    #        the line.
+    #   -- enable a commented entry by removing the crosshatch (#).
+    #
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # When editing this file, follow the instructions in each section.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #************************************************************************
+    
+    
+    #======================================================================
+    #
+    # You can edit this file to suit your specific configuration:
+    #  -- You can change the default values of an entry.
+    #  -- You can exclude an optional entry by adding the # symbol
+    #     at the beginning of the line.
+    #  -- You can include a commented entry by removing the # symbol.
+    #
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # To edit this file, follow the instructions in the commented sections.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #======================================================================
+    
+    #=======================================================================
+    # ptr_virtual_time
+    #
+    # Enables the use of pin_virtual_time to advance Portal time, and
+    # specifies the shared file for use by all Portal mangers.
+    #
+    # The entry has 2 values
+    #
+    # #/Empty       to disable / enable pin_virtual_time in all pin.conf files
+    #               default = #     (disable)
+    #
+    # <filepath>    location and name of the pin_virtual_time file shared by all Portal managers.
+    #               default = ${PIN_HOME}/lib/pin_virtual_time_file
+    #
+    #=======================================================================
+    #- - pin_virtual_time {{ .Values.ocbrm.virtual_time.pvt }}/pin_virtual_time_file    
+    
+    #========================================================================
+    # cm_ptr
+    #
+    # Specifies a pointer to the CM or CMMP.
+    #
+    # Use a separate entry for each CM or CMMP. If testnap can't find the
+    # first CM or CMMP, it looks for the next in the list.
+    #
+    # Each entry includes three values:
+    #
+    #     <protocol> = "ip", for this release
+    #     <host>     = the name or IP address of the computer running the
+    #                    CM or CMMP
+    #     <port>     = the TCP port number of the CM or CMMP on this computer
+    #
+    # The port number should match a corresponding cm_ports entry with
+    # the same port number in the CM or CMMP configuration file. The
+    # default, 11960, is a commonly specified port for the CM or CMMP.
+    #========================================================================
+    - nap cm_ptr ip {{ .Values.ocbrm.cm.deployment.host }} {{ .Values.ocbrm.cm.deployment.port }}
+    
+    
+    #========================================================================
+    # logfile
+    #
+    # Specifies the path to the log file for the sample application
+    #========================================================================
+    - sample_act    logfile sample_act.pinlog
+    - sample_del    logfile sample_del.pinlog
+    - sample_app    logfile sample_app.pinlog
+    - sample_search logfile sample_search.pinlog
+    - sample_who    logfile sample_who.pinlog
+    
+    
+    #========================================================================
+    # login_type
+    #
+    # Specifies whether the login name and password are required.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = Only a user ID is required.
+    #    1 = (Default) Both a name and a password are required.
+    #
+    # By default, CMs require a user login and password when requesting an open
+    # context using PCM_CONTEXT_OPEN. However, you can remove this authentication
+    # requirement by configuring the CM with a cm_login_module of
+    # cm_login_null.so
+    #========================================================================
+    - nap login_type 1
+    
+    
+    #========================================================================
+    # login_name
+    #
+    # Specifies the login name to use when testnap connects to the CM.
+    #========================================================================
+    - nap login_name root.0.0.0.1
+    
+    
+    #========================================================================
+    # login_pw
+    #
+    # Specifies the password to use when testnap connects to the CM.
+    #========================================================================
+    #- nap login_pw
+    
+    
+    #========================================================================
+    # userid
+    #
+    # Specifies the database number and service type for the Portal
+    # database.
+    #
+    # The CM uses the database number to identify the Portal database
+    # and to connect to the correct Data Manager. For connections that don't
+    # require a login name and password, the CM also passes the service
+    # type to the database.
+    #
+    # The database number, in the form 0.0.0.N, is the number assigned to
+    # your Portal database when you installed the system. The default
+    # is 0.0.0.1.
+    #
+    # The service type is /service/pcm_client and the ID is 1.
+    # DO NOT change these values.
+    #========================================================================
+    - - userid 0.0.0.1 /service/pcm_client 1
+    
+    
+    #========================================================================
+    # enable_ssl
+    #
+    # Specifies whether TLS will be enabled for PCM connections
+    #
+    #    0 - TLS is disabled.
+    #    1 - TLS is enabled.
+    #
+    #========================================================================
+    - nap enable_ssl {{ .Values.ocbrm.ENABLE_SSL }}
+    
+    
+    #========================================================================
+    # hotlist
+    #
+    # Specifies the location (path and file name) of the hot-list file.
+    #
+    # A hot list is a file containing an array of POIDs that need to be
+    # handled by the MTA application's working threads first. This priority
+    # lets some threads begin working on some known large or complex accounts
+    # and bills as early as possible. The array of POIDs might be hard-coded
+    # in the file that lists hosts, or the file could be generated by some
+    # other application.
+    #
+    # The array of POIDs must be in flist format. Refer to the example
+    # files in the distribution for more information about the hot-list file.
+    #========================================================================
+    - pin_mta hotlist hotlist
+    
+    
+    #========================================================================
+    # mta_logfile
+    #
+    # Specifies the full path to the log file used by this MTA application.
+    #
+    # You can enter any valid path.
+    #========================================================================
+    - pin_mta logfile ${PIN_LOG_DIR}/pin_subscription/pin_subscription.pinlog
+    
+    
+    #========================================================================
+    # loglevel
+    #
+    # Specifies how much information the applications log.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = no logging
+    #    1 = (Default) log error messages only
+    #    2 = log error messages and warnings
+    #    3 = log error, warning, and debugging messages
+    #========================================================================
+    - pin_mta loglevel {{ .Values.ocbrm.LOG_LEVEL }}
+    
+    
+    #========================================================================
+    # max_errs
+    #
+    # Specifies the maximum number of errors that the application can ignore.
+    #
+    # This entry is optional. By default, max_errs = fetch_size.
+    #========================================================================
+    - pin_mta max_errs 5000
+    
+    
+    #========================================================================
+    # monitor
+    #
+    # Specifies the location of shared memory (the memory-map file).
+    #
+    # Use this entry to set the path and name of a shared memory-map file.
+    # This binary file stores information about the running MTA application.
+    # With help from another application such as pin_mta_monitor, you can
+    # view and adjust the number of threads that are running in the MTA
+    # application without interrupting it.
+    #========================================================================
+    - pin_mta monitor monitor
+    
+    
+    #========================================================================
+    # multi_db
+    #
+    # Enables or disables the multidatabase capability of MTA.
+    #
+    # If you enable multi_db, MTA uses global searching instead of the
+    # normal searching. The value for this entry can be:
+    #
+    #    0 = (Default) Disable global searching
+    #    1 = Enable global searching
+    #========================================================================
+    - pin_mta multi_db 0
+    
+    
+    #========================================================================
+    # mta_performance
+    #
+    # Performance Parameters
+    #
+    # The entries below govern how the MTA applications pull data from the
+    # database and tranfer the data to the application space. They also
+    # define how many threads (children) are used to process the data in
+    # the application.
+    #
+    #    children   = number of threads used to process the accounts in the
+    #                 application
+    #    per_batch  = number of accounts processed by each child
+    #    per_step   = number of accounts returned in each database search
+    #    fetch_size = number of accounts cached in application memory
+    #                 before processing starts
+    #
+    # Some applications do not use all of these performance parameters. For
+    # example, pin_inv_accts does not use per_batch.
+    #
+    # You can edit these entries to improve performance of MTA applications.
+    # Different MTA applications process accounts differently, so you
+    # usually need to configure these entries differently for each
+    # application. To specify an entry for a single MTA application, replace
+    # the generic name "pin_mta" with the name of the specific application.
+    # For example, you might have these entries:
+    #
+    #    - pin_mta          fetch_size  30000
+    #    - pin_inv_accts    fetch_size  50000
+    #
+    # For a complete explanation of setting these variables for best
+    # performance, see the online document "Portal Configuration and
+    # Tuning Guide."
+    #========================================================================
+    - pin_mta       children        5
+    - pin_mta       per_batch       500
+    - pin_mta       per_step        1000
+    - pin_mta       fetch_size      5000
+    
+    
+    #========================================================================
+    # respawn_threads
+    #
+    # Respawns worker threads if they exit due to an error. Threads are
+    # respawned if necessary after every search cycle.
+    # Valid options are :-
+    # 0 - No respawning , 1 - respawn threads
+    # The default is 0 for no respawning.
+    #========================================================================
+    - pin_mta respawn_threads 0
+    
+    
+    #======================================================================
+    # Default DB number for the search.
+    #======================================================================
+    - pin_mta database 0.0.0.1 /search 0
+    
+    
+    #======================================================================
+    # pin_mta_performance
+    #
+    # Entries for pin_subscription
+    #
+    # These entries are used in the pin_subscription configuration only.
+    #
+    #======================================================================
+    #- pin_mta        children        5
+    #- pin_mta        per_batch       500
+    #- pin_mta        per_step        1000
+    #- pin_mta        fetch_size      5000
+    #- pin_mta        max_errs        1
+    
+    
+    #======================================================================
+    #
+    # Some parameters for pin_purge application to manipulate
+    # the database directly.
+    #
+    #======================================================================
+    - pin_purge db_user {{ .Values.ocbrm.db.schemauser }}
+    #- pin_purge db_password
+    #- pin_purge db_oraclePwd
+    - pin_purge db_name {{ .Values.ocbrm.db.alias }}
+    - pin_purge batch_size 1000
+    
+    
+    #======================================================================
+    # pin_purge_logfile
+    #
+    # Name and location of the log file used by this Portal process.
+    #
+    #======================================================================
+    - pin_purge logfile ${PIN_LOG_DIR}/pin_subscription/pin_purge.pinlog
+    
+    
+    #======================================================================
+    # pin_purge_loglevel
+    #
+    # How much information the applications should log.
+    #
+    # The value for this entry can be:
+    #  -- 0: no logging
+    #  -- 1: log error messages only
+    #  -- 2: log error messages and warnings
+    #  -- 3: log error messages, warnings, and debugging messages
+    #======================================================================
+    - pin_purge loglevel {{ .Values.ocbrm.LOG_LEVEL }}
+    
+    
+    #======================================================================
+    #
+    # Some parameters for pin_sub_balance_cleanup application to manipulate
+    # the database directly.
+    #
+    #======================================================================
+    - pin_sub_balance_cleanup db_user {{ .Values.ocbrm.db.schemauser }}
+    #- pin_sub_balance_cleanup db_password
+    - pin_sub_balance_cleanup db_name {{ .Values.ocbrm.db.alias }}
+    - pin_sub_balance_cleanup db_accesslib oci11g72
+
+  pin_rerate.conf: |
+    #************************************************************************
+    # Configuration File for Rerating and Rebilling
+    #
+    #
+    # This configuration file is automatically installed and configured with
+    # default values during Portal installation. You can edit this file to:
+    #   -- change the default values of the entries.
+    #   -- disable an entry by inserting a crosshatch (#) at the start of
+    #        the line.
+    #   -- enable a commented entry by removing the crosshatch (#).
+    #
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # When editing this file, follow the instructions in each section.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #************************************************************************
+    
+    
+    #======================================================================
+    #
+    # You can edit this file to suit your specific configuration:
+    #  -- You can change the default values of an entry.
+    #  -- You can exclude an optional entry by adding the # symbol
+    #     at the beginning of the line.
+    #  -- You can include a commented entry by removing the # symbol.
+    #
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # To edit this file, follow the instructions in the commented sections.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #======================================================================
+    
+    #=======================================================================
+    # ptr_virtual_time
+    #
+    # Enables the use of pin_virtual_time to advance Portal time, and
+    # specifies the shared file for use by all Portal mangers.
+    #
+    # The entry has 2 values
+    #
+    # #/Empty       to disable / enable pin_virtual_time in all pin.conf files
+    #               default = #     (disable)
+    #
+    # <filepath>    location and name of the pin_virtual_time file shared by all Portal managers.
+    #               default = ${PIN_HOME}/lib/pin_virtual_time_file
+    #
+    #=======================================================================
+    #- - pin_virtual_time {{ .Values.ocbrm.virtual_time.pvt }}/pin_virtual_time_file    
+    
+    #========================================================================
+    # cm_ptr
+    #
+    # Specifies a pointer to the CM or CMMP.
+    #
+    # Use a separate entry for each CM or CMMP. If testnap can't find the
+    # first CM or CMMP, it looks for the next in the list.
+    #
+    # Each entry includes three values:
+    #
+    #     <protocol> = "ip", for this release
+    #     <host>     = the name or IP address of the computer running the
+    #                    CM or CMMP
+    #     <port>     = the TCP port number of the CM or CMMP on this computer
+    #
+    # The port number should match a corresponding cm_ports entry with
+    # the same port number in the CM or CMMP configuration file. The
+    # default, 11960, is a commonly specified port for the CM or CMMP.
+    #========================================================================
+    - nap cm_ptr ip {{ .Values.ocbrm.cm.deployment.host }} {{ .Values.ocbrm.cm.deployment.port }}
+    
+    
+    #========================================================================
+    # logfile
+    #
+    # Specifies the path to the log file for the sample application
+    #========================================================================
+    - sample_act    logfile sample_act.pinlog
+    - sample_del    logfile sample_del.pinlog
+    - sample_app    logfile sample_app.pinlog
+    - sample_search logfile sample_search.pinlog
+    - sample_who    logfile sample_who.pinlog
+    
+    
+    #========================================================================
+    # login_type
+    #
+    # Specifies whether the login name and password are required.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = Only a user ID is required.
+    #    1 = (Default) Both a name and a password are required.
+    #
+    # By default, CMs require a user login and password when requesting an open
+    # context using PCM_CONTEXT_OPEN. However, you can remove this authentication
+    # requirement by configuring the CM with a cm_login_module of
+    # cm_login_null.so
+    #========================================================================
+    - nap login_type 1
+    
+    
+    #========================================================================
+    # login_name
+    #
+    # Specifies the login name to use when testnap connects to the CM.
+    #========================================================================
+    - nap login_name root.0.0.0.1
+    
+    
+    #========================================================================
+    # login_pw
+    #
+    # Specifies the password to use when testnap connects to the CM.
+    #========================================================================
+    #- nap login_pw
+    
+    
+    #========================================================================
+    # userid
+    #
+    # Specifies the database number and service type for the Portal
+    # database.
+    #
+    # The CM uses the database number to identify the Portal database
+    # and to connect to the correct Data Manager. For connections that don't
+    # require a login name and password, the CM also passes the service
+    # type to the database.
+    #
+    # The database number, in the form 0.0.0.N, is the number assigned to
+    # your Portal database when you installed the system. The default
+    # is 0.0.0.1.
+    #
+    # The service type is /service/pcm_client and the ID is 1.
+    # DO NOT change these values.
+    #========================================================================
+    - - userid 0.0.0.1 /service/pcm_client 1
+    
+    
+    #========================================================================
+    # enable_ssl
+    #
+    # Specifies whether TLS will be enabled for PCM connections
+    #
+    #    0 - TLS is disabled.
+    #    1 - TLS is enabled.
+    #
+    #========================================================================
+    - nap enable_ssl {{ .Values.ocbrm.ENABLE_SSL }}
+    
+    
+    #========================================================================
+    # hotlist
+    #
+    # Specifies the location (path and file name) of the hot-list file.
+    #
+    # A hot list is a file containing an array of POIDs that need to be
+    # handled by the MTA application's working threads first. This priority
+    # lets some threads begin working on some known large or complex accounts
+    # and bills as early as possible. The array of POIDs might be hard-coded
+    # in the file that lists hosts, or the file could be generated by some
+    # other application.
+    #
+    # The array of POIDs must be in flist format. Refer to the example
+    # files in the distribution for more information about the hot-list file.
+    #========================================================================
+    - pin_mta hotlist hotlist
+    
+    
+    #========================================================================
+    # mta_logfile
+    #
+    # Specifies the full path to the log file used by this MTA application.
+    #
+    # You can enter any valid path.
+    #========================================================================
+    - pin_mta logfile ${PIN_LOG_DIR}/pin_rerate/pin_rerate.pinlog
+    
+    
+    #========================================================================
+    # loglevel
+    #
+    # Specifies how much information the applications log.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = no logging
+    #    1 = (Default) log error messages only
+    #    2 = log error messages and warnings
+    #    3 = log error, warning, and debugging messages
+    #========================================================================
+    - pin_mta loglevel {{ .Values.ocbrm.LOG_LEVEL }}
+    
+    
+    #========================================================================
+    # max_errs
+    #
+    # Specifies the maximum number of errors that the application can ignore.
+    #
+    # This entry is optional. By default, max_errs = fetch_size.
+    #========================================================================
+    - pin_mta max_errs 5000
+    
+    
+    #========================================================================
+    # monitor
+    #
+    # Specifies the location of shared memory (the memory-map file).
+    #
+    # Use this entry to set the path and name of a shared memory-map file.
+    # This binary file stores information about the running MTA application.
+    # With help from another application such as pin_mta_monitor, you can
+    # view and adjust the number of threads that are running in the MTA
+    # application without interrupting it.
+    #========================================================================
+    - pin_mta monitor monitor
+    
+    
+    #========================================================================
+    # multi_db
+    #
+    # Enables or disables the multidatabase capability of MTA.
+    #
+    # If you enable multi_db, MTA uses global searching instead of the
+    # normal searching. The value for this entry can be:
+    #
+    #    0 = (Default) Disable global searching
+    #    1 = Enable global searching
+    #========================================================================
+    - pin_mta multi_db 0
+    
+    
+    #========================================================================
+    # mta_performance
+    #
+    # Performance Parameters
+    #
+    # The entries below govern how the MTA applications pull data from the
+    # database and tranfer the data to the application space. They also
+    # define how many threads (children) are used to process the data in
+    # the application.
+    #
+    #    children   = number of threads used to process the accounts in the
+    #                 application
+    #    per_batch  = number of accounts processed by each child
+    #    per_step   = number of accounts returned in each database search
+    #    fetch_size = number of accounts cached in application memory
+    #                 before processing starts
+    #
+    # Some applications do not use all of these performance parameters. For
+    # example, pin_inv_accts does not use per_batch.
+    #
+    # You can edit these entries to improve performance of MTA applications.
+    # Different MTA applications process accounts differently, so you
+    # usually need to configure these entries differently for each
+    # application. To specify an entry for a single MTA application, replace
+    # the generic name "pin_mta" with the name of the specific application.
+    # For example, you might have these entries:
+    #
+    #    - pin_mta          fetch_size  30000
+    #    - pin_inv_accts    fetch_size  50000
+    #
+    # For a complete explanation of setting these variables for best
+    # performance, see the online document "Portal Configuration and
+    # Tuning Guide."
+    #========================================================================
+    - pin_mta       children        5
+    - pin_mta       per_batch       500
+    - pin_mta       per_step        1000
+    - pin_mta       fetch_size      5000
+    
+    
+    #========================================================================
+    # respawn_threads
+    #
+    # Respawns worker threads if they exit due to an error. Threads are
+    # respawned if necessary after every search cycle.
+    # Valid options are :-
+    # 0 - No respawning , 1 - respawn threads
+    # The default is 0 for no respawning.
+    #========================================================================
+    - pin_mta respawn_threads 0
+    
+    
+    #======================================================================
+    # Entries for pin_rerate
+    #
+    # These entries are used in the pin_rerate -rerate steps only for
+    # performance improvement.
+    #
+    #======================================================================
+    #- pin_rerate        rerate_children        5
+    #- pin_rerate        rerate_per_step       1000
+    #- pin_rerate        rerate_fetch_size        5000
+    
+    
+    #======================================================================
+    # Default DB number for the search.
+    #======================================================================
+    - pin_rerate database 0.0.0.1 /search 0
+    
+    
+    #======================================================================
+    # Database Type for rerate
+    #
+    # - rerate database_type oracle -----------> this means oracle
+    # - rerate database_type SqlServer ------> this means sql_server
+    # If no entry is there in pin.conf then assuming database type as oracle.
+    #
+    #======================================================================
+    - pin_rerate database_type oracle
+    
+    
+    #======================================================================
+    # Delay for the rerating jobs.
+    #
+    # Rerating will only select jobs created before the delay period.
+    # The delay period is the current time minus the delay.
+    #
+    # By default there is no delay.
+    #
+    # Specify the delay in seconds
+    #======================================================================
+    #- pin_rerate delay 300
+    
+    
+    #======================================================================
+    # pin_rerate_logfile
+    #
+    # Name and location of the log file used by this Portal process.
+    #
+    #======================================================================
+    - pin_rerate logfile ${PIN_LOG_DIR}/pin_rerate/pin_rerate.pinlog
+    
+    
+    #======================================================================
+    # pin_rerate_loglevel
+    #
+    # How much information the applications should log.
+    #
+    # The value for this entry can be:
+    #  -- 0: no logging
+    #  -- 1: log error messages only
+    #  -- 2: log error messages and warnings
+    #  -- 3: log error messages, warnings, and debugging messages
+    #======================================================================
+    - pin_rerate loglevel {{ .Values.ocbrm.LOG_LEVEL }}
+
+    #======================================================================
+    # ack_queue
+    #
+    # To enable pin_rerate to read data from ECE ACK queue
+    #
+    #======================================================================
+    #- pin_rerate ack_queue ECE_ACK_QUEUE
+    
+    
+    #======================================================================
+    # Entries for pin_rerate
+    #
+    # These entries are used in the pin_rerate configuration only.
+    #
+    #======================================================================
+    #- pin_rerate        children        5
+    #- pin_rerate        per_batch       500
+    #- pin_rerate        per_step        1000
+    #- pin_rerate        fetch_size      5000
+    #- pin_rerate        max_errs        1
+
+  pin_crypt.conf: |
+    #************************************************************************
+    # Configuration File for Portal with PIN_CRYPT_UPGRADE
+    #
+    #
+    # This configuration file is automatically installed and configured with
+    # default values during Portal installation. You can edit this file to:
+    #   -- change the default values of the entries.
+    #   -- disable an entry by inserting a crosshatch (#) at the start of
+    #        the line.
+    #   -- enable a commented entry by removing the crosshatch (#).
+    #
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # When editing this file, follow the instructions in each section.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #************************************************************************
+    
+    
+    #======================================================================
+    #
+    # You can edit this file to suit your specific configuration:
+    #  -- You can change the default values of an entry.
+    #  -- You can exclude an optional entry by adding the # symbol
+    #     at the beginning of the line.
+    #  -- You can include a commented entry by removing the # symbol.
+    #
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # To edit this file, follow the instructions in the commented sections.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #======================================================================
+    
+    #=======================================================================
+    # ptr_virtual_time
+    #
+    # Enables the use of pin_virtual_time to advance Portal time, and
+    # specifies the shared file for use by all Portal mangers.
+    #
+    # The entry has 2 values
+    #
+    # #/Empty       to disable / enable pin_virtual_time in all pin.conf files
+    #               default = #     (disable)
+    #
+    # <filepath>    location and name of the pin_virtual_time file shared by all Portal managers.
+    #               default = ${PIN_HOME}/lib/pin_virtual_time_file
+    #
+    #=======================================================================
+    #- - pin_virtual_time {{ .Values.ocbrm.virtual_time.pvt }}/pin_virtual_time_file    
+    
+    #========================================================================
+    # cm_ptr
+    #
+    # Specifies a pointer to the CM or CMMP.
+    #
+    # Use a separate entry for each CM or CMMP. If testnap can't find the
+    # first CM or CMMP, it looks for the next in the list.
+    #
+    # Each entry includes three values:
+    #
+    #     <protocol> = "ip", for this release
+    #     <host>     = the name or IP address of the computer running the
+    #                    CM or CMMP
+    #     <port>     = the TCP port number of the CM or CMMP on this computer
+    #
+    # The port number should match a corresponding cm_ports entry with
+    # the same port number in the CM or CMMP configuration file. The
+    # default, 11960, is a commonly specified port for the CM or CMMP.
+    #========================================================================
+    - nap cm_ptr ip  {{ .Values.ocbrm.cm.deployment.host }} {{ .Values.ocbrm.cm.deployment.port }}
+    
+    
+    #========================================================================
+    # logfile
+    #
+    # Specifies the path to the log file for the sample application
+    #========================================================================
+    - sample_act    logfile sample_act.pinlog
+    - sample_del    logfile sample_del.pinlog
+    - sample_app    logfile sample_app.pinlog
+    - sample_search logfile sample_search.pinlog
+    - sample_who    logfile sample_who.pinlog
+    
+    
+    #========================================================================
+    # login_type
+    #
+    # Specifies whether the login name and password are required.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = Only a user ID is required.
+    #    1 = (Default) Both a name and a password are required.
+    #
+    # By default, CMs require a user login and password when requesting an open
+    # context using PCM_CONTEXT_OPEN. However, you can remove this authentication
+    # requirement by configuring the CM with a cm_login_module of
+    # cm_login_null.so
+    #========================================================================
+    - nap login_type 1
+    
+    
+    #========================================================================
+    # login_name
+    #
+    # Specifies the login name to use when testnap connects to the CM.
+    #========================================================================
+    - nap login_name root.0.0.0.1
+    
+    
+    #========================================================================
+    # login_pw
+    #
+    # Specifies the password to use when testnap connects to the CM.
+    #========================================================================
+    #- nap login_pw
+    
+    
+    #========================================================================
+    # userid
+    #
+    # Specifies the database number and service type for the Portal
+    # database.
+    #
+    # The CM uses the database number to identify the Portal database
+    # and to connect to the correct Data Manager. For connections that don't
+    # require a login name and password, the CM also passes the service
+    # type to the database.
+    #
+    # The database number, in the form 0.0.0.N, is the number assigned to
+    # your Portal database when you installed the system. The default
+    # is 0.0.0.1.
+    #
+    # The service type is /service/pcm_client and the ID is 1.
+    # DO NOT change these values.
+    #========================================================================
+    - - userid 0.0.0.1 /service/pcm_client 1
+    
+    
+    #========================================================================
+    # enable_ssl
+    #
+    # Specifies whether TLS will be enabled for PCM connections
+    #
+    #    0 - TLS is disabled.
+    #    1 - TLS is enabled.
+    #
+    #========================================================================
+    - nap enable_ssl {{ .Values.ocbrm.ENABLE_SSL }}
+    
+    
+    #========================================================================
+    # hotlist
+    #
+    # Specifies the location (path and file name) of the hot-list file.
+    #
+    # A hot list is a file containing an array of POIDs that need to be
+    # handled by the MTA application's working threads first. This priority
+    # lets some threads begin working on some known large or complex accounts
+    # and bills as early as possible. The array of POIDs might be hard-coded
+    # in the file that lists hosts, or the file could be generated by some
+    # other application.
+    #
+    # The array of POIDs must be in flist format. Refer to the example
+    # files in the distribution for more information about the hot-list file.
+    #========================================================================
+    - pin_mta hotlist hotlist
+    
+    
+    #========================================================================
+    # mta_logfile
+    #
+    # Specifies the full path to the log file used by this MTA application.
+    #
+    # You can enter any valid path.
+    #========================================================================
+    - pin_mta logfile ${PIN_LOG_DIR}/pin_crypt_upgrade/pin_crypt_upgrade.pinlog
+    
+    
+    #========================================================================
+    # loglevel
+    #
+    # Specifies how much information the applications log.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = no logging
+    #    1 = (Default) log error messages only
+    #    2 = log error messages and warnings
+    #    3 = log error, warning, and debugging messages
+    #========================================================================
+    - pin_mta loglevel {{ .Values.ocbrm.LOG_LEVEL }}
+    
+    
+    #========================================================================
+    # max_errs
+    #
+    # Specifies the maximum number of errors that the application can ignore.
+    #
+    # This entry is optional. By default, max_errs = fetch_size.
+    #========================================================================
+    - pin_mta max_errs 5000
+    
+    
+    #========================================================================
+    # monitor
+    #
+    # Specifies the location of shared memory (the memory-map file).
+    #
+    # Use this entry to set the path and name of a shared memory-map file.
+    # This binary file stores information about the running MTA application.
+    # With help from another application such as pin_mta_monitor, you can
+    # view and adjust the number of threads that are running in the MTA
+    # application without interrupting it.
+    #========================================================================
+    - pin_mta monitor monitor
+    
+    
+    #========================================================================
+    # multi_db
+    #
+    # Enables or disables the multidatabase capability of MTA.
+    #
+    # If you enable multi_db, MTA uses global searching instead of the
+    # normal searching. The value for this entry can be:
+    #
+    #    0 = (Default) Disable global searching
+    #    1 = Enable global searching
+    #========================================================================
+    - pin_mta multi_db 0
+    
+    
+    #========================================================================
+    # mta_performance
+    #
+    # Performance Parameters
+    #
+    # The entries below govern how the MTA applications pull data from the
+    # database and tranfer the data to the application space. They also
+    # define how many threads (children) are used to process the data in
+    # the application.
+    #
+    #    children   = number of threads used to process the accounts in the
+    #                 application
+    #    per_batch  = number of accounts processed by each child
+    #    per_step   = number of accounts returned in each database search
+    #    fetch_size = number of accounts cached in application memory
+    #                 before processing starts
+    #
+    # Some applications do not use all of these performance parameters. For
+    # example, pin_inv_accts does not use per_batch.
+    #
+    # You can edit these entries to improve performance of MTA applications.
+    # Different MTA applications process accounts differently, so you
+    # usually need to configure these entries differently for each
+    # application. To specify an entry for a single MTA application, replace
+    # the generic name "pin_mta" with the name of the specific application.
+    # For example, you might have these entries:
+    #
+    #    - pin_mta          fetch_size  30000
+    #    - pin_inv_accts    fetch_size  50000
+    #
+    # For a complete explanation of setting these variables for best
+    # performance, see the online document "Portal Configuration and
+    # Tuning Guide."
+    #========================================================================
+    - pin_mta       children        5
+    - pin_mta       per_batch       500
+    - pin_mta       per_step        1000
+    - pin_mta       fetch_size      5000
+    
+    
+    #========================================================================
+    # respawn_threads
+    #
+    # Respawns worker threads if they exit due to an error. Threads are
+    # respawned if necessary after every search cycle.
+    # Valid options are :-
+    # 0 - No respawning , 1 - respawn threads
+    # The default is 0 for no respawning.
+    #========================================================================
+    - pin_mta respawn_threads 0
+    
+    
+    #========================================================================
+    # Controller Logfile
+    #
+    # Specifies the full path to the log file used by this application.
+    #
+    # You can enter any valid path.
+    #========================================================================
+    - pin_crypt_upgrade logfile ${PIN_LOG_DIR}/pin_crypt_upgrade/pin_crypt_migrate.pinlog
+    
+    
+    #========================================================================
+    # Controller Logging Attributes
+    #
+    # Specifies how much information the applications log.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = no logging
+    #    1 = (Default) log error messages only
+    #    2 = log error messages and warnings
+    #    3 = log error, warning, and debugging messages
+    #========================================================================
+    - pin_crypt_upgrade loglevel {{ .Values.ocbrm.LOG_LEVEL }}
+
+  pin_rate_change.conf: |
+    #======================================================================
+    # Configuration File for the Rate Change Utility
+    #======================================================================
+    #
+    #======================================================================
+    # Use this file to specify how the Rate Change utility
+    # connects with Portal.
+    #
+    # A copy of this configuration file is automatically installed and
+    # configured with default values when you install Portal. However,
+    # you can edit this file to suit your specific configuration:
+    #  -- You can change the default value of an entry.
+    #  -- You can exclude an optional entry by adding the # symbol
+    #     at the beginning of the line.
+    #  -- You can include a commented entry by removing the # symbol.
+    #
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # To edit this file, follow the instructions in the commented sections.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #======================================================================
+    
+    
+    #======================================================================
+    #
+    # You can edit this file to suit your specific configuration:
+    #  -- You can change the default values of an entry.
+    #  -- You can exclude an optional entry by adding the # symbol
+    #     at the beginning of the line.
+    #  -- You can include a commented entry by removing the # symbol.
+    #
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # To edit this file, follow the instructions in the commented sections.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #======================================================================
+    
+    #=======================================================================
+    # ptr_virtual_time
+    #
+    # Enables the use of pin_virtual_time to advance Portal time, and
+    # specifies the shared file for use by all Portal mangers.
+    #
+    # The entry has 2 values
+    #
+    # #/Empty       to disable / enable pin_virtual_time in all pin.conf files
+    #               default = #     (disable)
+    #
+    # <filepath>    location and name of the pin_virtual_time file shared by all Portal managers.
+    #               default = ${PIN_HOME}/lib/pin_virtual_time_file
+    #
+    #=======================================================================
+    #- - pin_virtual_time {{ .Values.ocbrm.virtual_time.pvt }}/pin_virtual_time_file    
+    
+    #========================================================================
+    # cm_ptr
+    #
+    # Specifies a pointer to the CM or CMMP.
+    #
+    # Use a separate entry for each CM or CMMP. If testnap can't find the
+    # first CM or CMMP, it looks for the next in the list.
+    #
+    # Each entry includes three values:
+    #
+    #     <protocol> = "ip", for this release
+    #     <host>     = the name or IP address of the computer running the
+    #                    CM or CMMP
+    #     <port>     = the TCP port number of the CM or CMMP on this computer
+    #
+    # The port number should match a corresponding cm_ports entry with
+    # the same port number in the CM or CMMP configuration file. The
+    # default, 11960, is a commonly specified port for the CM or CMMP.
+    #========================================================================
+    - nap cm_ptr ip {{ .Values.ocbrm.cm.deployment.host }} {{ .Values.ocbrm.cm.deployment.port }}
+    
+    
+    #========================================================================
+    # logfile
+    #
+    # Specifies the path to the log file for the sample application
+    #========================================================================
+    - sample_act    logfile sample_act.pinlog
+    - sample_del    logfile sample_del.pinlog
+    - sample_app    logfile sample_app.pinlog
+    - sample_search logfile sample_search.pinlog
+    - sample_who    logfile sample_who.pinlog
+    
+    
+    #========================================================================
+    # login_type
+    #
+    # Specifies whether the login name and password are required.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = Only a user ID is required.
+    #    1 = (Default) Both a name and a password are required.
+    #
+    # By default, CMs require a user login and password when requesting an open
+    # context using PCM_CONTEXT_OPEN. However, you can remove this authentication
+    # requirement by configuring the CM with a cm_login_module of
+    # cm_login_null.so
+    #========================================================================
+    - nap login_type 1
+    
+    
+    #========================================================================
+    # login_name
+    #
+    # Specifies the login name to use when testnap connects to the CM.
+    #========================================================================
+    - nap login_name root.0.0.0.1
+    
+    
+    #========================================================================
+    # login_pw
+    #
+    # Specifies the password to use when testnap connects to the CM.
+    #========================================================================
+    #- nap login_pw
+    
+    
+    #========================================================================
+    # userid
+    #
+    # Specifies the database number and service type for the Portal
+    # database.
+    #
+    # The CM uses the database number to identify the Portal database
+    # and to connect to the correct Data Manager. For connections that don't
+    # require a login name and password, the CM also passes the service
+    # type to the database.
+    #
+    # The database number, in the form 0.0.0.N, is the number assigned to
+    # your Portal database when you installed the system. The default
+    # is 0.0.0.1.
+    #
+    # The service type is /service/pcm_client and the ID is 1.
+    # DO NOT change these values.
+    #========================================================================
+    - - userid 0.0.0.1 /service/pcm_client 1
+    
+    
+    #========================================================================
+    # enable_ssl
+    #
+    # Specifies whether TLS will be enabled for PCM connections
+    #
+    #    0 - TLS is disabled.
+    #    1 - TLS is enabled.
+    #
+    #========================================================================
+    - nap enable_ssl {{ .Values.ocbrm.ENABLE_SSL }}
+    
+    
+    #======================================================================
+    # pin_rate_change_logfile
+    #
+    # Name and location of the log file used by this Portal process.
+    #
+    #======================================================================
+    - pin_rate_change logfile ${PIN_LOG_DIR}/pin_rate_change/pin_rate_change.pinlog
+    
+    
+    #======================================================================
+    # pin_rate_change_loglevel
+    #
+    # How much information the applications should log.
+    #
+    # The value for this entry can be:
+    #  -- 0: no logging
+    #  -- 1: log error messages only
+    #  -- 2: log error messages and warnings
+    #  -- 3: log error messages, warnings, and debugging messages
+    #======================================================================
+    - pin_rate_change loglevel {{ .Values.ocbrm.LOG_LEVEL }}
+
+  sample_handler.conf: |
+    #************************************************************************
+    # Configuration File for the Sample Batch Handler application.
+    #
+    #
+    # This configuration file is automatically installed and configured with
+    # default values during Portal installation. You can edit this file to:
+    #   -- change the default values of the entries.
+    #   -- disable an entry by inserting a crosshatch (#) at the start of
+    #        the line.
+    #   -- enable a commented entry by removing the crosshatch (#).
+    #
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # When editing this file, follow the instructions in each section.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #************************************************************************
+    
+    
+    #======================================================================
+    #
+    # You can edit this file to suit your specific configuration:
+    #  -- You can change the default values of an entry.
+    #  -- You can exclude an optional entry by adding the # symbol
+    #     at the beginning of the line.
+    #  -- You can include a commented entry by removing the # symbol.
+    #
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # To edit this file, follow the instructions in the commented sections.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #======================================================================
+    
+    #=======================================================================
+    # ptr_virtual_time
+    #
+    # Enables the use of pin_virtual_time to advance Portal time, and
+    # specifies the shared file for use by all Portal mangers.
+    #
+    # The entry has 2 values
+    #
+    # #/Empty       to disable / enable pin_virtual_time in all pin.conf files
+    #               default = #     (disable)
+    #
+    # <filepath>    location and name of the pin_virtual_time file shared by all Portal managers.
+    #               default = ${PIN_HOME}/lib/pin_virtual_time_file
+    #
+    #=======================================================================
+    #- - pin_virtual_time {{ .Values.ocbrm.virtual_time.pvt }}/pin_virtual_time_file    
+    
+    #========================================================================
+    # cm_ptr
+    #
+    # Specifies a pointer to the CM or CMMP.
+    #
+    # Use a separate entry for each CM or CMMP. If testnap can't find the
+    # first CM or CMMP, it looks for the next in the list.
+    #
+    # Each entry includes three values:
+    #
+    #     <protocol> = "ip", for this release
+    #     <host>     = the name or IP address of the computer running the
+    #                    CM or CMMP
+    #     <port>     = the TCP port number of the CM or CMMP on this computer
+    #
+    # The port number should match a corresponding cm_ports entry with
+    # the same port number in the CM or CMMP configuration file. The
+    # default, 11960, is a commonly specified port for the CM or CMMP.
+    #========================================================================
+    - nap cm_ptr ip {{ .Values.ocbrm.cm.deployment.host }} {{ .Values.ocbrm.cm.deployment.port }}
+    
+    
+    #========================================================================
+    # logfile
+    #
+    # Specifies the path to the log file for the sample application
+    #========================================================================
+    - sample_act    logfile sample_act.pinlog
+    - sample_del    logfile sample_del.pinlog
+    - sample_app    logfile sample_app.pinlog
+    - sample_search logfile sample_search.pinlog
+    - sample_who    logfile sample_who.pinlog
+    
+    
+    #========================================================================
+    # login_type
+    #
+    # Specifies whether the login name and password are required.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = Only a user ID is required.
+    #    1 = (Default) Both a name and a password are required.
+    #
+    # By default, CMs require a user login and password when requesting an open
+    # context using PCM_CONTEXT_OPEN. However, you can remove this authentication
+    # requirement by configuring the CM with a cm_login_module of
+    # cm_login_null.so
+    #========================================================================
+    - nap login_type 1
+    
+    
+    #========================================================================
+    # login_name
+    #
+    # Specifies the login name to use when testnap connects to the CM.
+    #========================================================================
+    - nap login_name root.0.0.0.1
+    
+    
+    #========================================================================
+    # login_pw
+    #
+    # Specifies the password to use when testnap connects to the CM.
+    #========================================================================
+    #- nap login_pw
+    
+    
+    #========================================================================
+    # userid
+    #
+    # Specifies the database number and service type for the Portal
+    # database.
+    #
+    # The CM uses the database number to identify the Portal database
+    # and to connect to the correct Data Manager. For connections that don't
+    # require a login name and password, the CM also passes the service
+    # type to the database.
+    #
+    # The database number, in the form 0.0.0.N, is the number assigned to
+    # your Portal database when you installed the system. The default
+    # is 0.0.0.1.
+    #
+    # The service type is /service/pcm_client and the ID is 1.
+    # DO NOT change these values.
+    #========================================================================
+    - - userid 0.0.0.1 /service/pcm_client 1
+    
+    
+    #========================================================================
+    # enable_ssl
+    #
+    # Specifies whether TLS will be enabled for PCM connections
+    #
+    #    0 - TLS is disabled.
+    #    1 - TLS is enabled.
+    #
+    #========================================================================
+    - nap enable_ssl {{ .Values.ocbrm.ENABLE_SSL }}
+    
+    
+    #========================================================================
+    # sample_handler_logfile
+    #
+    # Specifies the full path to the log file for the Batch Controller.
+    #
+    # You can enter any valid path.
+    #========================================================================
+    - nap logfile ${PIN_HOME}/apps/sample_handler/handler.pinlog
+
+  pin_balance_transfer.conf: |
+    #************************************************************************
+    # Configuration File for Multithreading Application (MTA) Framework
+    #
+    # This configuration file controls how MTA (MultiThreraded Application)
+    # programs run. Several MTA applications, such as pin_inv_accts and
+    # pin_inv_export, can use this file. Some parameter names and values are
+    # generic; each of the generic entries begins with "- pin_mta", as in
+    # this example:
+    #
+    #   - pin_mta        fetch_size  30000
+    #
+    # Every other parameter name and value is specific to one application
+    # and begins with that application's name, as in this example:
+    #
+    #   - pin_inv_accts  fetch_size  40000
+    #
+    # Application-specific values always override generic values.
+    #
+    # You can edit this configuration file to suit your specific configuration:
+    #  -- You can change the default values of a parameter
+    #  -- You can exclude a parameter by adding the # symbol
+    #     at the beginning of the line
+    #  -- You can uncomment a parameter by removing the # symbol.
+    #
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # When editing this file, follow the instructions in each section.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #************************************************************************
+    
+    
+    #======================================================================
+    #
+    # You can edit this file to suit your specific configuration:
+    #  -- You can change the default values of an entry.
+    #  -- You can exclude an optional entry by adding the # symbol
+    #     at the beginning of the line.
+    #  -- You can include a commented entry by removing the # symbol.
+    #
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # To edit this file, follow the instructions in the commented sections.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #======================================================================
+    
+    #=======================================================================
+    # ptr_virtual_time
+    #
+    # Enables the use of pin_virtual_time to advance Portal time, and
+    # specifies the shared file for use by all Portal mangers.
+    #
+    # The entry has 2 values
+    #
+    # #/Empty       to disable / enable pin_virtual_time in all pin.conf files
+    #               default = #     (disable)
+    #
+    # <filepath>    location and name of the pin_virtual_time file shared by all Portal managers.
+    #               default = ${PIN_HOME}/lib/pin_virtual_time_file
+    #
+    #=======================================================================
+    #- - pin_virtual_time {{ .Values.ocbrm.virtual_time.pvt }}/pin_virtual_time_file    
+    
+    #========================================================================
+    # cm_ptr
+    #
+    # Specifies a pointer to the CM or CMMP.
+    #
+    # Use a separate entry for each CM or CMMP. If testnap can't find the
+    # first CM or CMMP, it looks for the next in the list.
+    #
+    # Each entry includes three values:
+    #
+    #     <protocol> = "ip", for this release
+    #     <host>     = the name or IP address of the computer running the
+    #                    CM or CMMP
+    #     <port>     = the TCP port number of the CM or CMMP on this computer
+    #
+    # The port number should match a corresponding cm_ports entry with
+    # the same port number in the CM or CMMP configuration file. The
+    # default, 11960, is a commonly specified port for the CM or CMMP.
+    #========================================================================
+    - nap cm_ptr ip {{ .Values.ocbrm.cm.deployment.host }} {{ .Values.ocbrm.cm.deployment.port }}
+    
+    
+    #========================================================================
+    # logfile
+    #
+    # Specifies the path to the log file for the sample application
+    #========================================================================
+    - sample_act    logfile sample_act.pinlog
+    - sample_del    logfile sample_del.pinlog
+    - sample_app    logfile sample_app.pinlog
+    - sample_search logfile sample_search.pinlog
+    - sample_who    logfile sample_who.pinlog
+    
+    
+    #========================================================================
+    # login_type
+    #
+    # Specifies whether the login name and password are required.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = Only a user ID is required.
+    #    1 = (Default) Both a name and a password are required.
+    #
+    # By default, CMs require a user login and password when requesting an open
+    # context using PCM_CONTEXT_OPEN. However, you can remove this authentication
+    # requirement by configuring the CM with a cm_login_module of
+    # cm_login_null.so
+    #========================================================================
+    - nap login_type 1
+    
+    
+    #========================================================================
+    # login_name
+    #
+    # Specifies the login name to use when testnap connects to the CM.
+    #========================================================================
+    - nap login_name root.0.0.0.1
+    
+    
+    #========================================================================
+    # login_pw
+    #
+    # Specifies the password to use when testnap connects to the CM.
+    #========================================================================
+    #- nap login_pw
+    
+    
+    #========================================================================
+    # userid
+    #
+    # Specifies the database number and service type for the Portal
+    # database.
+    #
+    # The CM uses the database number to identify the Portal database
+    # and to connect to the correct Data Manager. For connections that don't
+    # require a login name and password, the CM also passes the service
+    # type to the database.
+    #
+    # The database number, in the form 0.0.0.N, is the number assigned to
+    # your Portal database when you installed the system. The default
+    # is 0.0.0.1.
+    #
+    # The service type is /service/pcm_client and the ID is 1.
+    # DO NOT change these values.
+    #========================================================================
+    - - userid 0.0.0.1 /service/pcm_client 1
+    
+    
+    #========================================================================
+    # enable_ssl
+    #
+    # Specifies whether TLS will be enabled for PCM connections
+    #
+    #    0 - TLS is disabled.
+    #    1 - TLS is enabled.
+    #
+    #========================================================================
+    - nap enable_ssl {{ .Values.ocbrm.ENABLE_SSL }}
+    
+    
+    #========================================================================
+    # hotlist
+    #
+    # Specifies the location (path and file name) of the hot-list file.
+    #
+    # A hot list is a file containing an array of POIDs that need to be
+    # handled by the MTA application's working threads first. This priority
+    # lets some threads begin working on some known large or complex accounts
+    # and bills as early as possible. The array of POIDs might be hard-coded
+    # in the file that lists hosts, or the file could be generated by some
+    # other application.
+    #
+    # The array of POIDs must be in flist format. Refer to the example
+    # files in the distribution for more information about the hot-list file.
+    #========================================================================
+    - pin_mta hotlist hotlist
+    
+    
+    #========================================================================
+    # mta_logfile
+    #
+    # Specifies the full path to the log file used by this MTA application.
+    #
+    # You can enter any valid path.
+    #========================================================================
+    - pin_mta logfile ${PIN_LOG_DIR}/pin_balance_transfer/pin_balance_transfer.pinlog
+    
+    
+    #========================================================================
+    # loglevel
+    #
+    # Specifies how much information the applications log.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = no logging
+    #    1 = (Default) log error messages only
+    #    2 = log error messages and warnings
+    #    3 = log error, warning, and debugging messages
+    #========================================================================
+    - pin_mta loglevel {{ .Values.ocbrm.LOG_LEVEL }}
+    
+    
+    #========================================================================
+    # max_errs
+    #
+    # Specifies the maximum number of errors that the application can ignore.
+    #
+    # This entry is optional. By default, max_errs = fetch_size.
+    #========================================================================
+    - pin_mta max_errs 5000
+    
+    
+    #========================================================================
+    # monitor
+    #
+    # Specifies the location of shared memory (the memory-map file).
+    #
+    # Use this entry to set the path and name of a shared memory-map file.
+    # This binary file stores information about the running MTA application.
+    # With help from another application such as pin_mta_monitor, you can
+    # view and adjust the number of threads that are running in the MTA
+    # application without interrupting it.
+    #========================================================================
+    - pin_mta monitor monitor
+    
+    
+    #========================================================================
+    # multi_db
+    #
+    # Enables or disables the multidatabase capability of MTA.
+    #
+    # If you enable multi_db, MTA uses global searching instead of the
+    # normal searching. The value for this entry can be:
+    #
+    #    0 = (Default) Disable global searching
+    #    1 = Enable global searching
+    #========================================================================
+    - pin_mta multi_db 0
+    
+    
+    #========================================================================
+    # mta_performance
+    #
+    # Performance Parameters
+    #
+    # The entries below govern how the MTA applications pull data from the
+    # database and tranfer the data to the application space. They also
+    # define how many threads (children) are used to process the data in
+    # the application.
+    #
+    #    children   = number of threads used to process the accounts in the
+    #                 application
+    #    per_batch  = number of accounts processed by each child
+    #    per_step   = number of accounts returned in each database search
+    #    fetch_size = number of accounts cached in application memory
+    #                 before processing starts
+    #
+    # Some applications do not use all of these performance parameters. For
+    # example, pin_inv_accts does not use per_batch.
+    #
+    # You can edit these entries to improve performance of MTA applications.
+    # Different MTA applications process accounts differently, so you
+    # usually need to configure these entries differently for each
+    # application. To specify an entry for a single MTA application, replace
+    # the generic name "pin_mta" with the name of the specific application.
+    # For example, you might have these entries:
+    #
+    #    - pin_mta          fetch_size  30000
+    #    - pin_inv_accts    fetch_size  50000
+    #
+    # For a complete explanation of setting these variables for best
+    # performance, see the online document "Portal Configuration and
+    # Tuning Guide."
+    #========================================================================
+    - pin_mta       children        5
+    - pin_mta       per_batch       500
+    - pin_mta       per_step        1000
+    - pin_mta       fetch_size      5000
+    
+    
+    #========================================================================
+    # respawn_threads
+    #
+    # Respawns worker threads if they exit due to an error. Threads are
+    # respawned if necessary after every search cycle.
+    # Valid options are :-
+    # 0 - No respawning , 1 - respawn threads
+    # The default is 0 for no respawning.
+    #========================================================================
+    - pin_mta respawn_threads 0
+
+  pin_collections.conf: |
+    #************************************************************************
+    # Configuration File for Multithreading Application (MTA) Framework
+    #
+    # This configuration file controls how MTA (MultiThreraded Application)
+    # programs run. Several MTA applications, such as pin_inv_accts and
+    # pin_inv_export, can use this file. Some parameter names and values are
+    # generic; each of the generic entries begins with "- pin_mta", as in
+    # this example:
+    #
+    #   - pin_mta        fetch_size  30000
+    #
+    # Every other parameter name and value is specific to one application
+    # and begins with that application's name, as in this example:
+    #
+    #   - pin_inv_accts  fetch_size  40000
+    #
+    # Application-specific values always override generic values.
+    #
+    # You can edit this configuration file to suit your specific configuration:
+    #  -- You can change the default values of a parameter
+    #  -- You can exclude a parameter by adding the # symbol
+    #     at the beginning of the line
+    #  -- You can uncomment a parameter by removing the # symbol.
+    #
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # When editing this file, follow the instructions in each section.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #************************************************************************
+    
+    
+    #======================================================================
+    #
+    # You can edit this file to suit your specific configuration:
+    #  -- You can change the default values of an entry.
+    #  -- You can exclude an optional entry by adding the # symbol
+    #     at the beginning of the line.
+    #  -- You can include a commented entry by removing the # symbol.
+    #
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # To edit this file, follow the instructions in the commented sections.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #======================================================================
+    
+    #=======================================================================
+    # ptr_virtual_time
+    #
+    # Enables the use of pin_virtual_time to advance Portal time, and
+    # specifies the shared file for use by all Portal mangers.
+    #
+    # The entry has 2 values
+    #
+    # #/Empty       to disable / enable pin_virtual_time in all pin.conf files
+    #               default = #     (disable)
+    #
+    # <filepath>    location and name of the pin_virtual_time file shared by all Portal managers.
+    #               default = ${PIN_HOME}/lib/pin_virtual_time_file
+    #
+    #=======================================================================
+    #- - pin_virtual_time {{ .Values.ocbrm.virtual_time.pvt }}/pin_virtual_time_file    
+    
+    #========================================================================
+    # cm_ptr
+    #
+    # Specifies a pointer to the CM or CMMP.
+    #
+    # Use a separate entry for each CM or CMMP. If testnap can't find the
+    # first CM or CMMP, it looks for the next in the list.
+    #
+    # Each entry includes three values:
+    #
+    #     <protocol> = "ip", for this release
+    #     <host>     = the name or IP address of the computer running the
+    #                    CM or CMMP
+    #     <port>     = the TCP port number of the CM or CMMP on this computer
+    #
+    # The port number should match a corresponding cm_ports entry with
+    # the same port number in the CM or CMMP configuration file. The
+    # default, 11960, is a commonly specified port for the CM or CMMP.
+    #========================================================================
+    - nap cm_ptr ip {{ .Values.ocbrm.cm.deployment.host }} {{ .Values.ocbrm.cm.deployment.port }}
+    
+    
+    #========================================================================
+    # logfile
+    #
+    # Specifies the path to the log file for the sample application
+    #========================================================================
+    - sample_act    logfile sample_act.pinlog
+    - sample_del    logfile sample_del.pinlog
+    - sample_app    logfile sample_app.pinlog
+    - sample_search logfile sample_search.pinlog
+    - sample_who    logfile sample_who.pinlog
+    
+    
+    #========================================================================
+    # login_type
+    #
+    # Specifies whether the login name and password are required.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = Only a user ID is required.
+    #    1 = (Default) Both a name and a password are required.
+    #
+    # By default, CMs require a user login and password when requesting an open
+    # context using PCM_CONTEXT_OPEN. However, you can remove this authentication
+    # requirement by configuring the CM with a cm_login_module of
+    # cm_login_null.so
+    #========================================================================
+    - nap login_type 1
+    
+    
+    #========================================================================
+    # login_name
+    #
+    # Specifies the login name to use when testnap connects to the CM.
+    #========================================================================
+    - nap login_name root.0.0.0.1
+    
+    
+    #========================================================================
+    # login_pw
+    #
+    # Specifies the password to use when testnap connects to the CM.
+    #========================================================================
+    #- nap login_pw
+    
+    
+    #========================================================================
+    # userid
+    #
+    # Specifies the database number and service type for the Portal
+    # database.
+    #
+    # The CM uses the database number to identify the Portal database
+    # and to connect to the correct Data Manager. For connections that don't
+    # require a login name and password, the CM also passes the service
+    # type to the database.
+    #
+    # The database number, in the form 0.0.0.N, is the number assigned to
+    # your Portal database when you installed the system. The default
+    # is 0.0.0.1.
+    #
+    # The service type is /service/pcm_client and the ID is 1.
+    # DO NOT change these values.
+    #========================================================================
+    - - userid 0.0.0.1 /service/pcm_client 1
+    
+    
+    #========================================================================
+    # enable_ssl
+    #
+    # Specifies whether TLS will be enabled for PCM connections
+    #
+    #    0 - TLS is disabled.
+    #    1 - TLS is enabled.
+    #
+    #========================================================================
+    - nap enable_ssl {{ .Values.ocbrm.ENABLE_SSL }}
+    
+    
+    #========================================================================
+    # hotlist
+    #
+    # Specifies the location (path and file name) of the hot-list file.
+    #
+    # A hot list is a file containing an array of POIDs that need to be
+    # handled by the MTA application's working threads first. This priority
+    # lets some threads begin working on some known large or complex accounts
+    # and bills as early as possible. The array of POIDs might be hard-coded
+    # in the file that lists hosts, or the file could be generated by some
+    # other application.
+    #
+    # The array of POIDs must be in flist format. Refer to the example
+    # files in the distribution for more information about the hot-list file.
+    #========================================================================
+    - pin_mta hotlist hotlist
+    
+    
+    #========================================================================
+    # mta_logfile
+    #
+    # Specifies the full path to the log file used by this MTA application.
+    #
+    # You can enter any valid path.
+    #========================================================================
+    - pin_mta logfile ${PIN_LOG_DIR}/pin_collections/pin_collections.pinlog
+    
+    
+    #========================================================================
+    # loglevel
+    #
+    # Specifies how much information the applications log.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = no logging
+    #    1 = (Default) log error messages only
+    #    2 = log error messages and warnings
+    #    3 = log error, warning, and debugging messages
+    #========================================================================
+    - pin_mta loglevel {{ .Values.ocbrm.LOG_LEVEL }}
+    
+    
+    #========================================================================
+    # max_errs
+    #
+    # Specifies the maximum number of errors that the application can ignore.
+    #
+    # This entry is optional. By default, max_errs = fetch_size.
+    #========================================================================
+    - pin_mta max_errs 5000
+    
+    
+    #========================================================================
+    # monitor
+    #
+    # Specifies the location of shared memory (the memory-map file).
+    #
+    # Use this entry to set the path and name of a shared memory-map file.
+    # This binary file stores information about the running MTA application.
+    # With help from another application such as pin_mta_monitor, you can
+    # view and adjust the number of threads that are running in the MTA
+    # application without interrupting it.
+    #========================================================================
+    - pin_mta monitor monitor
+    
+    
+    #========================================================================
+    # multi_db
+    #
+    # Enables or disables the multidatabase capability of MTA.
+    #
+    # If you enable multi_db, MTA uses global searching instead of the
+    # normal searching. The value for this entry can be:
+    #
+    #    0 = (Default) Disable global searching
+    #    1 = Enable global searching
+    #========================================================================
+    - pin_mta multi_db 0
+    
+    
+    #========================================================================
+    # mta_performance
+    #
+    # Performance Parameters
+    #
+    # The entries below govern how the MTA applications pull data from the
+    # database and tranfer the data to the application space. They also
+    # define how many threads (children) are used to process the data in
+    # the application.
+    #
+    #    children   = number of threads used to process the accounts in the
+    #                 application
+    #    per_batch  = number of accounts processed by each child
+    #    per_step   = number of accounts returned in each database search
+    #    fetch_size = number of accounts cached in application memory
+    #                 before processing starts
+    #
+    # Some applications do not use all of these performance parameters. For
+    # example, pin_inv_accts does not use per_batch.
+    #
+    # You can edit these entries to improve performance of MTA applications.
+    # Different MTA applications process accounts differently, so you
+    # usually need to configure these entries differently for each
+    # application. To specify an entry for a single MTA application, replace
+    # the generic name "pin_mta" with the name of the specific application.
+    # For example, you might have these entries:
+    #
+    #    - pin_mta          fetch_size  30000
+    #    - pin_inv_accts    fetch_size  50000
+    #
+    # For a complete explanation of setting these variables for best
+    # performance, see the online document "Portal Configuration and
+    # Tuning Guide."
+    #========================================================================
+    - pin_mta       children        5
+    - pin_mta       per_batch       500
+    - pin_mta       per_step        1000
+    - pin_mta       fetch_size      5000
+    
+    
+    #========================================================================
+    # respawn_threads
+    #
+    # Respawns worker threads if they exit due to an error. Threads are
+    # respawned if necessary after every search cycle.
+    # Valid options are :-
+    # 0 - No respawning , 1 - respawn threads
+    # The default is 0 for no respawning.
+    #========================================================================
+    - pin_mta respawn_threads 0
+    
+    
+    #************************************************************************
+    # Configuration File for Portal Collections Applications
+    #
+    #
+    # This configuration file is automatically installed and configured with
+    # default values during Portal installation. You can edit this file to:
+    #   -- change the default values of the entries.
+    #   -- disable an entry by inserting a crosshatch (#) at the start of
+    #        the line.
+    #   -- enable a commented entry by removing the crosshatch (#).
+    #
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # When editing this file, follow the instructions in each section.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #************************************************************************
+    #
+    #========================================================================
+    # Entries for pin_collections_process
+    #
+    # These entries are used for pin_collections configuration only.
+    #
+    #========================================================================
+    #
+    #- pin_collections_process        children        5
+    #- pin_collections_process        pay_type        0
+    #- pin_collections_process        per_batch       500
+    #- pin_collections_process        per_step        1000
+    #- pin_collections_process        fetch_size      5000
+    #- pin_collections_process        hotlist         hot_list
+    #- pin_collections_process        monitor         monitor
+    #- pin_collections_process        max_errs        1
+    #
+    #========================================================================
+    # Default database number
+    #
+    # Specifies the default database number for searching.
+    #========================================================================
+    - pin_collections_process database 0.0.0.1 /search 0
+    
+    
+    #======================================================================
+    # Send(printing/emailing) preference for non-invoice accounts
+    #
+    # This entry only works for non-invoice accounts to determine whether
+    # to print or email the dunning letters.
+    #
+    # For now, the valid options are:
+    #   0 - emailing, Non-zero - printing
+    # And the default value will be non-zero (printing).
+    #======================================================================
+    #- pin_collections_send_dunning delivery_preference 1
+    
+    
+    #======================================================================
+    # Email body
+    #
+    # When one chooses to send dunning letters as email attachments, he can
+    # put some customized message in the email body.  This entry gives
+    # the path to a text file of the letter for the customized info.
+    # Note, it only takes effect when the previous "email_invoice" entry
+    # is set to 1.
+    #======================================================================
+    #- pin_collections_send_dunning email_body ./letter
+    
+    
+    #======================================================================
+    # Email option
+    #
+    # This entry is to determine whether the dunning letter should be attached
+    # in the email or sent in the email body.
+    # Two options to be chosen,
+    # 0 - Send as email body (default); 1 - Send as attachment
+    #======================================================================
+    #- pin_collections_send_dunning email_option 0
+    
+    
+    #======================================================================
+    # Minimum amount due that might force the account to get in collections
+    #
+    # This system-wide entry can override the configuration set by Collection
+    # Configuration Application.
+    #======================================================================
+    #- pin_collections_process minimum_due 0.0
+    
+    
+    #======================================================================
+    # This is an optional pin.conf entry.
+    #
+    # Uncommenting this entry would generate a notification event, sent
+    # to DM_AQ when pin_collections_process is run.
+    # The event will contain the start time and the end time of the
+    # pin_collections_process.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = (Default) Do not generate notification event
+    #    1 = Generate notification event
+    #======================================================================
+    #- pin_collections_process publish_run_details 1
+    
+    
+    #========================================================================
+    # Entries for pin_collections_send_dunning
+    #
+    # These entries are used in the pin_collections_send_dunning configuration only.
+    #
+    #========================================================================
+    #
+    #- pin_collections_send_dunning        children        5
+    #- pin_collections_send_dunning        per_batch       500
+    #- pin_collections_send_dunning        per_step        1000
+    #- pin_collections_send_dunning        fetch_size      5000
+    #- pin_collections_send_dunning        hotlist         hot_list
+    #- pin_collections_send_dunning        monitor         monitor
+    #- pin_collections_send_dunning        max_errs        1
+    #
+    #========================================================================
+    # Default database number
+    #
+    # Specifies the default database number for searching.
+    #========================================================================
+    - pin_collections_send_dunning database 0.0.0.1 /search 0
+    
+    
+    #======================================================================
+    # pin_collections_use_current
+    # This entry is to determine the date to calculate action due date.
+    # To use the the entry date, as configured in the scenario enter 0.
+    # This is the default.
+    # To use the current date (i.e the day which you are running
+    # pin_collections_process) enter 1.
+    #
+    #======================================================================
+    #- pin_collections_process use_current_time 1
+
+  pin_ra_check_thresholds.conf: |
+    #************************************************************************
+    # Configuration file for pin_ra_check_thresholds
+    #
+    # This configuration file is automatically installed and configured with
+    # default values during Infranet installation. You can edit this file to:
+    #   -- change the default values of the entries.
+    #   -- disable an entry by inserting a crosshatch (#) at the start of
+    #        the line.
+    #   -- enable a commented entry by removing the crosshatch (#).
+    #
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # When editing this file, follow the instructions in each section.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Infranet Configuration Files" in the Infranet
+    # online documentation.
+    #************************************************************************
+    
+    
+    #======================================================================
+    #
+    # You can edit this file to suit your specific configuration:
+    #  -- You can change the default values of an entry.
+    #  -- You can exclude an optional entry by adding the # symbol
+    #     at the beginning of the line.
+    #  -- You can include a commented entry by removing the # symbol.
+    #
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # To edit this file, follow the instructions in the commented sections.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #======================================================================
+    
+    #=======================================================================
+    # ptr_virtual_time
+    #
+    # Enables the use of pin_virtual_time to advance Portal time, and
+    # specifies the shared file for use by all Portal mangers.
+    #
+    # The entry has 2 values
+    #
+    # #/Empty       to disable / enable pin_virtual_time in all pin.conf files
+    #               default = #     (disable)
+    #
+    # <filepath>    location and name of the pin_virtual_time file shared by all Portal managers.
+    #               default = ${PIN_HOME}/lib/pin_virtual_time_file
+    #
+    #=======================================================================
+    #- - pin_virtual_time {{ .Values.ocbrm.virtual_time.pvt }}/pin_virtual_time_file    
+    
+    #========================================================================
+    # cm_ptr
+    #
+    # Specifies a pointer to the CM or CMMP.
+    #
+    # Use a separate entry for each CM or CMMP. If testnap can't find the
+    # first CM or CMMP, it looks for the next in the list.
+    #
+    # Each entry includes three values:
+    #
+    #     <protocol> = "ip", for this release
+    #     <host>     = the name or IP address of the computer running the
+    #                    CM or CMMP
+    #     <port>     = the TCP port number of the CM or CMMP on this computer
+    #
+    # The port number should match a corresponding cm_ports entry with
+    # the same port number in the CM or CMMP configuration file. The
+    # default, 11960, is a commonly specified port for the CM or CMMP.
+    #========================================================================
+    - nap cm_ptr ip {{ .Values.ocbrm.cm.deployment.host }} {{ .Values.ocbrm.cm.deployment.port }}
+    
+    
+    #========================================================================
+    # logfile
+    #
+    # Specifies the path to the log file for the sample application
+    #========================================================================
+    - sample_act    logfile sample_act.pinlog
+    - sample_del    logfile sample_del.pinlog
+    - sample_app    logfile sample_app.pinlog
+    - sample_search logfile sample_search.pinlog
+    - sample_who    logfile sample_who.pinlog
+    
+    
+    #========================================================================
+    # login_type
+    #
+    # Specifies whether the login name and password are required.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = Only a user ID is required.
+    #    1 = (Default) Both a name and a password are required.
+    #
+    # By default, CMs require a user login and password when requesting an open
+    # context using PCM_CONTEXT_OPEN. However, you can remove this authentication
+    # requirement by configuring the CM with a cm_login_module of
+    # cm_login_null.so
+    #========================================================================
+    - nap login_type 1
+    
+    
+    #========================================================================
+    # login_name
+    #
+    # Specifies the login name to use when testnap connects to the CM.
+    #========================================================================
+    - nap login_name root.0.0.0.1
+    
+    
+    #========================================================================
+    # login_pw
+    #
+    # Specifies the password to use when testnap connects to the CM.
+    #========================================================================
+    #- nap login_pw
+    
+    
+    #========================================================================
+    # userid
+    #
+    # Specifies the database number and service type for the Portal
+    # database.
+    #
+    # The CM uses the database number to identify the Portal database
+    # and to connect to the correct Data Manager. For connections that don't
+    # require a login name and password, the CM also passes the service
+    # type to the database.
+    #
+    # The database number, in the form 0.0.0.N, is the number assigned to
+    # your Portal database when you installed the system. The default
+    # is 0.0.0.1.
+    #
+    # The service type is /service/pcm_client and the ID is 1.
+    # DO NOT change these values.
+    #========================================================================
+    - - userid 0.0.0.1 /service/pcm_client 1
+    
+    
+    #========================================================================
+    # enable_ssl
+    #
+    # Specifies whether TLS will be enabled for PCM connections
+    #
+    #    0 - TLS is disabled.
+    #    1 - TLS is enabled.
+    #
+    #========================================================================
+    - nap enable_ssl {{ .Values.ocbrm.ENABLE_SSL }}
+    
+    
+    #========================================================================
+    # logfile
+    #
+    # Specifies the path to the log file for pin_ra_check_thresholds.
+    #
+    # You can enter any valid path.
+    #========================================================================
+    - pin_ra_check_thresholds logfile ${PIN_LOG_DIR}/pin_ra_check_thresholds/pin_ra_check_thresholds.pinlog

@@ -1,0 +1,87 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: batch-controller-uel-handler-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+      application: {{ .Chart.Name }}
+data:
+  UELHandler_config.values: |
+    #
+    # Copyright (c) 2000, 2019, Oracle and/or its affiliates. All rights reserved.
+    #      This material is the confidential property of Oracle Corporation
+    #      or its licensors and may be used, reproduced, stored
+    #      or transmitted only in accordance with a valid Oracle license
+    #      or sublicense agreement.
+    #
+    #=============================================================
+    
+    
+    #=============================================================
+    #
+    # Configuration file for the UEL Handler.
+    #
+    #=============================================================
+    
+    #
+    # Debug toggle (0: don't print, 1: print debug messages)
+    #
+    $DEBUG = 0;
+    
+    #
+    # File matching pattern.
+    # Note that this pattern needs to end with the Batch Controller's
+    # file rename extension as listed for the batch.file.rename.extension
+    # key in its Infranet.properties file.
+    #
+    # Example: $FILETYPE = "*.txt.bc"
+    #
+    $FILETYPE = "*.txt.bc";
+    
+    #
+    # Full pathname of the handler local directory.
+    #
+    $HANDLER_DIR = "/oms/apps/uel";
+    
+    #
+    # Full pathname to handler log file.
+    #
+    $LOGFILE = "$HANDLER_DIR/UELRelHandler.log";
+    
+    #
+    # Full path name to batch application directory.
+    #
+    $pinUELDir = "/oms/apps/uel";
+    
+    #
+    # Full path name to batch application executable.
+    $pinUEL = "$pinUELDir/uel";
+    
+    #
+    # Full path name to batch application executable.
+    $pinUEL = "$pinUELDir/uel";
+    
+    #
+    # Full pathname to the handler input file location.
+    #
+    $STAGING = "/oms/BATCH_FILES_GEN";
+    
+    #
+    # Full pathname to the batch application input file location.
+    # The handler will move input files from the STAGING directory to the
+    # PROCESSING directory; the batch application reads imput files from
+    # the PROCESSING directory.
+    # For the UEL, this parameter should be exactly the same as specified by the
+    # infranet.uel.event_log_file_location in the UEL's Infranet.properties file.
+    #
+    $PROCESSING = "$pinUELDir";
+    
+    #
+    # Full pathnames to the batch application output file locations.
+    # The handler will move input files from the PROCESSING directory to these
+    # directories based upon the exit code of the batch application.
+    #
+    $ARCHIVE = "$HANDLER_DIR/archive";
+    $REJECT = "$HANDLER_DIR/reject";
+    
+    1;

@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eai-java-server-infranet-properties-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+      application: {{ .Chart.Name }}
+data:
+  Infranet.properties: |
+    # Infranet.properties file.
+    # Contains configuration parameters for the PCM Java Server.
+
+    # java servers port #
+    infranet.server.portNr={{ .Values.ocbrm.eai_js.deployment.port }}
+
+    # the log file that the java server will log msgs to
+    infranet.log.file=/oms_logs/eai_js.pinlog
+    
+    # the name of the application that the java server will
+    # use in it's log msgs 
+    infranet.log.name=PCMJavaServer
+
+    # log all msgs
+    infranet.log.level={{ .Values.ocbrm.LOG_LEVEL }}
+
+    infranet.log.js.file=/oms_logs/eai_js.pinlog
+    infranet.log.js.name=eai_js.pinlog
+    infranet.log.js.style=flag
+    #infranet.log.js.level=3
+    infranet.log.js.enable=true
+
+    # defines the Publish Handler 
+    infranet.opcode.handler.PUBLISH_GEN_PAYLOAD=com.portal.eai.PublishHandler
+
+    #defines config file for payload generator
+    infranet.eai.configFile = /oms/sys/eai_js/payloadconfig_ifw_sync.xml
+    #infranet.eai.configFile = /oms/payload/payloadconfig_ece_sync.xml
+
+    ########################################################
+    SSL configuration
+    ########################################################
+    # To  enable SSL, make sure to provide correct values for below config entries. e.g wallet location and filename etc.
+    infranet.pcp.ssl.enabled = {{ .Values.ocbrm.isSSLEnabled }}
+    # To enable SSL 2 way authentication
+    infranet.pcp.ssl.client_auth = false
+    # Oracle wallet location
+    infranet.pcp.ssl.wallet.location=/oms/wallet/server
+    infranet.pcp.ssl.wallet.filename = cwallet.sso

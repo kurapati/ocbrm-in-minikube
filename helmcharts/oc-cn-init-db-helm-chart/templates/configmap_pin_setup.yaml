@@ -1,0 +1,340 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pin-setup-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+      application: {{ .Chart.Name }}
+data:
+  pin_setup.values: |
+        #!/tmp/installer/perl-5.28.1/bin/perl
+
+        @COMPONENT_LIST = ("","sox_unlock_service","pin_collections","content_manager","ip_address_manager","ldap","number_manager","rel","araframework","sim_manager","sms_settle_report","dm_suspense","vouchermanager","cmt","dm_ifw_sync","gprs_30","gsm","dm_aq","ecr_pci","inventory","tcframework","dm_oracle");
+
+
+        $PIN_HOME = "/oms";
+        $PIN_LOG_DIR = "$ENV{PIN_LOG_DIR}";
+        $PIN_TEMP_DIR = "$ENV{PIN_LOG_DIR}";
+        $PIN_SHARED_DIR = "/oms";
+        $PIN_VERSION = "12.0";
+        $SETUP_LOG_FILENAME = "$PIN_HOME/setup/pin_setup.log";
+        $SETUP_LOG_ACCESS_TYPE = "APPEND";
+        $SETUP_CREATE_PARTITIONS = "Yes";
+        $ENABLE_PARTITION = "Yes";
+        @CLASSES_TO_BE_PARTITIONED = ("/journal:local","/journal_master:local","/user_activity:local","/newsfeed:local");
+        $SETUP_DROP_ALL_TABLES = "Yes";
+        $SETUP_INIT_DB = "YES";
+        $SETUP_PRICING = "NO";
+        $SETUP_CONFIGURE = "YES";
+        $CREATE_DATABASE_TABLES = "NO";
+        $SATELLITE_INSTALL = "NO";
+        $MAIN_DB{'vendor'} = "oracle";
+        $MAIN_DB{'alias'} = "$ENV{OMS_DB_ALIAS}";
+        $MAIN_DB{'user'} = "$ENV{OMS_SCHEMA_USERNAME}";
+        $MAIN_DB{'Database'} = "$ENV{OMS_DB_ALIAS}";
+        $MAIN_DB{'Host'} = "$ENV{OMS_DB_HOST}";
+        $MAIN_DB{'version'} = "12c";
+        $MAIN_DB{'tables_group'} = "$ENV{OMS_SCHEMA_TABLESPACE}";
+        $MAIN_DB{'indexes_group'} = "$ENV{OMS_INDEX_TABLESPACE}";
+        $MAIN_DB{'storage_model'} = "Test";
+        $MAIN_DB{'system_user'} = "system";
+        $DM_generic{'front_ends'} = "4";
+        $DM_generic{'max_frontends'} = "16";
+        $DM_generic{'back_ends'} = "10";
+        $DM_generic{'max_back_ends'} = "8";
+        $DM_generic{'shmsize'} = "33554432";
+        $DM_generic{'bigsize'} = "2097152";
+        $DM_generic{'restart_children'} = 1;
+        $DM_generic{'library'} = "";
+        $DM_generic{'trans_timeout'} = "0";
+        %DM_ORACLE = %DM_generic;
+        $DM_ORACLE{'location'} = "$PIN_HOME/sys/dm_oracle";
+        $DM_ORACLE{'pin_conf_location'} = "\$\{PIN_HOME\}/sys/dm_oracle";
+        $DM_ORACLE{'version'} = "$MAIN_DB{'version'}";
+        $DM_ORACLE{'db_num'} = "0.0.0.1";
+        $DM_ORACLE{'hostname'} = "$ENV{HOSTNAME}";
+        $DM_ORACLE{'port'} = "12950";
+        $DM_ORACLE{'uses_ddl'} = 1;
+        $DM_ORACLE{'enable_write_objects'} = 1;
+        $DM_ORACLE{'enable_write_fields'} = 1;
+        $DM_ORACLE{'enable_write_portal_objects'} = 1;
+        $DM_ORACLE{'library'} = "$PIN_HOME/sys/dm_oracle/dm_oracle$DM_ORACLE{'version'}64\$\{LIBRARYEXTENSION\}";
+        $DM_ORACLE{'db'} = \%MAIN_DB;
+        $DM_ORACLE{'sm_charset'} = "{{ .Values.ocbrm.db.charset }}";
+        $DM_ORACLE{'stmt_cache_entries'} = 32;
+        $DM_ORACLE{'in_batch_size'} = 80;
+        $DM_ORACLE{'delimiter'} = "";
+        $DM_ORACLE{'sqlscript_executable'} = "sqlplus";
+        $DM_ORACLE{'pin_conf_tablespace_id'} = "tablespace";
+        %MAIN_DM=%DM_ORACLE;
+        $DM_AQ{'queuing_db_alias'} = "$MAIN_DB{'alias'}";
+        $DM_AQ{'queuing_db_user'} = "$MAIN_DB{'user'}";
+        $DM_IFW_SYNC{'queuing_db_alias'} = "$MAIN_DB{'alias'}";
+        $DM_IFW_SYNC{'queuing_db_user'} = "$MAIN_DB{'user'}";
+        $SQLSCRIPT_EXECUTABLE = $MAIN_DM{'sqlscript_executable'};
+        $DD{'location'} = "$PIN_HOME/sys/dd/data";
+        $ServiceName{'dm_oracle'} = "dm_oracle";
+        $PINCONF = "pin.conf";
+        $PIN_CONF_TABLESPACE_ID = $MAIN_DM{'pin_conf_tablespace_id'};
+        $PIN_CONF_INDEX_TABLESPACE_ID = $MAIN_DM{'pin_conf_index_tablespace_id'};
+        $INSTALL_TYPE = "ISMP";
+        $CUSTOM_PINSETUP = 1;
+        $NO_PINSETUP = 1;
+        $ENABLE_SSL = "0";
+        $FM_FUNCTION_SUFFIX = "_func";
+        @DB = split(/\./, $MAIN_DM{'db_num'});
+        $BILL_DB_NO = $DB[$#DB];
+        $PIN_CONF_INIT_OPFLAGS  = 0x40;
+        $PIN_CONF_SYS_CURRENCY = $MAIN_CM{'currency'};
+        $PIN_CONF_DATE_NOW = time();
+        $PIN_CONF_INFRANET_BASE = $PIN_HOME;
+        $PIN_CONF_SRCH_DISTINCT         =       256;
+        $PIN_CONF_SRCH_CALC_ONLY_1      =       1;
+        $PIN_CONF_INIT_OPNAME="PCM_OP_CREATE_OBJ";
+        $RATED_EVENT_LOADER{'pin_cnf_location'} = "/oms/setup";
+        $PERL_HOME = '/tmp/installer/perl-5.28.1';
+        require "./pin_tables.values";
+
+  pin_setup.pl: |
+
+        use Cwd;
+        require "./pin_res.pl";
+        require "./pin_functions.pl";
+        require "../pin_setup.values";
+
+        $RUNNING_IN_PIN_SETUP = TRUE;
+
+        $StartTime = localtime(time());
+
+        &hash_password();
+        &call_pinsetup();
+        print "Starting create_obj()\n";
+        &create_obj();
+        &custom_sql();
+
+        @scripts = ('ifw_Create.sql','ifw_Synonyms.sql','insertWIRELESS_SAMPLE.sql','create_pricing_discountmodel_procedures.plb','create_pricing_tailormadeplan_procedures.plb');
+        foreach $script (@scripts) {
+                &pipeline_db("$ENV{IFW_HOME}/Oracle/$script");
+        }
+        system("touch /oms/setup/pin_setup_is_ready");
+        print "Database Initialization successful\n";
+
+        sub custom_sql {
+                my $tmpFile = "$ENV{PIN_HOME}/sys/dd/data/custom_sql.source";
+                my $sqlshell = "sqlplus -s /\@$ENV{OMS_DB_ALIAS}";
+                my $return = &ExecuteShell_Piped( "tmp.custom_sql.out", FALSE, $sqlshell, "< \"$tmpFile\"" );
+        }
+
+        sub pipeline_db {
+                my $tmpFile = shift( @_ );
+                my $sqlshell = "sqlplus -s $ENV{INTEGRATE_USERNAME}/$ENV{INTEGRATE_PASSWORD}\@$ENV{INTEGRATE_SID}";
+                my $return = &ExecuteShell_Piped( "tmp.$script.out", FALSE, $sqlshell, "< \"$tmpFile\"" );
+        }
+
+        sub hash_password {
+                my $hashed = `$PIN_HOME/bin/pbkdf2_encode $ENV{BRM_ROOT_PASSWORD}`;
+                my $find = "pbkdf2";
+                my $pre = '0 PIN_FLD_PASSWD          STR [0] "';
+                open FILE, "$PIN_HOME/sys/dd/data/init_objects.source"  or die "init_objects.source: $!";
+                open FILEDUMP, ">$PIN_HOME/sys/dd/data/init_objects.mod"  or die "init_objects.mod: $!";
+                while(<FILE>) {
+                        if($_ =~ m/$find/) {
+                                print FILEDUMP "$pre$hashed\"\n";
+                        } else {
+                                print FILEDUMP "$_";
+                        }
+                }
+                close(FILEDUMP);
+                close(FILE);
+                system("mv $PIN_HOME/sys/dd/data/init_objects.mod $PIN_HOME/sys/dd/data/init_objects.source");
+
+        }
+
+        sub call_pinsetup {
+                &OpenLogFile( $SETUP_LOG_FILENAME, $SETUP_LOG_ACCESS_TYPE );
+                &Output( fpLogFile, $IDS_LOG_TIME, $StartTime );
+                &Output( STDOUT, $IDS_SHOW_TIME, $StartTime );
+
+                eval qq!require "./pin_oracle_functions.pl"!;
+
+                &VerifyLogin( "portal", %MAIN_DB );
+
+                @TEMP_LIST = ();
+                @TEMP_LIST = reverse( @COMPONENT_LIST );
+
+                $CurrentComponent = 'dm_oracle';
+                eval qq!require "./pin_cmp_dm_oracle.pl"!;
+                eval "&configure_dm_oracle_config_files;";
+
+                foreach $CurrentComponent ( @TEMP_LIST ) {
+
+                        eval qq!require "./pin_cmp_$CurrentComponent.pl"!;
+
+                        if ( $ServiceName{ $CurrentComponent } !~ /^$/ ) {
+                                &Stop( $ServiceName{ $CurrentComponent } );
+                        }
+
+                        $function_name = "configure_$CurrentComponent"."_database";
+                        if ( ( $SETUP_INIT_DB =~ /^YES$/i ) &&
+                                ( defined( &$function_name ) ) ) {
+                                &Output( STDOUT, $IDS_CONFIGURING_DATABASE, $CurrentComponent );
+                                &Output( fpLogFile, $IDS_CONFIGURING_DATABASE, $CurrentComponent );
+                                eval '&configure_'.$CurrentComponent.'_database;';
+                        }
+                }
+        }
+
+        sub create_obj {
+                our %MAIN_DM;
+                our %DM = %MAIN_DM;
+                $SKIP_INIT_OBJECTS   = "YES";
+                $USE_SPECIAL_DD_FILE = "YES";
+                $SPECIAL_DD_FILE     = "$PIN_HOME/sys/dd/data/create_obj.source";
+                &pin_init(%DM);
+        }
+
+  sync_queue.conf: |
+
+        $storage_clause = "tablespace {{ .Values.ocbrm.db.schematablespace }} initrans 5 storage (initial 200k next 200k maxextents unlimited pctincrease 0 )";
+
+        $retention_time = 0;
+
+        $primary_schema = "<pin>";
+
+        1
+
+  custom_sql.source: |
+
+        update config_business_params_t set param_value = 5 where param_name = 'config_cache_refresh_interval';
+        #@/oms/sys/dm_oracle/data/job_rerate_procedures_pkg_oracle.plb
+        #@/oms/sys/dm_oracle/data/job_rerate_procedures_oracle.plb
+        commit;
+        exit;
+
+  partition_utils.values: |
+        #
+        #	@(#)$Id: partition_utils.values /cgbubrm_mainbrm.portalbase/13 2019/08/08 05:43:30 mkothari Exp $
+        #
+        # Copyright (c) 1998, 2018, Oracle and/or its affiliates. All rights reserved.
+        #
+        #	This material is the confidential property of Oracle Corporation or its
+        #	licensors and may be used, reproduced, stored or transmitted only in
+        #	accordance with a valid Oracle license or sublicense agreement.
+        #
+
+        #===============================================================================
+        #  Database Connection Parameters
+        #
+        #  Provides the Oracle connection information for using sqlplus to connect to
+        #  the Infranet database.
+        #===============================================================================
+
+        #===============
+        # Database alias
+        #===============
+        $MAIN_DB{'alias'} = "{{ .Values.ocbrm.db.alias }}";
+
+
+        #==============
+        # Database user
+        #==============
+        $MAIN_DB{'user'} = "{{ .Values.ocbrm.db.schemauser }}";
+
+
+        #==================
+        # Database password
+        #==================
+        #$MAIN_DB{'password'} = "";
+
+
+        #===============================================================================
+        #  Adding Partitions - First New Partition
+        #
+        #  Limits how many days into the future new partitions can be added.
+        #  By default, the utility restricts the user from adding new partitions beyond
+        #  90 days in the future.
+        #===============================================================================
+        $MAX_ADD_REAL{'start_date'} = 90;     # Valid range in [2-180]
+        $MAX_ADD_DELAYED{'start_date'} = 90;  # Valid range in [2-180]
+        $MAX_ADD_PREPAID{'start_date'} = 90;  # Valid range in [2-180]
+
+        #===============================================================================
+        #  Adding Partitions - Number of New Partitions
+        #
+        #  Limits the number of new partitions added, based on the partition type.
+        #  By default, the utility restricts the user from creating more than 60 daily
+        #  partitions, or 15 weekly partitions, or 12 monthly partitions.
+        #===============================================================================
+        $MAX_ADD_REAL{'daily_quantity'} = 60;      # Valid range in [1-150]
+        $MAX_ADD_REAL{'weekly_quantity'} = 15;     # Valid range in [1-80]
+        $MAX_ADD_REAL{'monthly_quantity'} = 12;     # Valid range in [1-24]
+        $MAX_ADD_DELAYED{'daily_quantity'} = 60;   # Valid range in [1-150]
+        $MAX_ADD_DELAYED{'weekly_quantity'} = 15;  # Valid range in [1-80]
+        $MAX_ADD_DELAYED{'monthly_quantity'} = 12;  # Valid range in [1-24]
+        $MAX_ADD_PREPAID{'daily_quantity'} = 60;   # Valid range in [1-150]
+        $MAX_ADD_PREPAID{'weekly_quantity'} = 15;  # Valid range in [1-80]
+        $MAX_ADD_PREPAID{'monthly_quantity'} = 12;  # Valid range in [1-24]
+
+        #===============================================================================
+        #  Adding Partitions - Width of New Partitions
+        #
+        #  Limits the width of new partitions added, based on the partition type.
+        #  By default, the utility restricts the user from creating daily partitions
+        #  wider than 5 days, weekly partitions wider than 3 weeks, and monthly
+        #  partitions wider than 2 months.
+        #===============================================================================
+        $MAX_ADD_REAL{'daily_width'} = 30;       # Valid range in [1-30]
+        $MAX_ADD_REAL{'weekly_width'} = 3;      # Valid range in [1-10]
+        $MAX_ADD_REAL{'monthly_width'} = 2;     # Valid range in [1-6]
+        $MAX_ADD_DELAYED{'daily_width'} = 5;    # Valid range in [1-30]
+        $MAX_ADD_DELAYED{'weekly_width'} = 3;   # Valid range in [1-10]
+        $MAX_ADD_DELAYED{'monthly_width'} = 2;  # Valid range in [1-6]
+        $MAX_ADD_PREPAID{'daily_width'} = 5;    # Valid range in [1-30]
+        $MAX_ADD_PREPAID{'weekly_width'} = 3;   # Valid range in [1-10]
+        $MAX_ADD_PREPAID{'monthly_width'} = 2;  # Valid range in [1-6]
+
+        #===============================================================================
+        #  Removing Partitions - Required Age of Partitions
+        #
+        #  Limits the age of partitions removed.  By default, the utility restricts the
+        #  user from removing partitions less than 45 days old.
+        #===============================================================================
+        $MAX_REMOVE_REAL{'older_than'} = 45;     # valid range: >= 1
+        $MAX_REMOVE_DELAYED{'older_than'} = 45;  # valid range: >= 1
+        $MAX_REMOVE_PREPAID{'older_than'} = 45;  # valid range: >= 1
+
+        #===============================================================================
+        #  Purging Partitions - Minimum required percent of Purgable Data
+        #  Partitions will be purged only when purgable poids in event_bal_impact_t > PURGE_THRESHOLD
+        #===============================================================================
+        $PURGE_THRESHOLD = 70;     # valid range: >= 60 and <100
+
+        #===============================================================================
+        #  Purging Partitions - Required number
+        #  Number of processes to run in parallel. Default value = 2
+        #  Max. limit depends on the system resources such as:
+        #  Max. number of processes that system allows
+        #  Max. number of sqlplus sessions that database server allows
+        #===============================================================================
+        $NUM_OF_PROCESSES = 2; # valid range: >= 1 and <=10
+
+        #===============================================================================
+        #  Purging Partitions - Required number
+        #  Number of records to be deleted in chunk
+        #===============================================================================
+        $MAX_DEL_REC_CHUNK = 1000; # valid range: >= 500 and <=5000
+
+        #===============================================================================
+        #  Purging Partitions - Required number
+        #  If the purgable poids < this value then delete_in_place approach will be chosen.
+        #  DELETE_IN_PLACE method will be chosen either purgable events  < 5 %
+        #  or purgable records < MAX_DEL_REC in the partition of the table.
+        #===============================================================================
+        $MAX_DEL_REC = 10000; # valid range: >=1000 and <=20000
+
+        #===============================================================================
+        #  This parameter is used by pin_close_items
+        #  Batch size for Commit.
+        #  Database Commit is called for batches of size given here.
+        #===============================================================================
+        $COMMIT_BUNDLE_SIZE = 10000

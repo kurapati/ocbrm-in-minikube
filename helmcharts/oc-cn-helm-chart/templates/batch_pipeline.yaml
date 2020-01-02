@@ -1,0 +1,193 @@
+---
+### Deployment Descriptor
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: batch-wireless-pipe
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.ocbrm.batchpipe.deployment.replicaCount }}
+  selector:
+    matchLabels:
+      application: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        application: {{ .Chart.Name }}
+        component: oms-batch-wireless-pipe
+      name: batch-wireless-pipe
+    spec:
+      containers:
+      - name: batch-wireless-pipe
+        image: "{{ .Values.imageRepository }}{{ .Values.ocbrm.batchpipe.deployment.imageName }}:{{ .Values.ocbrm.batchpipe.deployment.imageTag }}"
+        {{- if eq .Values.ocbrm.virtual_time.enabled true }}
+        command: ["/bin/sh"]
+        args: ["-c", "sleep 10;/oms/entrypoint.sh wireless_pipe"]
+        {{- end }}
+        env:
+        - name: INIT_DB
+          value: "{{ .Values.ocbrm.init_database }}"
+        - name: TZ
+          value: "{{ .Values.ocbrm.TZ }}"
+        - name: TNS_ADMIN
+          value: "{{ .Values.ocbrm.tnsAdmin }}"
+        - name: IFW_INFRANET_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: oms_schema_password
+        - name: IFW_INTEGRATE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: pipeline_schema_password
+        - name: OLD_CLIENT
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: old_client
+        - name: CLIENT_WALLET_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: client_wallet_password
+        - name: OMS_SCHEMA_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: OMS_SCHEMA_USERNAME
+        - name: OMS_SCHEMA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: oms_schema_password
+        - name: OMS_DB_ALIAS
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: OMS_DB_ALIAS
+        - name: BRM_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: brm_root_password
+        - name: SHARED_VIRTUAL_TIME_FILE
+          value: {{ .Values.ocbrm.virtual_time.pvt }}/pin_virtual_time_file 
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - name: wirelessrating-reg-config-volume
+          mountPath: /oms/ifw/conf/wireless.reg.tmpl
+          subPath: wireless.reg.tmpl
+        - name: loadifw-reg-volume
+          mountPath: /oms/ifw/tools/XmlLoader/LoadIfwConfig.reg.tmpl
+          subPath: LoadIfwConfig.reg.tmpl
+        - name: pipe-pin-conf-volume
+          mountPath: /oms/ifw/pin.conf.tmpl
+          subPath: pin.conf
+        - name: dm-oracle-tnsnames-ora-volume
+          mountPath: /oms/ora_k8/
+        - name: common-semaphore
+          mountPath: /oms/ifw/semaphore/
+        - name: pipelinelog
+          mountPath: {{ .Values.ocbrm.batchpipe.deployment.logPipeDir }}
+        - name: processlog
+          mountPath: {{ .Values.ocbrm.batchpipe.deployment.logProcessDir }}
+        - name: streamlog 
+          mountPath: /oms/ifw/log/stream
+        - name: edrlog
+          mountPath: /oms/ifw/log/edrLog
+        - name: logdump
+          mountPath: /oms/ifw/log/dump
+        - name: logstatistic
+          mountPath: /oms/ifw/log/statistic
+        - name: data
+          mountPath: /oms/ifw/data
+        - name: outputcdr
+          mountPath: /oms/ifw/data/out
+        - name: outputreject
+          mountPath: /oms/ifw/data/reject
+        - name: databalance
+          mountPath: /oms/ifw/data/balance
+        - name: datadiscounterror
+          mountPath: /oms/ifw/data/discountError
+        - name: datadup
+          mountPath: /oms/ifw/data/dup
+        - name: datalog
+          mountPath: /oms/ifw/data/log
+        - name: confdir
+          mountPath: /oms/ifw/conf
+        - name: virtual-time-volume
+          mountPath: {{ .Values.ocbrm.virtual_time.pvt }}
+      hostname: batch-wireless-pipe
+      dnsPolicy: ClusterFirst
+      volumes:
+        - name: wirelessrating-reg-config-volume
+          configMap:
+            name: wirelessrating-reg-config
+        - name: loadifw-reg-volume
+          configMap:
+            name: loadifwreg-config
+        - name: pipe-pin-conf-volume
+          configMap:
+            name: pipe-pin-conf-config
+        - name: dm-oracle-tnsnames-ora-volume
+          configMap:
+            name: db-config
+            items:
+              - key: tnsnames.ora
+                path: tnsnames.ora
+              - key: sqlnet.ora
+                path: sqlnet.ora
+        - name: common-semaphore
+          persistentVolumeClaim:
+           claimName: common-semaphore
+        - name: data
+          persistentVolumeClaim:
+           claimName: data
+        - name: outputcdr
+          persistentVolumeClaim:
+           claimName: outputcdr
+        - name: outputreject
+          persistentVolumeClaim:
+           claimName: outputreject
+        - name: pipelinelog
+          emptyDir: {}
+        - name: processlog
+          emptyDir: {}
+        - name: streamlog
+          emptyDir: {}
+        - name: edrlog
+          emptyDir: {}
+        - name: databalance
+          emptyDir: {}
+        - name: datadiscounterror
+          emptyDir: {}
+        - name: datadup
+          emptyDir: {}
+        - name: logdump
+          emptyDir: {}
+        - name: logstatistic
+          emptyDir: {}
+        - name: datalog
+          emptyDir: {}
+        - name: confdir
+          emptyDir: {}
+        - name: virtual-time-volume
+          persistentVolumeClaim:
+            claimName: virtual-time
+---
+kind: Service
+apiVersion: v1
+metadata:
+ name: batchpipe
+ namespace: {{ .Release.Namespace }}
+ labels:
+   application: {{ .Chart.Name }}
+spec:
+ selector:
+   component: oms-batch-wireless-pipe
+ ports:
+ - name: batchpipe
+   port: {{ .Values.ocbrm.batchpipe.deployment.port }}
+   protocol: TCP
+ type: {{ .Values.ocbrm.batchpipe.service.type }}

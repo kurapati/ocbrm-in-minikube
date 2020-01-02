@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dm-ifw-sync-config
+  labels:
+      application: oms
+data:
+  ifw_sync_queuenames: |
+        #===============================================================================
+        # This file specifies the queues and which events go to each queue.
+        #===============================================================================
+        # Queue name without database link -- queue is on database to which DM connects.
+        IFW_SYNC_QUEUE
+        {
+          # Uncomment if all events should go to this queue.
+          # ALL
+
+          # Listing multiple databases separated by white space, a new line, or the keyword
+          # "OR" results in any events matching any of those databases going to this queue.
+          # The key word "AND" cannot be used with groups of databases and will result in an
+          # error being logged upon start-up.
+
+          # Uncomment if events for database 0.0.0.1 should go to this queue.
+           0.0.0.1
+          
+          # The keyword "AND" can be used between the database and the list of events/excluded-events
+          # which would result in the event going to the queue when both the database specified and
+          # the event specified in the inclusion list match (or in case of excluded-events, event is
+          # other than what is specified in the exclusion list). If there are multiple databases specified,
+          # AND should be put with the last database. If "AND" is not specified, the default behavior would
+          # be that of an "OR" between the database and the list of events/excluded-events.
+          
+          # Listing multiple events separated by white space, a new line, or the keyword
+          # "OR" results in events matching any of the listed events going to this queue.
+          # The key word "AND" cannot be used with groups of events and will result in an
+          # error being logged upon start-up.
+
+          # Uncomment if certain events should go to this queue.  By default, 
+          # CustCreate
+          # ProductCancel
+          # CollectionsAction
+          # CollectionsInfoChange
+          # AccountInfoChange
+          
+          # Listing multiple excluded events separated by white space, a new line, or the keyword
+          # "AND" results in events matching any of the listed excluded events will NOT go to this queue.
+          # The key word "OR" cannot be used with groups of excluded events and will result in an
+          # error being logged upon start-up.
+
+          # Uncomment if certain events should NOT go to this queue. 
+          # !CustCreate AND
+          # !ProductCancel 
+         
+        }
+
+        # Queue name with database link -- queue is on different database than
+        # the one to which DM connects.
+        # IFW_SYNC_QUEUE@testbed.yourfirm.com
+        # {
+        #   0.0.0.1
+        # }
+
+        # Queue name along with schema qualifier -- queue is on different schema in the same database 
+        # to which DM connects.Make sure the current user of dm_ifw_sync has execute permission for the 
+        # account sync package in the PINTEST schema.
+        # PINTEST.IFW_SYNC_QUEUE
+        # {
+        #   0.0.0.1
+        # }
+

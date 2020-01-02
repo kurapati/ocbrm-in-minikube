@@ -1,0 +1,41 @@
+# Default values for mychart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# For non-empty repository, "/" MUST be appended
+imageRepository: ""
+
+ocbrm:
+    imagePullPolicy: IfNotPresent
+    TZ: UTC
+    logDir: /oms_logs
+    tnsAdmin: /oms/ora_k8
+    LOG_LEVEL: 1
+    brm_root_pass: 
+    wallet:
+        client: 
+        server: 
+        root: 
+        pv: brm-wallet-pv
+        pvc: brm-wallet-pvc
+        storage: 50Mi
+    db:
+        deployment:
+            imageName: init_db
+            imageTag: 12.0.0.2.0
+        host: localhost
+        port: 1521
+        service: pindb
+        alias: pindb
+        schemauser: pin
+        schemapass: 
+        schematablespace: pin
+        indextablespace: pinx
+        nls_lang: AMERICAN_AMERICA.AL32UTF8
+        charset: AL32UTF8
+        pipelineschemauser: pin
+        pipelineschemapass: 
+        pipelineschematablespace: pin
+        pipelineindextablespace: pinx
+        pipelinealias: PINDB
+        queuename: IFW_SYNC_QUEUE

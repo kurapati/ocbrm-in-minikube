@@ -1,0 +1,178 @@
+---
+### Deployment Descriptor
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: batch-controller
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.ocbrm.batch_controller.deployment.replicaCount }}
+  selector:
+    matchLabels:
+      application: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        application: {{ .Chart.Name }}
+        component: oms-batch-controller
+      name: batch-controller
+    spec:
+      containers:
+      - name: batch-controller
+        image: "{{ .Values.imageRepository }}{{ .Values.ocbrm.batch_controller.image }}:{{ .Values.ocbrm.batch_controller.imageTag }}"
+        {{- if eq .Values.ocbrm.virtual_time.enabled true }}
+        command: ["/bin/sh"]
+        args: ["-c", "sleep 10;/oms/entrypoint.sh batch-controller"]
+        {{- end }}
+        env:
+        - name: INIT_DB
+          value: "{{ .Values.ocbrm.init_database }}"
+        - name: TZ
+          value: "{{ .Values.ocbrm.TZ }}"
+        - name: PIN_LOG_DIR
+          value: "{{ .Values.ocbrm.logDir }}"
+        - name: SERVICE_FQDN
+          value: "{{ .Values.ocbrm.batch_controller.host }}"
+        - name: ENABLE_SSL
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: ENABLE_SSL
+        - name: LIBRARYEXTENSION
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: LIBRARYEXTENSION
+        - name: CM_SERVICE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: CM_SERVICE_HOST
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: LOG_LEVEL
+        - name: CLIENT_WALLET_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: client_wallet_password
+        - name: OMS_SCHEMA_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: OMS_SCHEMA_USERNAME
+        - name: OMS_SCHEMA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: oms_schema_password
+        - name: OMS_DB_ALIAS
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: OMS_DB_ALIAS
+        - name: VIRTUAL_TIME_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: VIRTUAL_TIME_ENABLED
+        - name: VIRTUAL_TIME_SETTING
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: VIRTUAL_TIME_SETTING
+        - name: CM_SERVICE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: CM_SERVICE_PORT
+        - name: CLIENT_WALLET_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: client_wallet_password
+        - name: OLD_ROOT
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: old_root
+        - name: OLD_CLIENT
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: old_client
+        - name: ROOT_WALLET_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: root_wallet_password
+        - name: SERVER_WALLET_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: server_wallet_password
+        - name: BRM_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: brm_root_password
+        - name: SHARED_VIRTUAL_TIME_FILE
+          value: {{ .Values.ocbrm.virtual_time.pvt }}/pin_virtual_time_file
+        imagePullPolicy: {{ .Values.ocbrm.imagePullPolicy }}
+        terminationMessagePolicy: FallbackToLogsOnError
+        volumeMounts:
+        - name: batch-controller-uel-pin-conf-volume
+          mountPath: /oms/pin.conf.tmpl
+          subPath: pin.conf
+        - name: uel-infrante-properties-volume
+          mountPath: /oms/apps/uel/uel_infranet.properties.tmpl
+          subPath: Infranet.properties
+        - name: bc-infrante-properties-volume
+          mountPath: /oms/apps/batch_controller/bc_infranet.properties.tmpl
+          subPath: Infranet.properties
+        - name: batch-controller-uel-handler-config
+          mountPath: /oms/apps/uel/UELHandler_config.values.tmpl
+          subPath: UELHandler_config.values
+        - name: oms-uel-input
+          mountPath: /oms/BATCH_FILES_GEN
+        - name: oms-uel-archive
+          mountPath: /oms/apps/uel/archive
+        - name: oms-uel-reject
+          mountPath: /oms/apps/uel/reject
+        - name: oms-logs
+          mountPath: {{ .Values.ocbrm.logDir }}
+        - name: virtual-time-volume
+          mountPath: {{ .Values.ocbrm.virtual_time.pvt }}
+      hostname: batch-controller
+      dnsPolicy: ClusterFirst
+      volumes:
+        - name: batch-controller-uel-pin-conf-volume
+          configMap:
+            name: batch-controller-uel-pin-conf-config
+        - name: uel-infrante-properties-volume
+          configMap:
+            name: uel-infranet-properties
+        - name: bc-infrante-properties-volume
+          configMap:
+            name: batch-controller-infranet-properties
+        - name: batch-controller-uel-handler-config
+          configMap:
+            name: batch-controller-uel-handler-config
+        - name: oms-uel-archive
+          persistentVolumeClaim:
+            claimName: oms-uel-archive
+        - name: oms-uel-reject
+          persistentVolumeClaim:
+            claimName: oms-uel-reject
+        - name: oms-uel-input
+          persistentVolumeClaim:
+            claimName: oms-uel-input
+        - name: oms-logs
+          emptyDir: {}
+        - name: virtual-time-volume
+          persistentVolumeClaim:
+            claimName: virtual-time
+
+---

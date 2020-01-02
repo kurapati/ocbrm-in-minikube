@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: formatter-infranet-properties-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+      application: {{ .Chart.Name }}
+data:
+  Infranet.properties: |
+    # Contains configuration parameters for the PCM Java Server.
+    
+    # java servers port #
+    infranet.server.portNr={{ .Values.ocbrm.formatter.deployment.port }}
+    
+    # defines the Invoice Formatter's handler
+    infranet.opcode.handler.INV_FORMAT_INVOICE=com.portal.formatter.JSInvoiceFormatter
+    
+    # default log configuration
+    infranet.log.file=/oms_logs/formatter.pinlog
+    infranet.log.name=PCMJavaServer
+    infranet.log.level={{ .Values.ocbrm.formatter.deployment.logLevel }}
+    
+    # log configuration for package com.portal.js
+    # user can change the infranete.log.js.enabled flag to false to suppress the
+    # configuration for package com.portal.js
+    infranet.log.js.enabled=true
+    infranet.log.js.file=/oms_logs/formatter.pinlog
+    infranet.log.js.name=InvoiceFormatter
+    infranet.log.js.level={{ .Values.ocbrm.formatter.deployment.jsLogLevel }}
+    
+    ########################################################
+    #SSL configuration
+    ########################################################
+    # To  enable SSL, make sure to provide correct values for below config entries. e.g wallet location and filename etc.
+    infranet.pcp.ssl.enabled = {{ .Values.ocbrm.isSSLEnabled }}
+    # To set the ciphersuites to be used . You can specify multiple ciphers separated by commas.
+    #infranet.pcp.ssl.handshake.ciphersuites = TLS_RSA_WITH_AES_128_CBC_SHA
+    # To enable SSL 2 way authentication
+    infranet.pcp.ssl.client_auth = false
+    # Oracle wallet location
+    infranet.pcp.ssl.wallet.location = /oms/wallet/server
+    infranet.pcp.ssl.wallet.filename = cwallet.sso
+
+    ########################################################
+    # Contains configuration parameters for PXSLT
+    ########################################################
+    # log file
+    infranet.pxslt.logfile=/oms_logs/pxslt.pinlog
+    infranet.pxslt.loglevel={{ .Values.ocbrm.formatter.deployment.pxsltLogLevel }}
+    # Set the parser for transformation (SAX)
+    infranet.pxslt.parser=org.apache.xerces.parsers.SAXParser
+    # Set the transformation engine (XDK)
+    infranet.pxslt.engine=${PXSLT_ENGINE}

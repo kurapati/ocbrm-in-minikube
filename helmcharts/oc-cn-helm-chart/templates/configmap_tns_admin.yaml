@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: db-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+      application: oms
+data:
+  tnsnames.ora: |
+    {{ .Values.ocbrm.db.alias }}=
+    (DESCRIPTION=
+      (ADDRESS=(PROTOCOL=TCP)(HOST={{ .Values.ocbrm.db.host }})(PORT={{ .Values.ocbrm.db.port }}))
+      (CONNECT_DATA=
+        (SERVER=DEDICATED)
+        (SERVICE_NAME={{ .Values.ocbrm.db.service }})))
+
+  sqlnet.ora: |
+    NAMES.DIRECTORY_PATH= (TNSNAMES, EZCONNECT)
+
+    SQLNET.WALLET_OVERRIDE = TRUE
+    WALLET_LOCATION=(
+     SOURCE=(METHOD=FILE)
+     (METHOD_DATA=(DIRECTORY=$PIN_HOME/wallet/client))
+     )

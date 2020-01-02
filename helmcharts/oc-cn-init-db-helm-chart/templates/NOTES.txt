@@ -1,0 +1,18 @@
+
+To check the helm list :
+        helm ls
+
+To check the helm status :
+        helm status {{ .Release.Name }}
+
+To check the helm history :
+        helm history {{ .Release.Name }}
+
+To deploy new pods/services :
+        helm upgrade {{ .Release.Name }} oc-cn-init-db-helm-chart
+
+To check the pod status :
+        kubectl -n {{ .Release.Namespace }} get pods
+
+To check the services type and status :
+        kubectl -n {{ .Release.Namespace }} get svc

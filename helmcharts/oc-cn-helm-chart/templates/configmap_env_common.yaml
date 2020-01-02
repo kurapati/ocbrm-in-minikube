@@ -1,0 +1,90 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: oms-common-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+      application: {{ .Chart.Name }}
+data:
+# Below entries are required for all the pods
+  ENABLE_SSL: "{{ .Values.ocbrm.ENABLE_SSL }}"
+  LOG_LEVEL: "{{ .Values.ocbrm.LOG_LEVEL }}"
+  PIN_HOME: "/oms"
+  PIN_SSL_DEBUG: "0x0000"
+  VIRTUAL_TIME_SETTING: "-m 0"
+  VIRTUAL_TIME_ENABLED: "{{ .Values.ocbrm.virtual_time.enabled }}"
+# Below entries are required for dm_invoice
+  DM_INVOICE_SERVICE_PORT: "{{ .Values.ocbrm.dm_invoice.deployment.port }}"
+  DM_INVOICE_SERVICE_HOST: "{{ .Values.ocbrm.dm_invoice.deployment.host }}"
+  DMI_NO_FRONT_ENDS: "2"
+  DMI_NO_BACK_ENDS: "6"
+  DMI_SHM_BIGSIZE: "268435456"
+  DMI_MAX_PER_FE: "16"
+  DMI_SHM_SEGMENT_SIZE: "2147483648"
+  DMI_NO_TRANS_BE_MAX: "4"
+  DMI_STMT_CACHE_ENTRIES: "256"
+  DMI_SEQUENCE_CACHE_SIZE: "10000"
+# Below entries are required for dm_aq
+  DM_AQ_SERVICE_PORT: "{{ .Values.ocbrm.dm_aq.deployment.port }}"
+  DM_AQ_SERVICE_FQDN: "{{ .Values.ocbrm.dm_aq.deployment.host }}"
+  DM_AQ_SERVICE_HOST: "{{ .Values.ocbrm.dm_aq.deployment.host }}"
+# Below entries are required for dm_ifw_sync
+  DM_IFW_SYNC_SERVICE_FQDN: "{{ .Values.ocbrm.dm_ifw_sync.deployment.host }}"
+  DM_IFW_SYNC_SERVICE_HOST: "{{ .Values.ocbrm.dm_ifw_sync.deployment.host }}"
+  DM_IFW_SYNC_SERVICE_PORT: "{{ .Values.ocbrm.dm_ifw_sync.deployment.port }}"
+# Below entries are required for dm_eai
+  DM_EAI_SERVICE_FQDN: "{{ .Values.ocbrm.dm_eai.deployment.host }}"
+  DM_EAI_SERVICE_PORT: "{{ .Values.ocbrm.dm_eai.deployment.port }}" 
+  DM_EAI_SERVICE_HOST: "{{ .Values.ocbrm.dm_eai.deployment.host }}"
+# Below entries are required for CM
+  CM_CHILD_PROC_CNT: "3"
+  DM_ORACLE_DB: 0.0.0.1
+  LIBRARYEXTENSION: .so
+  LIBRARYPREFIX: lib
+  CM_SERVICE_HOST: "{{ .Values.ocbrm.cm.deployment.host }}"
+  CM_SERVICE_PORT: "{{ .Values.ocbrm.cm.deployment.port }}"
+  CM_SERVICE_FQDN: "{{ .Values.ocbrm.cm.deployment.host }}"
+  DEV_MODE: "true"
+  ADDRESS_VALIDATOR: "0"
+# Below entries are required for dm_oracle
+  DM_ORACLE_SERVICE_PORT: "{{ .Values.ocbrm.dm_oracle.deployment.port }}"
+  DM_ORACLE_SERVICE_HOST: "{{ .Values.ocbrm.dm_oracle.deployment.host }}"
+  ORACLE_CHARACTERSET: "{{ .Values.ocbrm.db.charset }}"
+  OMS_SCHEMA_USERNAME: "{{ .Values.ocbrm.db.schemauser }}"
+  OMS_SCHEMA_TABLESPACE: "{{ .Values.ocbrm.db.schematablespace }}"
+  OMS_INDEX_TABLESPACE: "{{ .Values.ocbrm.db.indextablespace }}"
+  OMS_DB_HOST: "{{ .Values.ocbrm.db.host }}"
+  OMS_DB_PORT: "{{ .Values.ocbrm.db.port }}"
+  OMS_DB_SERVICE: "{{ .Values.ocbrm.db.service }}"
+  OMS_DB_ALIAS: "{{ .Values.ocbrm.db.alias }}"
+  DM_NO_FRONT_ENDS: "4"
+  DM_NO_BACK_ENDS: "6"
+  DM_SHM_BIGSIZE: "268435456"
+  DM_MAX_PER_FE: "16"
+  DM_SHM_SEGMENT_SIZE: "2147483648"
+  DM_NO_TRANS_BE_MAX: "4"
+  DM_STMT_CACHE_ENTRIES: "256"
+  DM_SEQUENCE_CACHE_SIZE: "10000"
+  CDB_ADMIN_NAME: C##PDBUSER
+# Below entries are for cm pod 
+  EM_DISCOUNTING_SERVICE_HOST: rtp
+  EM_DISCOUNTING_SERVICE_PORT: "24000"
+  DM_DATA_DICTIONARY_SERVICE_HOST: dm-dd
+  DM_DATA_DICTIONARY_SERVICE_PORT: "13960"
+  DM_TAX_SERVICE_HOST: dm-tax
+  DM_TAX_SERVICE_PORT: "11940"
+# Below entries are required for formatter
+  FORMATTER_SERVICE_HOST: "{{ .Values.ocbrm.formatter.deployment.host }}"
+  FORMATTER_SERVICE_PORT: "{{ .Values.ocbrm.formatter.deployment.port }}"
+# Below entries are for eai_js
+  EM_EAI_SERVICE_HOST: "{{ .Values.ocbrm.eai_js.deployment.host }}"
+  EM_EAI_SERVICE_PORT: "{{ .Values.ocbrm.eai_js.deployment.port }}"
+  EM_TCP_PORT: "24000"
+  JAVA_OPTS: "-Xms256m -Xmx2048m"
+  EAI_JS_SERVICE_FQDN: eai-js
+# Below entries added for realtime and batch pipeline
+  INTEGRATE_SID: "{{ .Values.ocbrm.db.pipelinealias }}"
+  INFRANET_SID: "{{ .Values.ocbrm.db.alias }}"
+  INTEGRATE_USERNAME: "{{ .Values.ocbrm.db.pipelineschemauser }}"
+  INFRANET_USERNAME: "{{ .Values.ocbrm.db.schemauser }}"
+  QUEUENAME: "{{ .Values.ocbrm.db.queuename }}"

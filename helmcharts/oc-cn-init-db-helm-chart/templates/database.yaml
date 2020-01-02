@@ -1,0 +1,146 @@
+---
+### Job Descriptor
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: init-db
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      application: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        application: {{ .Chart.Name }}
+        component: oms-init-db
+      name: init-db
+    spec:
+      containers:
+      - name: init-db
+        image: "{{ .Values.imageRepository }}{{ .Values.ocbrm.db.deployment.imageName }}:{{ .Values.ocbrm.db.deployment.imageTag }}"
+#        command:
+#        - sleep
+#        - "3600" 
+        readinessProbe:
+            exec:
+                command: ["cat", "/oms/setup/pin_setup_is_ready"]
+            failureThreshold: 360
+            initialDelaySeconds: 200
+            periodSeconds: 10
+        env:
+        - name: NLS_LANG
+          value: "{{ .Values.ocbrm.db.nls_lang }}"
+        - name: PIN_LOG_DIR
+          value: "{{ .Values.ocbrm.logDir }}"
+        - name: TNS_ADMIN
+          value: "{{ .Values.ocbrm.tnsAdmin }}"
+        - name: BRM_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: brm_root_password
+        - name: CLIENT_WALLET_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: client_wallet_password
+        - name: ROOT_WALLET_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: root_wallet_password
+        - name: SERVER_WALLET_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: server_wallet_password
+        - name: OMS_SCHEMA_USERNAME
+          value: "{{ .Values.ocbrm.db.schemauser }}"
+        - name: OMS_SCHEMA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: oms_schema_password
+        - name: OLD_CLIENT
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: old_client
+        - name: OLD_ROOT
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: old_root
+        - name: OMS_DB_ALIAS
+          value: "{{ .Values.ocbrm.db.alias }}"
+        - name: OMS_SCHEMA_TABLESPACE
+          value: "{{ .Values.ocbrm.db.schematablespace }}"
+        - name: OMS_INDEX_TABLESPACE
+          value: "{{ .Values.ocbrm.db.indextablespace }}"
+        - name: INTEGRATE_USERNAME
+          value: "{{ .Values.ocbrm.db.pipelineschemauser }}"
+        - name: INTEGRATE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: pipeline_schema_password
+        - name: INTEGRATE_SID
+          value: "{{ .Values.ocbrm.db.pipelinealias }}"
+        imagePullPolicy: {{ .Values.ocbrm.imagePullPolicy }}
+        terminationMessagePolicy: FallbackToLogsOnError
+        volumeMounts:
+        - name: pin-setup-volume
+          mountPath: /oms/apps/partition_utils/partition_utils.values
+          subPath: partition_utils.values
+        - name: pin-setup-volume
+          mountPath: /oms/pin_setup.values
+          subPath: pin_setup.values
+        - name: pin-setup-volume
+          mountPath: /oms/setup/scripts/pin_setup
+          subPath: pin_setup.pl
+        - name: pin-setup-volume
+          mountPath: /oms/setup/scripts/sync_queue.conf
+          subPath: sync_queue.conf
+        - name: create-obj-volume
+          mountPath: /oms/setup/scripts/create_obj.source
+          subPath: create_obj.source
+        - name: create-obj-2-volume
+          mountPath: /oms/setup/scripts/create_obj_2.source
+          subPath: create_obj_2.source
+        - name: pin-setup-volume
+          mountPath: /oms/setup/scripts/custom_sql.source
+          subPath: custom_sql.source
+        - name: pipeline-volume
+          mountPath: /oms/ifw/Oracle/ifw_Create.sql
+          subPath: ifw_Create.sql
+        - name: dm-oracle-tnsnames-ora-volume
+          mountPath: {{ .Values.ocbrm.tnsAdmin }}
+        - name: oms-logs
+          mountPath: {{ .Values.ocbrm.logDir }}
+      hostname: init-db
+      dnsPolicy: ClusterFirst
+      volumes:
+        - name: pin-setup-volume
+          configMap:
+            name: pin-setup-config
+        - name: create-obj-volume
+          configMap:
+            name: create-obj-config
+        - name: create-obj-2-volume
+          configMap:
+            name: create-obj-2-config
+        - name: pipeline-volume
+          configMap:
+            name: pipeline-config
+        - name: dm-oracle-tnsnames-ora-volume
+          configMap:
+            name: db-config
+            items:
+              - key: tnsnames.ora
+                path: tnsnames.ora
+              - key: sqlnet.ora
+                path: sqlnet.ora
+        - name: oms-logs
+          emptyDir: {}

@@ -1,0 +1,130 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: batch-controller-infranet-properties
+  namespace: {{ .Release.Namespace }}
+  labels:
+      application: {{ .Chart.Name }}
+data:
+  Infranet.properties: |
+    # @(#)% %
+    #
+    # Copyright (c) 2000, 2019, Oracle and/or its affiliates. All rights reserved.
+    #      This material is the confidential property of Oracle Corporation
+    #      or its licensors and may be used, reproduced, stored
+    #      or transmitted only in accordance with a valid Oracle license
+    #      or sublicense agreement.
+    #
+    
+    
+    ################################################################################
+    ################################################################################
+    
+    ##
+    # Beginning of Batch Controller general processing configuration
+    #
+    
+    # Logging configuration
+    infranet.log.file       /oms/apps/batch_controller/batch_controller.pinlog
+    infranet.log.level =          {{ .Values.ocbrm.LOG_LEVEL }}
+    infranet.log.logallebuf =     true
+    
+    # Infranet CM connection configuration
+    #infranet.connection   PCP://root.0.0.0.1:${BRM_ROOT_PASSWORD}@{{ .Values.ocbrm.cm.deployment.host }}:{{ .Values.ocbrm.cm.deployment.port }}/0.0.0.1 /service/admin_client 1
+    infranet.login.type =         1
+    
+    # Miscellaneous processing configuration
+    batch.check.interval  30
+    batch.file.rename.extension = .bc
+    batch.start.highload.time  110000
+    batch.end.highload.time  120000
+    batch.handler.start.wait  30
+    batch.handler.end.wait  30
+    batch.lock.socket.addr  24272
+    batch.shutdown.interval = 2
+    
+    #
+    # End of Batch Controller general processing configuration
+    ##
+    
+    ################################################################################
+    ################################################################################
+    
+    ##
+    # Beginning of Random event configuration
+    #
+    
+    # List of random event names
+    #batch.random.events = <eventname>[, <eventname>, ...]
+    batch.random.events              UEL
+    
+    
+    # Entries for File-arrival events
+    #<eventname>.name =                   <eventlabel>
+    #<eventname>.handlers =               <handlername>[, <handlername>, ...]
+    #<eventname>.file.location =          <full_path_to_directory>
+    #<eventname>.file.pattern =           <filepattern>
+    #<handlername>.name =                 <handlerlabel>
+    #<handlername>.max.at.highload.time = <#count>
+    #<handlername>.max.at.lowload.time =  <#count>
+    #<handlername>.start.string =         <full_path_to_command> [<options>]
+    
+    #
+    # End of Random event configuration
+    ##
+    
+    ################################################################################
+    ################################################################################
+    
+    ##
+    # Beginning of Timed event configuration
+    #
+    
+    # List of timed event names
+    #batch.timed.events = <eventname>[, <eventname>, ...]
+    
+    # Entries for Metronomic Time events
+    #<eventname>.name =                   <eventlabel>
+    #<eventname>.handlers =               <handlername>[, <handlername>, ...]
+    #<eventname>.interval =               <#seconds>
+    #<eventname>.start =                  <hhmmss>
+    #<eventname>.count =                  <#occurrences>
+    #<handlername>.name =                 <handlerlabel>
+    #<handlername>.max.at.highload.time = <#count>
+    #<handlername>.max.at.lowload.time =  <#count>
+    #<handlername>.start.string =         <full_path_to_command> [<options>]
+    
+    # Entries for Scheduled Time events
+    #<eventname>.name =                   <eventlabel>
+    #<eventname>.handlers =               <handlername>[, <handlername>, ...]
+    #<eventname>.at =                     <hhmmss>[, <hhmmss>, ...]
+    #<eventname>.file.location =          <full_path_to_directory>
+    #<eventname>.file.pattern =           <filepattern>
+    #<handlername>.name =                 <handlerlabel>
+    #<handlername>.max.at.highload.time = <#count>
+    #<handlername>.max.at.lowload.time =  <#count>
+    #<handlername>.start.string =         <full_path_to_command> [<options>]
+    
+    #
+    # End of Timed event configuration
+    ##
+    
+    ################################################################################
+    ################################################################################
+    
+    ########################################################
+    SSL configuration
+    ########################################################
+    # To  enable SSL, make sure to provide correct values for below config entries. e.g wallet location and filename etc.
+    infranet.pcp.ssl.enabled = {{ .Values.ocbrm.isSSLEnabled }}
+    infranet.pcp.ssl.wallet.location = /oms/wallet/client
+    infranet.pcp.ssl.wallet.filename = cwallet.sso
+
+    UEL.name UEL
+    UEL.handlers UEL_hdlr
+    UEL.file.location               /oms/BATCH_FILES_GEN
+    UEL.file.pattern                *.txt
+    UEL_hdlr.name                   UEL
+    UEL_hdlr.max.at.highload.time   3
+    UEL_hdlr.max.at.lowload.time    3
+    UEL_hdlr.start.string           /oms/apps/uel/UELRelHandler.pl

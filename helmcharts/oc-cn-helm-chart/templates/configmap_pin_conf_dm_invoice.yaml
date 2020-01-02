@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dm-invoice-pin-conf-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+      application: {{ .Chart.Name }}
+data:
+  pin.conf: |
+    - dm enable_ssl ${ENABLE_SSL}
+    - dm DM_DEBUG ${DM_DEBUG}
+    - dm DM_DEBUG2 ${DM_DEBUG2}
+    - dm DM_DEBUG3 ${DM_DEBUG3}
+    - dm dm_loglevel ${LOG_LEVEL}
+    #- - pin_virtual_time ${SHARED_VIRTUAL_TIME_FILE}
+    - crypt aes| ${PIN_HOME}/lib/libpin_crypt_aes4dm64.so "${BRM_CRYPT_KEY}"
+    - dm sm_database ${OMS_DB_ALIAS}
+    #- dm sm_svcname ${OMS_DB_SERVICE}
+    - dm sm_id ${OMS_SCHEMA_USERNAME}
+    - dm sm_pw ${OMS_SCHEMA_PASSWORD}
+    - decrypt md5| "Abracadabra dabracaabrA"
+    - dm sm_oracle_ddl 1
+    - dm dd_write_enable_fields 1
+    - dm dd_write_enable_objects 1
+    - dm dd_write_enable_portal_objects 1
+    - dm dm_n_fe ${DM_NO_FRONT_ENDS}
+    - dm dm_bigsize ${DM_SHM_BIGSIZE}
+    - dm dm_db_no 0.0.6.1 / 0
+    - dm dm_in_batch_size 80
+    - dm dm_logfile ${PIN_LOG_DIR}/dm_invoice.pinlog
+    - dm dm_max_per_fe ${DM_MAX_PER_FE}
+    - dm dm_n_be ${DM_NO_BACK_ENDS}
+    - dm dm_name ${HOSTNAME}
+    - dm dm_port ${DM_INVOICE_SERVICE_PORT}
+    - dm dm_restart_children 1
+    - dm dm_shmsize ${DM_SHM_SEGMENT_SIZE}
+    - dm dm_sm_obj ${PIN_HOME}/sys/dm_oracle/dm_oracle12c64.so
+    - dm dm_trans_be_max ${DM_NO_TRANS_BE_MAX}
+    - dm dm_trans_timeout 0
+    - dm extra_search 0
+    - dm sm_charset ${ORACLE_CHARACTERSET}
+    - dm stmt_cache_entries ${DM_STMT_CACHE_ENTRIES}
+    - dm dm_sequence_cache_size ${DM_SEQUENCE_CACHE_SIZE}
+    - dm encrypt_passwd 1
+    - dm dm_init_be_timeout 9999

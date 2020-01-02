@@ -1,0 +1,207 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: infranet-properties-brm-apps
+  namespace: {{ .Release.Namespace }}
+  labels:
+      application: {{ .Chart.Name }}
+data:
+  device_management_Infranet.properties: |
+    #infranet.connection=pcp://root.0.0.0.1:${BRM_ROOT_PASSWORD}@{{ .Values.ocbrm.cm.deployment.host }}:{{ .Values.ocbrm.cm.deployment.port }}/0.0.0.1 /service/admin_client 1
+    infranet.login.type=1
+    infranet.log.file=./default.pinlog
+    infranet.log.level={{ .Values.ocbrm.LOG_LEVEL }}
+    infranet.log.logallebuf=true
+    # To enable SSL, make sure to provide correct values for below config entries. e.g wallet location and filename etc.
+    infranet.pcp.ssl.enabled = {{ .Values.ocbrm.isSSLEnabled }}
+    infranet.pcp.ssl.wallet.location = /oms/wallet/client
+    infranet.pcp.ssl.wallet.filename = cwallet.sso
+  load_price_list_Infranet.properties: |
+    #infranet.connection=pcp://root.0.0.0.1:${BRM_ROOT_PASSWORD}@{{ .Values.ocbrm.cm.deployment.host }}:{{ .Values.ocbrm.cm.deployment.port }}/0.0.0.1 /service/admin_client 1
+    infranet.login.type=1
+    infranet.log.level={{ .Values.ocbrm.LOG_LEVEL }}
+    infranet.log.logallebuf=true
+    infranet.flist.tostring.enable=true
+     # To enable SSL, make sure to provide correct values for below config entries. e.g wallet location and filename etc.
+    infranet.pcp.ssl.enabled = {{ .Values.ocbrm.isSSLEnabled }}
+    infranet.pcp.ssl.wallet.location = /oms/wallet/client
+    infranet.pcp.ssl.wallet.filename = cwallet.sso
+  pin_job_executor_Infranet.properties: |
+    #infranet.connection=pcp://root.0.0.0.1:${BRM_ROOT_PASSWORD}@{{ .Values.ocbrm.cm.deployment.host }}:{{ .Values.ocbrm.cm.deployment.port }}/0.0.0.1 /service/admin_client 1
+    infranet.login.type=1
+    infranet.log.level={{ .Values.ocbrm.LOG_LEVEL }}
+    infranet.log.file=/oms/var/pin_job_executor/pin_job_executor.pinlog
+    infranet.log.logallebuf=true
+     # Enable following entry to perform invoice rendering.
+    infranet.job.rendering=false
+     # To enable SSL, make sure to provide correct values for below config entries. e.g wallet location and filename etc.
+    infranet.pcp.ssl.enabled = {{ .Values.ocbrm.isSSLEnabled }}
+    infranet.pcp.ssl.wallet.location = /oms/wallet/client
+    infranet.pcp.ssl.wallet.filename = cwallet.sso
+  pin_sepa_Infranet.properties: |
+    #infranet.connection=pcp://root.0.0.0.1:${BRM_ROOT_PASSWORD}@{{ .Values.ocbrm.cm.deployment.host }}:{{ .Values.ocbrm.cm.deployment.port }}/0.0.0.1 /service/admin_client 1
+    infranet.login.type=1
+    infranet.log.level={{ .Values.ocbrm.LOG_LEVEL }}
+    infranet.log.file=./pin_sepa.pinlog
+    
+    # Path for xml document generation
+    infranet.sepa_dd_req_dir.path=/oms/apps/pin_sepa/sepa_dd
+    infranet.sepa_ct_req_dir.path=/oms/apps/pin_sepa/sepa_ct
+    infranet.sepa_rev_req_dir.path=/oms/apps/pin_sepa/sepa_rev
+    
+    # Path for response xml documents
+    infranet.sepa_resp_dir.path=/oms/apps/pin_sepa/sepa_resp/input
+    
+    # Threading Parameters - Performance Tuning
+    infranet.threadpool.size=3
+    infranet.threadpool.maxsize=5
+    infranet.threadpool.fetchsize=100
+    
+    # Specify the Chargebearer. The value could be one of the following:
+    # DEBT, CRED, SHAR, SLEV
+    infranet.sepa.sddrequest.ChrgBr=SLEV
+    infranet.sepa.sctrequest.ChrgBr=SLEV
+    infranet.sepa.sddreversal.ChrgBr=SLEV
+    
+    # Specify the instruction priority
+    infranet.sepa.sddrequest.InstrPrty=NORM
+    infranet.sepa.sctrequest.InstrPrty=NORM
+    
+    # Specify the payment method
+    infranet.sepa.sddrequest.PmtInf.PmtMtd=DD
+    infranet.sepa.sctrequest.PmtInf.PmtMtd=TRF
+    
+    # Date on which the creditor requests that the amount of money is to be collected from the debtor.
+    # File must be submitted at least 6 days in advance of this date for first collections and atleast
+    # 3 days in advance of this data for subsequent collections. Cut off times also apply.
+    # Date Pattern=YYYY-MM-DD
+    infranet.sepa.sddrequest.ReqdColltnDt.pattern=yyyy-MM-dd
+    #infranet.sepa.sddrequest.ReqdColltnDt.value=1984-04-08
+    infranet.sepa.sctrequest.ReqdExctnDt.pattern=yyyy-MM-dd
+    #infranet.sepa.sctrequest.ReqdExctnDt.value=1984-04-08
+    
+    # To enable SSL, make sure to provide correct values for below config entries. e.g wallet location and filename etc.
+    infranet.pcp.ssl.enabled = {{ .Values.ocbrm.isSSLEnabled }}
+    infranet.pcp.ssl.wallet.location = /oms/wallet/client
+    infranet.pcp.ssl.wallet.filename = cwallet.sso
+    
+    # Specify Name and Id of the Initiating Party.
+    #infranet.sepa.sddrequest.InitgPty.Nm=
+    #infranet.sepa.sddrequest.InitgPty.OrgId=
+    #infranet.sepa.sctrequest.InitgPty.Nm=
+    #infranet.sepa.sctrequest.InitgPty.OrgId=
+    #infranet.sepa.sddreversal.InitgPty.Nm=
+    #infranet.sepa.sddreversal.InitgPty.OrgId=
+    
+    infranet.sepa.sddrequest.PmtTpInf.LclInstrm=CORE
+    infranet.sepa.sddrequest.PmtTpInf.SvcLvl=SEPA
+    infranet.sepa.sctrequest.PmtTpInf.LclInstrm=CORE
+    infranet.sepa.sctrequest.PmtTpInf.SvcLvl=SEPA
+    
+    #Custom class Implementation for Sepa DD/Sepa CT/Sepa reversal
+    #infranet.sepa_dd_custom_class=com.brm.customDD.class
+    #infranet.sepa_ct_custom_class=com.brm.customCT.class
+    #infranet.sepa_reversal_custom_class=com.brm.customRev.class
+
+  pin_inv_doc_gen_Infranet.properties: |
+    ######################################################################
+    #
+    # Copyright (c) 2012, 2017, Oracle and/or its affiliates. All rights reserved.
+    #
+    #       This material is the confidential property of Oracle Corporation.
+    #       or its subsidiaries or licensors and may be used, reproduced, stored
+    #       or transmitted only in accordance with a valid Oracle license or
+    #       sublicense agreement.
+    ######################################################################
+    
+    
+    #infranet.connection=pcp://root.0.0.0.1:${BRM_ROOT_PASSWORD}@{{ .Values.ocbrm.cm.deployment.host }}:{{ .Values.ocbrm.cm.deployment.port }}/0.0.0.1 /service/admin_client 1
+    # Password should be AES encrypted for security purposes
+    infranet.login.type=1
+    infranet.log.level={{ .Values.ocbrm.LOG_LEVEL }}
+    
+    infranet.log.file=_PIN_INV_DOC_GEN.log
+    
+    # Use HTTPS or HTTP protocol based on BIPublisher setup
+    infranet.bip.url=https://__BIP_SERVER__:__BIP_PORT__/xmlpserver
+    infranet.bip.username=__BIP_USERNAME__
+    #infranet.bip.password=__BIP_PASSWORD__
+    
+    
+    infranet.threadpool.size=3
+    infranet.threadpool.maxsize=5
+    infranet.threadpool.fetchsize=5
+    
+    
+    # The thread pool configuration for invoice search
+    # using in the BIP bursting mechanism
+    infranet.burst.threadpool.size=5
+    infranet.burst.threadpool.maxsize=10
+    infranet.burst.threadpool.chunksize=1000
+    
+    # Parameter to specify the sleep in milliseconds
+    # between polling calls while waiting for the BIP
+    # schedule to complete. Default is 5000
+    infranet.polling.sleeptime=5000
+    
+    # Threshold for Search arguments , when accts_list option
+    # used for running pin_inv_doc_gen.
+    # Not to exceed 14 due to DM limitation of 32 search arguments.
+    infranet.dmsearchargs.size=14
+    
+    # Path for duplicate document generation
+    infranet.dupinvdir.path=/__DUPLICATE_DIR__/
+    
+    # Background Watermark for duplicate invoices
+    infranet.dupinvoice.watermark.text=DUPLICATE
+    infranet.dupinvoice.watermark.coordx=200f
+    infranet.dupinvoice.watermark.coordy=250f
+    infranet.dupinvoice.watermark.colorr=0.7f
+    infranet.dupinvoice.watermark.colorg=0.7f
+    infranet.dupinvoice.watermark.colorb=0.7f
+    infranet.dupinvoice.watermark.font=Arial
+    infranet.dupinvoice.watermark.fontsize=48
+    infranet.dupinvoice.watermark.angle=45
+    
+    # JNDI properties to connect to WLS server
+    # Use t3s (secure) or "t3" protocol based on your WLS/BIPublisher setup
+    infranet.PROVIDER_URL=t3s://<__BIP_SERVER__>:<__BIP_PORT__>
+    infranet.SECURITY_PRINCIPAL=weblogic
+    infranet.SECURITY_CREDENTIALS=__CREDENTIALS__
+    infranet.INITIAL_CONTEXT_FACTORY=weblogic.jndi.WLInitialContextFactory
+    
+    # This option determines if a copy of the XML data is saved in the BIP database.
+    # By default this is set to false for performance reasons.
+    #
+    infranet.saveXMLData=false
+    
+    ########################################################################
+    # Configuration parameters for HTTP notifications about jobs scheduled
+    # in BIPublisher by 'pin_inv_doc_gen' application
+    ########################################################################
+    
+    # The name of the HTTP server (configured in BIPublisher) used for notification
+    # (Do not set the below configuration to disable HTTP notifications)
+    infranet.http.notification.server=
+    
+    # The user name for the HTTP server used for notification
+    infranet.http.notification.userName=__NOTIFY_USER_NAME__
+    
+    # The HTTP notification server password when scheduling notification
+    # through an HTTP server
+    infranet.http.notification.password=__NOTIFY_PASSWORD__
+    
+    # Configuration parameters for generating HTTP notifications for a
+    # BIPublisher job request that succeeds or completes with a warning.
+    # Note that a 'true' value indicates to send HTTP notification.
+    infranet.notify.http.when.success=true
+    infranet.notify.http.when.warning=true
+    
+    ########################################################
+    SSL configuration
+    ########################################################
+    # To  enable SSL, make sure to provide correct values for below config entries. e.g wallet location and filename etc.
+    infranet.pcp.ssl.enabled = {{ .Values.ocbrm.isSSLEnabled }}
+    infranet.pcp.ssl.wallet.location =  /oms/wallet/client
+    infranet.pcp.ssl.wallet.filename = cwallet.sso
+

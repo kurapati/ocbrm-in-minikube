@@ -1,0 +1,438 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dm-eai-pin-conf-config
+  labels:
+      application: oms
+data:
+  pin.conf: |
+   #************************************************************************
+   # Configuration File for the EAI Framework
+   #
+   #
+   # This configuration file is automatically installed and configured with
+   # default values during Portal installation. You can edit this file to:
+   #   -- change the default values of the entries.
+   #   -- disable an entry by inserting a crosshatch (#) at the start of
+   #        the line.
+   #   -- enable a commented entry by removing the crosshatch (#).
+   # 
+   # Before you make any changes to this file, save a backup copy.
+   #
+   # When editing this file, follow the instructions in each section.
+   # For more information on the general syntax of configuration entries,
+   # see "Reference Guide to Portal Configuration Files" in the Portal
+   # online documentation.
+   #************************************************************************
+   
+   
+   #======================================================================
+   #
+   # You can edit this file to suit your specific configuration:
+   #  -- You can change the default values of an entry.
+   #  -- You can exclude an optional entry by adding the # symbol
+   #     at the beginning of the line.
+   #  -- You can include a commented entry by removing the # symbol.
+   #
+   # Before you make any changes to this file, save a backup copy.
+   #
+   # To edit this file, follow the instructions in the commented sections.
+   # For more information on the general syntax of configuration entries,
+   # see "Reference Guide to Portal Configuration Files" in the Portal
+   # online documentation.
+   #======================================================================
+   
+   #=======================================================================
+   # ptr_virtual_time
+   # 
+   # Enables the use of pin_virtual_time to advance Portal time, and 
+   # specifies the shared file for use by all Portal mangers.
+   #
+   # The entry has 2 values
+   #
+   # #/Empty     	to disable / enable pin_virtual_time in all pin.conf files
+   #		default = #	(disable)
+   #
+   # <filepath> 	location and name of the pin_virtual_time file shared by all Portal managers.
+   #		default = ${PIN_HOME}/lib/pin_virtual_time_file
+   #
+   #=======================================================================
+   #- - pin_virtual_time ${SHARED_VIRTUAL_TIME_FILE}   
+   
+   #************************************************************************
+   # Queue Management Information
+   #
+   # The entries below specify how this Portal process should manage
+   # transactions.
+   #
+   # For information on tuning the queuing entries to improve performance, 
+   # see the online document "Portal Configuration and Tuning Guide."
+   #************************************************************************
+   #
+   #========================================================================
+   # dm_n_fe
+   # 
+   # Specifies the number of front ends this DM creates and uses.
+   #
+   # The allowable range of values is:
+   #
+   #    Minimum = 1
+   #    Maximum = 16
+   #========================================================================
+   - dm dm_n_fe 4
+   
+   
+   #========================================================================
+   # dm_bigsize
+   #
+   # (UNIX only) Specifies the size of shared memory for "big" shared memory structures,
+   # such as those used for large searches (those with more than 128 results)
+   # or for PIN_FLDT_BUF fields larger than 4 KB.
+   #
+   # The allowable range of values is:
+   #
+   #    Minimum = 262144 bytes (256 KB)
+   #    Maximum = 206158429184 bytes (Approx. 192 GB)
+   #
+   # This value cannot be more than the value specified in qm_shmsize, in the
+   # qm configuration file.
+   #
+   # If you get memory errors, increase the value.
+   #========================================================================
+   - dm dm_bigsize 2097152
+   
+   
+   #========================================================================
+   # dm_db_no
+   #
+   # Specifies the database number for this DM.
+   #
+   # The format is 0.0.0.n  / 0, where n is your database number.
+   # The default database number for the Portal Data Manager (Oracle or
+   # SQL Server) is 1. Other default database numbers are:
+   #
+   #    0.0.0.2   Clear Commerce
+   #    0.0.0.2   Paymentech
+   #    0.0.0.3   Email Data Manager
+   #    0.0.0.4   Taxware DM
+   #    0.0.4.1   Activity Log Data Manager
+   #    0.0.5.x   LDAP Data Manager
+   #========================================================================
+   - dm dm_db_no 0.0.9.1 / 0
+   
+   
+   #========================================================================
+   # dm_http_100_continue
+   #
+   # Specifies that the dm will wait for and read a 100 Continue response. 
+   # Some servers send 100-Continue response even if not requested to do so.
+   # 
+   # The value can be 0 for not waiting for 100-Continue
+   #              and 1 for waiting for 100-Continue
+   # The default value is 0.
+   #========================================================================
+   #- dm dm_http_100_continue 0
+   
+   
+   #======================================================================
+   # Communication with HTTP Agent.
+   #========================================================================
+   # dm_http_agent
+   #
+   # dm_http_agent
+   #
+   # Specifies a pointer to the http agent.
+   #
+   # The entry includes three values:
+   #
+   #     <protocol> = "ip", for this release
+   #     <host>     = the name or IP address of the computer running the
+   #                    agent
+   #     <port>     = the TCP port number of the agent on
+   #                    this computer
+   #
+   #========================================================================
+   #- dm dm_http_agent ip __AGENT_HOST__ <<PIN_AGENT_PORT>>
+   
+   
+   #========================================================================
+   # dm_http_delim_crlf
+   #
+   # Specifies the delimiter used in the header. This is HTTP server 
+   # dependent.
+   # The value can be 0 for \n 
+   #              and 1 for \r\n. 
+   # The default value is 0.
+   #========================================================================
+   #- dm dm_http_delim_crlf 0
+   
+   
+   #========================================================================
+   # dm_http_header_send_host_name
+   #
+   # Specifies that the dm will send hostname as part of header.
+   # 
+   # The value can be 0 for not sending
+   #              and 1 for sending
+   # The default value is 0.
+   #========================================================================
+   #- dm dm_http_header_send_host_name 0
+   
+   
+   #========================================================================
+   # dm_http_read_success
+   #
+   # Specifies that the dm will wait for and read a 20x success response.
+   # 
+   # The value can be 0 for not waiting for success response
+   #              and 1 for waiting for success response
+   # The default value is 0.
+   #========================================================================
+   #- dm dm_http_read_success 0
+   
+   
+   #========================================================================
+   # dm_http_url
+   #
+   #
+   # Specifies complete URI of the HTTP server. This is optional.
+   #========================================================================
+   #- dm dm_http_url __AGENT_URL__
+   
+   
+   #========================================================================
+   # dm_logfile
+   #
+   # Specifies the full path to the log file used by this DM.
+   #
+   # You can enter any valid path.
+   #========================================================================
+   - dm dm_logfile ${PIN_LOG_DIR}/dm_eai.pinlog
+   
+   
+   #========================================================================
+   # dm_loglevel
+   #
+   # Specifies how much information the dm_eai logs.
+   # 
+   # The value for this entry can be:
+   #
+   #    0 = no logging
+   #    1 = (Default) log error messages only
+   #    2 = log error messages and warnings
+   #    3 = log error, warning, and debugging messages
+   #========================================================================
+   - dm loglevel ${LOG_LEVEL}
+   
+   
+   #========================================================================
+   # dm_max_per_fe
+   # 
+   # Specifies the maximum number of connections for each front end.
+   #
+   # The allowable range of values is:
+   #
+   #    Minimum                 = 8
+   #    Maximum (in Windows NT) = 63
+   #    Maximum (in UNIX)       = 512
+   #========================================================================
+   - dm dm_max_per_fe 16
+   
+   
+   #========================================================================
+   # dm_n_be
+   # 
+   # Specifies the number of back ends this DM creates and uses.
+   #
+   # The allowable range of values is:
+   #
+   #    Minimum = 1
+   #    Maximum = 256
+   #
+   # Important: Creating an Portal account requires two connections, one
+   #    transaction connection and one regular connection. You must have at
+   #    least two back ends for each account you are creating at one time.
+   #    See the online document "Portal Configuration and Tuning Guide."
+   #========================================================================
+   - dm dm_n_be 8
+   
+   
+   #========================================================================
+   # dm_name
+   #
+   # Specifies the name of the computer where this DM runs.
+   # 
+   # The name can be:
+   #
+   #    - (hyphen)                = Portal can use any IP address on the
+   #                                  DM computer.
+   #
+   #    <host name or IP address> = Portal should use a particular IP
+   #                                  address on the DM computer.
+   #
+   # This entry is optional. If you remove or disable it, Portal uses
+   # gethostname to find the IP address of the DM computer.
+   #========================================================================
+   - dm dm_name ${HOSTNAME}
+   
+   
+   #=========================================================================
+   # dm_plugin_name
+   #
+   # Specifies a pointer to a shared library that contains the code that
+   # implements the required interfaces of dm_eai, as defined in
+   # dm_eai_plugin.h. Replace the entry with the name of the implemented
+   # plugin.
+   #========================================================================
+   - dm plugin_name ./plugin_xml.so
+   
+   
+   #========================================================================
+   # dm_port
+   #
+   # Specifies the port number for this DM.
+   #
+   # This number was assigned to the DM when you installed Portal. If you
+   # change the port, make sure the port number does not conflict with
+   # another service. This number must be greater than 1000, unless you start
+   # the process as root. 
+   #
+   # The CM configuration file must have a corresponding dm_pointer entry
+   # with the same port number.
+   #========================================================================
+   - dm dm_port ${DM_EAI_SERVICE_PORT}
+   
+   
+   #========================================================================
+   # dm_restart_children
+   #
+   # Specifies whether to replace child processes.
+   #
+   # The value for this entry can be:
+   #
+   #    0 = Do not replace child processes.
+   #    1 = (Default) The DM master process replaces any child DM processes
+   #          that fail. 
+   #========================================================================
+   - dm dm_restart_children 1
+   
+   
+   #=======================================================================
+   # dm_restart_delay
+   #
+   # Specify interval delay when spawning and respawning dm back ends.
+   # If not specified, the default value "0" will be used. That is,
+   # there is no delay between spawning and respawning dm back ends.
+   # This is required when you want to control the dm spawning or
+   # connection bahavior.
+   #
+   # For NT system, this value is based on milliseconds.
+   # For Unix system, this value is based on microseconds.
+   #========================================================================
+   #- dm dm_restart_delay 0
+   
+   
+   #========================================================================
+   # dm_shmsize
+   #
+   # (UNIX only) Specifies the size of shared memory segment, in bytes, that
+   # is shared between the front ends and back ends for this DM.
+   #
+   # The allowable range of values is:
+   #
+   #    Minimum = 2097152 bytes (2 MB)
+   #    Maximum = 274877905920 bytes  (Approx. 256 GB)
+   #
+   # Solaris: You must edit the /etc/system file because the system default
+   #          for the maximum allowable shared-memory segment is too low.
+   #          See "Problems with memory management" in the online
+   #          documentation.
+   #========================================================================
+   - dm dm_shmsize 33554432
+   
+   
+   #========================================================================
+   # dm_sm_obj
+   #
+   # Specifies a pointer to the Storage Manager shared library that contains
+   # the code that the Data Manager uses to interact with the database.
+   #
+   # Portal was set up with the correct file during installation.
+   # DO NOT change this configuration entry.
+   #========================================================================
+   - dm dm_sm_obj ${PIN_HOME}/sys/dm_eai/libdm_eai.so
+   
+   
+   #========================================================================
+   # dm_trans_be_max
+   # 
+   # Specifies the maximum number of back ends that can be used for
+   # processing transactions.
+   #
+   # By default, as many as half of the back ends can process transactions. 
+   # To increase the number of back ends for processing transactions, remove
+   # the crosshatch (#) from the beginning of the line for this entry and
+   # enter the number you want. The number must be no greater than the total
+   # number of back ends (dm_n_be).
+   #========================================================================
+   - dm dm_trans_be_max 8
+   
+   
+   #========================================================================
+   # dm_trans_timeout
+   #
+   # Specifies the timeout value, in minutes, to be used by dm back-end 
+   # processes in receiving the next opcode of a transaction.
+   #
+   # The value for this entry can be:
+   #
+   #    0 or less      = (Default) A DM back-end process waits forever
+   #                       for the next opcode request.
+   #    greater than 0 = A DM back-end process waits until the specified
+   #                       number of minutes have gone by and then, if no
+   #                       opcode request has arrived, aborts the transaction.
+   #
+   # This parameter takes effect if and only if a DM back-end process is 
+   # processing a transaction.
+   #========================================================================
+   - dm dm_trans_timeout 0
+   
+   
+   #========================================================================
+   # enable_ssl
+   #
+   # Specifies whether TLS will be enabled for PCM connections
+   #
+   #    0 - TLS is disabled.
+   #    1 - TLS is enabled.
+   #
+   ##========================================================================
+   - dm enable_ssl ${ENABLE_SSL}
+   
+   
+   #========================================================================
+   # extra_search
+   #
+   # Specifies if we want to do extra search count(*) on sub tables
+   # so we can allocate memory optimally
+   #
+   # The value for this entry can be:
+   #
+   #    0 			= (Default) not do the extra search 
+   #    1 			= do the extra search and allocate memory optimally.
+   ##========================================================================
+   - dm extra_search 0
+   
+   
+   #========================================================================
+   # sm_svcname
+   #
+   # Database service name.
+   #
+   # This is the service_name you used to define SQL*NET alias (sm_database)
+   # in the tnsnames.ora file when you set up the Oracle database.
+   # By default, this entry was not configured when you install Infranet.
+   # You should only enable this when you need 10g RAC HA support.
+   #========================================================================
+   #- dm sm_svcname <service_name>
+   

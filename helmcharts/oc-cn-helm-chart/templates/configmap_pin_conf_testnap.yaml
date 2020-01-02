@@ -1,0 +1,175 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: testnap-pin-conf-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+      application: {{ .Chart.Name }}
+data:
+  pin.conf: |
+    #************************************************************************
+    # Configuration file for the testnap utility
+    #
+    #
+    # You use testnap to manually interact with the database and to test your
+    # custom applications.
+    #
+    # This configuration file is automatically installed and configured with
+    # default values during Portal installation. You can edit this file to:
+    #   -- change the default values of the entries.
+    #   -- disable an entry by inserting a crosshatch (#) at the start of
+    #        the line.
+    #   -- enable a commented entry by removing the crosshatch (#).
+    #
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # When editing this file, follow the instructions in each section.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #************************************************************************
+    
+    
+    #======================================================================
+    #
+    # You can edit this file to suit your specific configuration:
+    #  -- You can change the default values of an entry.
+    #  -- You can exclude an optional entry by adding the # symbol
+    #     at the beginning of the line.
+    #  -- You can include a commented entry by removing the # symbol.
+    #
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # To edit this file, follow the instructions in the commented sections.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #======================================================================
+    
+    #=======================================================================
+    # ptr_virtual_time
+    #
+    # Enables the use of pin_virtual_time to advance Portal time, and
+    # specifies the shared file for use by all Portal mangers.
+    #
+    # The entry has 2 values
+    #
+    # #/Empty       to disable / enable pin_virtual_time in all pin.conf files
+    #               default = #     (disable)
+    #
+    # <filepath>    location and name of the pin_virtual_time file shared by all Portal managers.
+    #               default = ${PIN_HOME}/lib/pin_virtual_time_file
+    #
+    #=======================================================================
+    #- - pin_virtual_time ${SHARED_VIRTUAL_TIME_FILE}    
+    
+    
+    #========================================================================
+    # cm_ptr
+    #
+    # Specifies a pointer to the CM or CMMP.
+    #
+    # Use a separate entry for each CM or CMMP. If testnap can't find the
+    # first CM or CMMP, it looks for the next in the list.
+    #
+    # Each entry includes three values:
+    #
+    #     <protocol> = "ip", for this release
+    #     <host>     = the name or IP address of the computer running the
+    #                    CM or CMMP
+    #     <port>     = the TCP port number of the CM or CMMP on this computer
+    #
+    # The port number should match a corresponding cm_ports entry with
+    # the same port number in the CM or CMMP configuration file. The
+    # default, 11960, is a commonly specified port for the CM or CMMP.
+    #========================================================================
+    - nap cm_ptr ip ${CM_SERVICE_HOST} ${CM_SERVICE_PORT}
+    
+    
+    #========================================================================
+    # logfile
+    #
+    # Specifies the path to the log file for the sample application
+    #========================================================================
+    - sample_act    logfile sample_act.pinlog
+    - sample_del    logfile sample_del.pinlog
+    - sample_app    logfile sample_app.pinlog
+    - sample_search logfile sample_search.pinlog
+    - sample_who    logfile sample_who.pinlog
+    
+    
+    #========================================================================
+    # login_type
+    #
+    # Specifies whether the login name and password are required.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = Only a user ID is required.
+    #    1 = (Default) Both a name and a password are required.
+    #
+    # By default, CMs require a user login and password when requesting an open
+    # context using PCM_CONTEXT_OPEN. However, you can remove this authentication
+    # requirement by configuring the CM with a cm_login_module of
+    # cm_login_null.so
+    #========================================================================
+    - nap login_type 1
+    
+    
+    #========================================================================
+    # login_name
+    #
+    # Specifies the login name to use when testnap connects to the CM.
+    #========================================================================
+    - nap login_name root.0.0.0.1
+    
+    
+    #========================================================================
+    # login_pw
+    #
+    # Specifies the password to use when testnap connects to the CM.
+    #========================================================================
+    #- nap login_pw
+    
+    
+    #========================================================================
+    # userid
+    #
+    # Specifies the database number and service type for the Portal
+    # database.
+    #
+    # The CM uses the database number to identify the Portal database
+    # and to connect to the correct Data Manager. For connections that don't
+    # require a login name and password, the CM also passes the service
+    # type to the database.
+    #
+    # The database number, in the form 0.0.0.N, is the number assigned to
+    # your Portal database when you installed the system. The default
+    # is 0.0.0.1.
+    #
+    # The service type is /service/pcm_client and the ID is 1.
+    # DO NOT change these values.
+    #========================================================================
+    - - userid 0.0.0.1 /service/pcm_client 1
+    
+    
+    #========================================================================
+    # enable_ssl
+    #
+    # Specifies whether TLS will be enabled for PCM connections
+    #
+    #    0 - TLS is disabled.
+    #    1 - TLS is enabled.
+    #
+    #========================================================================
+    - nap enable_ssl ${ENABLE_SSL}
+    - load_config logfile ${PIN_LOG_DIR}/load_config.pinlog
+
+    - load_config loglevel ${LOG_LEVEL}
+
+    - load_config validation_module libLoadValidCustomer  LoadValidCustomer_init
+    - load_config validation_module libLoadValidFinancial LoadValidFinancial_init
+    - load_config validation_module libLoadValidRating LoadValidRating_init
+    - load_config validation_module libLoadValidTCFAAA LoadValidTelcoAAA_init
+    - load_config validation_module libLoadValidSLM  LoadValidSLM_init
+    #- load_config validation_module libLoadValidCollections  LoadValidCollections_init

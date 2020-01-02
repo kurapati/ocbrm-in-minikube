@@ -1,0 +1,370 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rel-infranet-properties
+  labels:
+      application: oms
+data:
+  Infranet.properties: |
+    ##
+    # Beginning of REL general processing configuration
+    #
+    
+    # Logging configuration
+    infranet.log.file = /oms_logs/rel.pinlog
+    infranet.log.name = REL
+    infranet.log.level = {{ .Values.ocbrm.LOG_LEVEL }}
+    infranet.log.logallebuf = true
+    # use_end_time = 1 means it will use the end_t for deciding the BillCycle
+    # use_end_time = 0 means it will use the start_t for deciding the BillCycle
+    infranet.rel.use_end_time = 1
+    
+    # Infranet CM and JDBC connection configuration
+    # infranet.connection = pcp://root.0.0.0.1:${BRM_ROOT_PASSWORD}@{{ .Values.ocbrm.cm.deployment.host }}:{{ .Values.ocbrm.cm.deployment.port }}/0.0.0.1 /service/pcm_client 1
+    infranet.login.type = 1
+    infranet.rel.dbtype = oracle
+    infranet.rel.dbname = {{ .Values.ocbrm.db.alias }}
+    infranet.rel.userid = {{ .Values.ocbrm.db.schemauser }}
+    infranet.rel.dbhost = {{ .Values.ocbrm.db.host }}
+    infranet.rel.dbport = {{ .Values.ocbrm.db.port }}
+    #To use Oracle DB service name to connect to DB uncomment and update below entry
+    infranet.rel.db_service_name = {{ .Values.ocbrm.db.service }}
+    
+    # (Optional) CM failover configuration
+    # infranet.failover.1 = pcp://<hostname>:<portnum>
+    # infranet.failover.2 = pcp://<hostname>:<portnum>
+    
+    # REL synchronization configuration
+    infranet.rel.polling_interval = 1000
+    infranet.rel.polling_time_out = 600000
+    
+    # Miscellaneous processing configuration
+    infranet.rel.partition_set_number = 1
+    infranet.rel.updater_threads = 4
+    infranet.rel.validate_dbnumber = true
+    infranet.rel.validate_indexes = false 
+    infranet.rel.max_increment_by = 20 
+    infranet.rel.sort.limit = 100000
+    
+    # Custom error code configuration
+    infranet.rel.custom_error_codes = CustomErrorCodes.properties
+    
+    # Input file format configuration
+    infranet.rel.default.header.record_type = 010
+    infranet.rel.default.detail.record_type = 020
+    infranet.rel.default.trailer.record_type = 090
+    infranet.rel.field.delimiter = \t
+    infranet.rel.header.position.storable_class = 20
+    infranet.rel.header.position.creation_process = 18
+    infranet.rel.header.position.sender = 3
+    infranet.rel.header.position.recipient = 4
+    infranet.rel.header.position.file_sequence = 5
+    infranet.rel.header.position.creation_timestamp = 7
+    infranet.rel.header.position.object_cache_type = 23
+    
+    # For the parameter below, the field position count starts from 1 
+    infranet.rel.trailer.position.record_count = 7 
+    
+    #
+    # End of REL general processing configuration
+    ##
+    
+    ################################################################################
+    ################################################################################
+    
+    ##
+    # Beginning of File Extension specific pre-preprocessing configuration
+    #
+    
+    # <input_file_name>.disc
+    # infranet.rel.file_extension.disc.transform_script = pin_rel_transform_cdr.pl
+    # infranet.rel.file_extension.disc.transform_flags = 0
+    
+    #
+    # End of File Extension specific pre-preprocessing configuration
+    ##
+    
+    ################################################################################
+    ################################################################################
+    
+    ##
+    # Beginning of Default processing configuration
+    
+    #
+    
+    # Process handling configuration
+    
+    infranet.rel.default.interim_directory = /oms/apps/pin_rel/
+    
+    # for ECE preprocessed input file type set the below property to indicates the location of  ECE generated control files
+    infranet.rel.default.ece_control_file_directory = <ECE control file directory>
+    
+    # for ECE preprocessed input file type set the below property to indicates the location of ECE generated preprocessed data files
+    infranet.rel.default.ece_data_file_directory = <ECE Data file directory>
+    
+    infranet.rel.default.supported_creation_processes = RATING_PIPELINE, RERATING_PIPELINE, PIN_REL_TRANSFORM_CDR,SUSPENSE_CREATE,SUSPENSE_UPDATE
+    infranet.rel.default.failure_script = pin_rel_handle_interim_files.pl
+    
+    # A failure flags value 3 will move the Data files to the configured Reject directory 
+    infranet.rel.default.failure_flags = 1
+    
+    infranet.rel.default.preprocess_script = pin_rel_preprocess_cdr.pl
+    infranet.rel.default.preprocess_flags = 0
+    infranet.rel.default.load_util = sqlldr direct=true streamsize=5000000 readsize=10000000 unrecoverable
+    infranet.rel.default.preupdater_sproc = pin_rel.pin_rel_pre_updater_sp
+    
+    # For TimesTen the pre-updater procedure  has to be changed to
+    # pin_rel_tt.pin_rel_tt_pre_updater_sp
+    # infranet.rel.default.preupdater_sproc = pin_rel_tt.pin_rel_tt_pre_updater_sp
+    
+    infranet.rel.default.preupdater_batch_size = 5
+    infranet.rel.default.preupdater_flags = 1
+    infranet.rel.default.updater_sproc = pin_rel.pin_rel_updater_sp
+    
+    # For TimesTen the updater procedure  has to be changed to
+    # pin_rel_tt.pin_rel_tt_updater_sp
+    # infranet.rel.default.updater_sproc = pin_rel_tt.pin_rel_tt_updater_sp
+    
+    infranet.rel.default.updater_batch_size = 5
+    infranet.rel.default.updater_flags = 1
+    infranet.rel.default.success_script = pin_rel_handle_interim_files.pl
+    infranet.rel.default.success_flags = 2
+    
+    #The following configuration is used in case of RERATING_PIPELINE
+    #to round the item adjustment
+    infranet.rel.default.postupdater_sproc = pin_rel.pin_rel_postupdater_sp
+    
+    # The following can be sourced dynamically from the header, else define them here
+    #infranet.rel.default.storable_class = /event/delayed/session/gprs
+    #infranet.rel.default.creation_process = RATING_PIPELINE
+    
+    #
+    # End of Default processing configuration
+    ##
+    
+    ################################################################################
+    ################################################################################
+    
+    ##
+    # Beginning of Storable-Class specific handling configuration
+    #
+    
+    # /event/delayed/session/gprs
+    infranet.rel.storable_class.event_delayed_session_gprs.number_of_tables = 7 
+    infranet.rel.storable_class.event_delayed_session_gprs.table.1.name = event_t
+    infranet.rel.storable_class.event_delayed_session_gprs.table.2.name = event_bal_impacts_t
+    infranet.rel.storable_class.event_delayed_session_gprs.table.3.name = event_essentials_t
+    infranet.rel.storable_class.event_delayed_session_gprs.table.4.name = event_delayed_session_gprs_t
+    infranet.rel.storable_class.event_delayed_session_gprs.table.5.name = event_tax_jurisdictions_t
+    infranet.rel.storable_class.event_delayed_session_gprs.table.6.name = event_rum_map_t
+    infranet.rel.storable_class.event_delayed_session_gprs.table.7.name = tmp_profile_event_ordering_t
+    
+    # /event/delayed/session/telco/gprs
+    infranet.rel.storable_class.event_delayed_session_telco_gprs.number_of_tables = 7
+    infranet.rel.storable_class.event_delayed_session_telco_gprs.table.1.name = event_t
+    infranet.rel.storable_class.event_delayed_session_telco_gprs.table.2.name = event_bal_impacts_t
+    infranet.rel.storable_class.event_delayed_session_telco_gprs.table.3.name = event_essentials_t
+    infranet.rel.storable_class.event_delayed_session_telco_gprs.table.4.name = event_dlyd_session_tlco_gprs_t 
+    infranet.rel.storable_class.event_delayed_session_telco_gprs.table.5.name = event_dlay_sess_tlcs_t
+    infranet.rel.storable_class.event_delayed_session_telco_gprs.table.5.control_file = gprs_event_dlay_sess_tlcs_t.ctl
+    infranet.rel.storable_class.event_delayed_session_telco_gprs.table.6.name = event_tax_jurisdictions_t
+    infranet.rel.storable_class.event_delayed_session_telco_gprs.table.7.name = event_rum_map_t
+    
+    # /event/delayed/session/telco/gprs/roaming
+    infranet.rel.storable_class.event_delayed_session_telco_gprs_roaming.number_of_tables = 7
+    infranet.rel.storable_class.event_delayed_session_telco_gprs_roaming.table.1.name = event_t
+    infranet.rel.storable_class.event_delayed_session_telco_gprs_roaming.table.2.name = event_bal_impacts_t
+    infranet.rel.storable_class.event_delayed_session_telco_gprs_roaming.table.3.name = event_essentials_t
+    infranet.rel.storable_class.event_delayed_session_telco_gprs_roaming.table.4.name = event_dlyd_session_tlco_gprs_t
+    infranet.rel.storable_class.event_delayed_session_telco_gprs_roaming.table.5.name = event_dlay_sess_tlcs_t
+    infranet.rel.storable_class.event_delayed_session_telco_gprs_roaming.table.5.control_file = gprs_event_dlay_sess_tlcs_t.ctl
+    infranet.rel.storable_class.event_delayed_session_telco_gprs_roaming.table.6.name = event_tax_jurisdictions_t
+    infranet.rel.storable_class.event_delayed_session_telco_gprs_roaming.table.7.name = event_rum_map_t
+    
+    # /event/delayed/session/telco/gsm
+    infranet.rel.storable_class.event_delayed_session_telco_gsm.number_of_tables = 9
+    infranet.rel.storable_class.event_delayed_session_telco_gsm.table.1.name = event_t
+    infranet.rel.storable_class.event_delayed_session_telco_gsm.table.2.name = event_bal_impacts_t
+    infranet.rel.storable_class.event_delayed_session_telco_gsm.table.3.name = event_essentials_t
+    infranet.rel.storable_class.event_delayed_session_telco_gsm.table.4.name = event_dlay_sess_tlcs_t
+    infranet.rel.storable_class.event_delayed_session_telco_gsm.table.5.name = event_dlay_sess_tlcs_svc_cds_t
+    infranet.rel.storable_class.event_delayed_session_telco_gsm.table.6.name = event_dlyd_session_tlco_gsm_t
+    infranet.rel.storable_class.event_delayed_session_telco_gsm.table.7.name = event_tax_jurisdictions_t
+    infranet.rel.storable_class.event_delayed_session_telco_gsm.table.8.name = event_rum_map_t
+    infranet.rel.storable_class.event_delayed_session_telco_gsm.table.9.name = tmp_profile_event_ordering_t
+    
+    # /event/delayed/session/telco/gsm/roaming
+    infranet.rel.storable_class.event_delayed_session_telco_gsm_roaming.number_of_tables = 8
+    infranet.rel.storable_class.event_delayed_session_telco_gsm_roaming.table.1.name = event_t
+    infranet.rel.storable_class.event_delayed_session_telco_gsm_roaming.table.2.name = event_bal_impacts_t
+    infranet.rel.storable_class.event_delayed_session_telco_gsm_roaming.table.3.name = event_essentials_t
+    infranet.rel.storable_class.event_delayed_session_telco_gsm_roaming.table.4.name = event_dlay_sess_tlcs_t
+    infranet.rel.storable_class.event_delayed_session_telco_gsm_roaming.table.5.name = event_dlay_sess_tlcs_svc_cds_t
+    infranet.rel.storable_class.event_delayed_session_telco_gsm_roaming.table.6.name = event_dlyd_session_tlco_gsm_t
+    infranet.rel.storable_class.event_delayed_session_telco_gsm_roaming.table.7.name = event_tax_jurisdictions_t
+    infranet.rel.storable_class.event_delayed_session_telco_gsm_roaming.table.8.name = event_rum_map_t
+    
+    # /event/delayed/activity/wap/interactive
+    infranet.rel.storable_class.event_delayed_activity_wap_interactive.number_of_tables = 7
+    infranet.rel.storable_class.event_delayed_activity_wap_interactive.table.1.name = event_t
+    infranet.rel.storable_class.event_delayed_activity_wap_interactive.table.2.name = event_bal_impacts_t
+    infranet.rel.storable_class.event_delayed_activity_wap_interactive.table.3.name = event_essentials_t
+    infranet.rel.storable_class.event_delayed_activity_wap_interactive.table.4.name = event_delayed_act_wap_inter_t
+    infranet.rel.storable_class.event_delayed_activity_wap_interactive.table.5.name = event_tax_jurisdictions_t
+    infranet.rel.storable_class.event_delayed_activity_wap_interactive.table.6.name = event_rum_map_t
+    infranet.rel.storable_class.event_delayed_activity_wap_interactive.table.7.name = tmp_profile_event_ordering_t
+    
+    # Example of fully customized handling for a storable-class:
+    #
+    # /my/storable/class
+    #infranet.rel.storable_class.my_storable_class.interim_directory = /opt/my_home_dir/temp
+    #infranet.rel.storable_class.my_storable_class.supported_creation_processes = MY_APPLICATION
+    #infranet.rel.storable_class.my_storable_class.failure_script = my_handle_interim_files.pl
+    #infranet.rel.storable_class.my_storable_class.failure_flags = move /opt/my_home_dir/backup
+    #infranet.rel.storable_class.my_storable_class.preprocess_script = my_preprocess_cdr.pl
+    #infranet.rel.storable_class.my_storable_class.preprocess_flags = 0
+    #infranet.rel.storable_class.my_storable_class.number_of_tables = 3
+    #infranet.rel.storable_class.my_storable_class.table.1.name = my_t
+    #infranet.rel.storable_class.my_storable_class.table.1.load_util = sqlldr
+    #infranet.rel.storable_class.my_storable_class.table.1.control_file = my_t.ctl
+    #infranet.rel.storable_class.my_storable_class.table.2.name = my_storable_t
+    #infranet.rel.storable_class.my_storable_class.table.2.load_util = sqlldr direct=true unrecoverable
+    #infranet.rel.storable_class.my_storable_class.table.2.control_file = my_storable_t.ctl
+    #infranet.rel.storable_class.my_storable_class.table.3.name = my_storable_class_t
+    #infranet.rel.storable_class.my_storable_class.table.3.load_util = sqlldr direct=true
+    #infranet.rel.storable_class.my_storable_class.table.3.control_file = my_storable_class_t.ctl
+    #infranet.rel.storable_class.my_storable_class.preupdater_sproc = me.my_pre_updater_sp
+    #infranet.rel.storable_class.my_storable_class.preupdater_batch_size = 25
+    #infranet.rel.storable_class.my_storable_class.preupdater_flags = 0
+    #infranet.rel.storable_class.my_storable_class.updater_sproc = me.my_updater_sp
+    #infranet.rel.storable_class.my_storable_class.updater_batch_size = 25
+    #infranet.rel.storable_class.my_storable_class.updater_flags = 0
+    #infranet.rel.storable_class.my_storable_class.success_script = my_handle_interim_files.pl
+    #infranet.rel.storable_class.my_storable_class.success_flags = move /opt/my_home/archive
+    
+    #
+    # End of Storable-Class specific handling configuration
+    ##
+    
+    ################################################################################
+    ################################################################################
+    
+    ##
+    # Beginning of Suspense Handling specific handling configuration for Standard Recycling
+    #
+    # /suspended_usage
+    # (note: has to use conventional path to load data into suspended usage tables
+    #  so that GUI can modify records in parallel)
+    infranet.rel.storable_class.suspended_usage.number_of_tables = 2
+    infranet.rel.storable_class.suspended_usage.table.1.name = suspended_usage_t
+    infranet.rel.storable_class.suspended_usage.table.1.load_util = sqlldr direct=false streamsize=5000000 readsize=10000000 unrecoverable
+    infranet.rel.storable_class.suspended_usage.table.2.name = susp_usage_edr_buf
+    infranet.rel.storable_class.suspended_usage.table.2.load_util = sqlldr direct=false streamsize=5000000 readsize=10000000 unrecoverable
+    infranet.rel.storable_class.suspended_usage.preprocess_script = suspense_preprocess.pl
+    # no preupdater and updater stored procedure needed for suspended usage records creation
+    infranet.rel.storable_class.suspended_usage.preupdater_sproc =
+    infranet.rel.storable_class.suspended_usage.updater_sproc =
+    
+    # /tmp_suspended_usage
+    infranet.rel.storable_class.tmp_suspended_usage.number_of_tables = 1
+    infranet.rel.storable_class.tmp_suspended_usage.table.1.name = tmp_suspended_usage_t
+    infranet.rel.storable_class.tmp_suspended_usage.preprocess_script = tmp_suspense_preprocess.pl
+    infranet.rel.storable_class.tmp_suspended_usage.preupdater_sproc = suspense_pre_updater_sp
+    # no updater stored procedure needed for suspended usage records update
+    infranet.rel.storable_class.tmp_suspended_usage.updater_sproc =
+    
+    # /recycle_suspended_usage
+    infranet.rel.storable_class.recycle_suspended_usage.number_of_tables = 1
+    infranet.rel.storable_class.recycle_suspended_usage.table.1.name = tmp_suspended_usage_t
+    infranet.rel.storable_class.recycle_suspended_usage.table.1.control_file = rollback_suspended_usage_t.ctl
+    infranet.rel.storable_class.recycle_suspended_usage.preprocess_script = rollback_suspense_preprocess.pl
+    infranet.rel.storable_class.recycle_suspended_usage.preupdater_sproc = rollback_susp_pre_updater_sp
+    # no updater stored procedure needed for suspended usage records update
+    infranet.rel.storable_class.recycle_suspended_usage.updater_sproc =
+    
+    # End of Suspense Handling specific handling configuration for Standard Recycling
+    ##
+    
+    ################################################################################
+    ################################################################################
+    
+    #RelAsDaemon
+    # 1. batch.check.interval  5 ( time in seconds, interval to monitor files from the staging dir)
+    # 2. batch.file.rename.extension = .bc ( prior to processing all input files, will be renamed using this ext,)
+    # 3.  batch.start.highload.time  110000 (hour when peak hour starts)
+    # 4.  batch.end.highload.time  120000 (hour when peak hour ends)
+    # 5.  batch.lock.socket.addr  24507
+    # 6. batch.rel.archiveDir Default archive dir - all the processed files will be moved to this dir,
+    # a handler specific archive dir can be configured in the handler section.
+    # 7. # Default reject dir - any file not processed successfully by REL will be moved to the rejecr dir
+    # 8. batch.rel.rejectDir a handler specific reject dir can be configured in the handler section.
+    # 9. batch.random.events  ( name of the events to process )
+    # 10. <event>.max.at.highload.time   ( num of parallel run at highload(peak hour)  for the event)
+    # 11. <event> . max.at.lowload.time   (num of parallel run at low load(off peak hour)  for the event)
+    # 12 <event>.file.location  Events file location
+    # 13. <Event>. file.pattern    Event files pattern
+    # 14 <Event>.file.type        
+    #    valid filetype input
+    #      1) STANDARD - for pipeline generated input file (default)
+    #      2) ECE_PRE_SPLIT - for ECE generated input file  which is already preprocessed 
+    
+    batch.check.interval 5
+    batch.file.rename.extension = .bc
+    batch.start.highload.time 090000
+    batch.end.highload.time  21000
+    batch.lock.socket.addr  24507
+    batch.rel.archiveDir  /oms/apps/pin_rel/gsm/tel/archive
+    batch.rel.rejectDir /oms/apps/pin_rel/gsm/tel/reject
+    batch.shutdown.interval = 2
+    
+    # End of Batch Controller general processing configuration
+    # Sample for pipeline generated input file 
+    #batch.random.events            <event1>, <event2> 
+    batch.random.events TEL
+
+    TEL.max.at.highload.time 4
+    TEL.max.at.lowload.time  2
+    TEL.file.location  /oms/ifw/data/out
+    TEL.file.pattern   test_*.out
+    TEL.file.type  STANDARD 
+    
+    #<event1>.max.at.highload.time  <#count> 
+    #<event1>.max.at.lowload.time  <#count> 
+    #<event1>.file.location   <full_path_to_directory>
+    #<event1>.file.pattern   <filepattern> 
+    #<event1>.file.type   <filetype>
+    
+    #<event2>.max.at.highload.time  <#count> 
+    #<event2>.max.at.lowload.time  <#count> 
+    #<event2>.file.location   <full_path_to_directory> 
+    #<event2>.file.pattern   <filepattern> 
+    #<event2>.file.type   <filetype>
+    
+    #For ECE generated preprocessed input file,the Rel Daemon needs to be configured with only one handler for all events 
+    #The event handler's file pattern should be specified as BRMCDR_*.out 
+    #The event handler file type should be specified as ECE_PRE_SPLIT 
+    #Sample reldeamon handler  specification for ECE generated input file
+    
+    #batch.random.events            <ecefilehandle>
+    
+    #<ecefilehandle>.max.at.highload.time  <#count>
+    #<ecefilehandle>.max.at.lowload.time  <#count>
+    #<ecefilehandle>.file.location   <full_path_to_ece_generated_input_file_directory>
+    #<ecefilehandle>.file.pattern BRMCDR_*.out
+    #<ecefilehandle>.file.type   ECE_PRE_SPLIT
+    
+    
+    ########################################################
+    SSL configuration
+    ########################################################
+    # To  enable SSL, make sure to provide correct values for below config entries. e.g wallet location and filename etc.
+    infranet.pcp.ssl.enabled = {{ .Values.ocbrm.isSSLEnabled }}
+    infranet.pcp.ssl.wallet.location = /oms/wallet/client
+    infranet.pcp.ssl.wallet.filename = cwallet.sso
+    
+    ######################################################
+    #Others 
+    #####################################################
+    # Enable REL to support ECE preprocessed files . Default is false ( pipeline generated input file format) . Change the value to true for ECE preprocessed file. 
+    infranet.rel.ece_preprocessed = false
+    

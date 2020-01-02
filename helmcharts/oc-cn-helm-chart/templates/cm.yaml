@@ -1,0 +1,423 @@
+---
+### Deployment Descriptor
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cm
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.ocbrm.cm.deployment.replicaCount }}
+  selector:
+    matchLabels:
+      application: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        application: {{ .Chart.Name }}
+        component: oms-cm
+      name: cm
+    spec:
+      containers:
+      - name: cm
+        image: "{{ .Values.imageRepository }}{{ .Values.ocbrm.cm.deployment.imageName }}:{{ .Values.ocbrm.cm.deployment.imageTag }}"
+#        command:
+#          - sleep
+#          - "3600"
+        ports:
+          - name: cm-pcp-port
+            containerPort: {{ .Values.ocbrm.cm.deployment.port }}
+        env:
+        - name: INIT_DB
+          value: "{{ .Values.ocbrm.init_database }}"
+        - name: TZ
+          value: "{{ .Values.ocbrm.TZ }}"
+        - name: LOAD_LOCALIZED
+          value: "{{ .Values.ocbrm.cm.deployment.load_localized }}"
+        - name: PIN_LOG_DIR
+          value: "{{ .Values.ocbrm.logDir }}"
+        - name: CM_DNS_NAME
+          value: "{{ .Values.ocbrm.cm.service.dnsName }}"
+        - name: CMAP_DEBUG
+          value: "0x0001"
+        - name: CM_DEBUG
+          value: "0x0001"
+        - name: SERVICE_FQDN
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: CM_SERVICE_HOST
+        - name: ENABLE_SSL
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: ENABLE_SSL
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: LOG_LEVEL
+        - name: VIRTUAL_TIME_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: VIRTUAL_TIME_ENABLED
+        - name: VIRTUAL_TIME_SETTING
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: VIRTUAL_TIME_SETTING
+        - name: OLD_CLIENT
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: old_client
+        - name: OLD_ROOT
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: old_root
+        - name: CLIENT_WALLET_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: client_wallet_password
+        - name: OMS_SCHEMA_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: OMS_SCHEMA_USERNAME
+        - name: OMS_SCHEMA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: oms_schema_password
+        - name: OMS_DB_ALIAS
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: OMS_DB_ALIAS
+        - name: BRM_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: brm_root_password
+        - name: CM_SERVICE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: CM_SERVICE_PORT
+        - name: DM_ORACLE_SERVICE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: DM_ORACLE_SERVICE_HOST
+        - name: DM_ORACLE_SERVICE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: DM_ORACLE_SERVICE_PORT
+        - name: DM_ORACLE_DB
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: DM_ORACLE_DB
+        - name: CM_SERVICE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: CM_SERVICE_HOST
+        - name: LIBRARYEXTENSION
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: LIBRARYEXTENSION
+        - name: EM_DISCOUNTING_SERVICE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: EM_DISCOUNTING_SERVICE_HOST
+        - name: EM_DISCOUNTING_SERVICE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: EM_DISCOUNTING_SERVICE_PORT
+        - name: EM_DISCOUNTING_SERVICE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: EM_DISCOUNTING_SERVICE_PORT
+        - name: DM_DATA_DICTIONARY_SERVICE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: DM_DATA_DICTIONARY_SERVICE_HOST
+        - name: DM_DATA_DICTIONARY_SERVICE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: DM_DATA_DICTIONARY_SERVICE_PORT
+        - name: FORMATTER_SERVICE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: FORMATTER_SERVICE_HOST
+        - name: FORMATTER_SERVICE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: FORMATTER_SERVICE_PORT
+        - name: DM_EAI_SERVICE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: DM_EAI_SERVICE_HOST
+        - name: DM_EAI_SERVICE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: DM_EAI_SERVICE_PORT
+        - name: DM_AQ_SERVICE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: DM_AQ_SERVICE_HOST
+        - name: DM_AQ_SERVICE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: DM_AQ_SERVICE_PORT
+        - name: DM_IFW_SYNC_SERVICE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: DM_IFW_SYNC_SERVICE_HOST
+        - name: DM_INVOICE_SERVICE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: DM_INVOICE_SERVICE_HOST
+        - name: DM_INVOICE_SERVICE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: DM_INVOICE_SERVICE_PORT
+        - name: DM_IFW_SYNC_SERVICE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: DM_IFW_SYNC_SERVICE_PORT
+        - name: EM_EAI_SERVICE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: EM_EAI_SERVICE_HOST
+        - name: EM_EAI_SERVICE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: EM_EAI_SERVICE_PORT
+        - name: EM_TCP_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: EM_TCP_PORT
+        - name: CM_CHILD_PROC_CNT
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: CM_CHILD_PROC_CNT
+        - name: ROOT_WALLET_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: root_wallet_password
+        - name: SERVER_WALLET_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: server_wallet_password
+        - name: RESTART_FILE
+          value: /oms/bin/restart_cm
+        - name: SHARED_VIRTUAL_TIME_FILE
+          value: {{ .Values.ocbrm.virtual_time.pvt }}/pin_virtual_time_file
+        imagePullPolicy: {{ .Values.ocbrm.imagePullPolicy }}
+        terminationMessagePolicy: FallbackToLogsOnError
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - netstat -anp | grep LISTEN | grep {{ .Values.ocbrm.cm.deployment.port }} | grep cm
+          initialDelaySeconds: 120
+          periodSeconds: 20
+          failureThreshold: 5
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - netstat -anp | grep LISTEN | grep {{ .Values.ocbrm.cm.deployment.port }} | grep cm
+          initialDelaySeconds: 120
+          periodSeconds: 40
+          timeoutSeconds: 1
+        lifecycle:
+         postStart:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - "/oms/bin/postStartHook.sh"
+         preStop:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - "/oms/preStopHook.sh cm >> {{ .Values.ocbrm.logDir }}/shutdown.log"
+        volumeMounts:
+        - name: cm-pin-conf-volume
+          mountPath: /oms/pin.conf.tmpl
+          subPath: pin.conf
+        - name: testnap-pin-conf-volume
+          mountPath: /oms/testnap_pin.conf.tmpl
+          subPath: pin.conf
+        - name: cm-infranet-properties-volume
+          mountPath: /oms/cm-infranet-properties.tmpl
+          subPath: Infranet.properties
+        - name: oms-logs
+          mountPath: {{ .Values.ocbrm.logDir }}
+        - name: virtual-time-volume
+          mountPath: {{ .Values.ocbrm.virtual_time.pvt }}
+      - name: eai-java-server
+        image: "{{ .Values.imageRepository }}{{ .Values.ocbrm.eai_js.deployment.imageName }}:{{ .Values.ocbrm.eai_js.deployment.imageTag }}"
+        {{- if eq .Values.ocbrm.virtual_time.enabled true }}
+        command: ["/bin/sh"]
+        args: ["-c", "sleep 10;/oms/entrypoint.sh com.portal.js.JSMain"]
+        {{- end }}
+        ports:
+          - name: eai-pcp-port
+            containerPort: {{ .Values.ocbrm.eai_js.deployment.port }}
+        env:
+        - name: LOG_LEVEL
+          valueFrom:
+           configMapKeyRef:
+            name: oms-common-config
+            key: LOG_LEVEL
+        - name: ENABLE_SSL
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: ENABLE_SSL
+        - name: JAVA_OPTS
+          valueFrom:
+           configMapKeyRef:
+            name: oms-common-config
+            key: JAVA_OPTS
+        - name: SERVICE_FQDN
+          valueFrom:
+           configMapKeyRef:
+            name: oms-common-config
+            key: EAI_JS_SERVICE_FQDN
+        - name: SERVER_WALLET_PASSWORD
+          valueFrom:
+           secretKeyRef:
+            name: oms-schema-password
+            key: server_wallet_password
+        - name: ROOT_WALLET_PASSWORD
+          valueFrom:
+           secretKeyRef:
+            name: oms-schema-password
+            key: root_wallet_password
+        imagePullPolicy: {{ .Values.ocbrm.imagePullPolicy }}
+        volumeMounts:
+        - name: eai-java
+          mountPath: /oms/Infranet.properties.tmpl
+          subPath: Infranet.properties
+        - name: oms-logs
+          mountPath: {{ .Values.ocbrm.logDir }}
+        - name: payload
+          mountPath: /oms/payload
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - netstat -anp | grep LISTEN | grep {{ .Values.ocbrm.eai_js.deployment.port }}
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          failureThreshold: 5
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - netstat -anp | grep LISTEN | grep {{ .Values.ocbrm.eai_js.deployment.port }}
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 1
+        lifecycle:
+         preStop:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - "/oms/preStopHook.sh eai-java-server >> {{ .Values.ocbrm.logDir }}/shutdown.log"
+      dnsPolicy: ClusterFirst
+      hostname: cm
+      volumes:
+      - name: eai-java
+        configMap:
+          name: eai-java-server-infranet-properties-config
+      - name: oms-logs
+        emptyDir: {}
+      - name: cm-pin-conf-volume
+        configMap:
+          name: cm-pin-conf-config
+      - name: testnap-pin-conf-volume
+        configMap:
+          name: testnap-pin-conf-config
+      - name: cm-infranet-properties-volume
+        configMap:
+          name: cm-infranet-properties
+      - name: virtual-time-volume
+        persistentVolumeClaim:
+          claimName: virtual-time
+      - name: payload
+        persistentVolumeClaim:
+          claimName: {{ .Values.ocbrm.payload.pvc }}
+
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: cm
+  namespace: {{ .Release.Namespace }}
+  labels:
+    application: {{ .Chart.Name }}
+spec:
+  selector:
+    component: oms-cm
+  ports:
+  - name: cm-pcp-port
+    port: {{ .Values.ocbrm.cm.deployment.port }}
+    {{ if eq .Values.ocbrm.cm.service.type "NodePort" }}
+    nodePort: 31960
+    {{- end}}
+    protocol: TCP
+  type: {{ .Values.ocbrm.cm.service.type }}
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: eai-js
+  namespace: {{ .Release.Namespace }}
+  labels:
+    application: {{ .Chart.Name }}
+spec:
+  selector:
+    component: oms-cm
+  ports:
+  - name: eai-pcp-port
+    port: {{ .Values.ocbrm.eai_js.deployment.port }}
+    protocol: TCP
+  type: {{ .Values.ocbrm.eai_js.service.type }}

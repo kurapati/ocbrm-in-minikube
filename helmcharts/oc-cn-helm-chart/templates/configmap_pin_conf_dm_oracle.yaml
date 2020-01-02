@@ -1,0 +1,472 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dm-oracle-pin-conf-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+      application: {{ .Chart.Name }}
+data:
+  pin.conf: |
+    #========================================================================
+    # enable_ssl
+    #
+    # Specifies whether TLS will be enabled for PCM connections
+    #
+    #    0 - TLS is disabled.
+    #    1 - TLS is enabled.
+    #
+    #========================================================================
+    - dm enable_ssl ${ENABLE_SSL}
+
+        - dm DM_DEBUG ${DM_DEBUG}
+    - dm DM_DEBUG2 ${DM_DEBUG2}
+    - dm DM_DEBUG3 ${DM_DEBUG3}
+    - dm dm_loglevel ${LOG_LEVEL}
+        #=======================================================================
+        # ptr_virtual_time
+        #
+        # Enables the use of pin_virtual_time to advance Portal time, and
+        # specifies the shared file for use by all Portal mangers.
+        #
+        # The entry has 2 values
+        #
+        # #/Empty       to disable / enable pin_virtual_time in all pin.conf files
+        #               default = #     (disable)
+        #
+        # <filepath>    location and name of the pin_virtual_time file shared by all Portal managers.
+        #               default = ${PIN_HOME}/lib/pin_virtual_time_file
+        #
+        #=======================================================================
+        #- - pin_virtual_time ${SHARED_VIRTUAL_TIME_FILE}
+        
+        #========================================================================
+        # crypt
+        # <encryption scheme tag>
+        #
+        # Associates a four-byte tag with an encryption algorithm and secret
+        # key combination.
+        #
+        # Specify the encryption algorithm by naming the shared binary object that
+        # contains the code.
+        #
+        # The secret key is a string of characters enclosed in double quotation
+        # marks. The quotation marks are not considered part of the secret key.
+        # Any character allowed in a C-language string is allowed in the secret
+        # key string.
+        #
+        # The configurations below show an example for Solaris, an example for
+        # HP and an example for Windows NT. Notice the difference in shared
+        # binary object names, which is required by the conventions of the
+        # underlying operating system.
+        #========================================================================
+        - crypt aes| ${PIN_HOME}/lib/libpin_crypt_aes4dm64.so "${BRM_CRYPT_KEY}"
+
+        #************************************************************************
+        # Configuration Entries for Connecting to the Portal Database
+        #************************************************************************
+        #
+        #========================================================================
+        # sm_database
+        #
+        # Specifies the database alias name.
+        #
+        # This is the SQL*NET alias you defined in the tnsnames.ora file when you
+        # set up the Oracle database. This entry was configured when you installed
+        # Portal, so you shouldn't have to change it.
+        # This is the database alias you defined when setting up your database.
+        # For example, for Oracle this is the SQL*NET alias defined in the
+        # tnsnames.ora file.  This entry was configured when you installed Portal,
+        # so you shouldn't have to change it.
+        #
+        # Note: If you have multiple database hosts, such as an Oracle Parallel
+        #       Server configuration, include a separate sm_database configuration
+        #       entry for each host.
+        #========================================================================
+        - dm sm_database ${OMS_DB_ALIAS}
+        #- dm sm_svcname ${OMS_DB_SERVICE}
+
+        #========================================================================
+        # sm_id
+        #
+        # Specifies the database user name that the DM uses to log in to the
+        # Portal database.
+        #
+        # This entry was configured when you installed Portal, but you can
+        # change it.
+        #
+        # Note: With Oracle, for example, you can use the OPS$ option to log in
+        #       to the database without a password. See the Portal Install Guide
+        #       and Oracle documentation for more information.
+        #========================================================================
+        - dm sm_id ${OMS_SCHEMA_USERNAME}
+
+        #========================================================================
+        # sm_pw
+        #
+        # Specifies the password for the user specified in the sm_id entry.
+        #
+        # This password was configured when you installed Portal, but you
+        # should change it. The DM uses this password when logging in to the
+        # Portal database.
+        #
+        # Note: With Oracle, if you use the OPS$ option, you don't have to
+        #       include this configuration entry. If you include the password
+        #       entry, read-protect this configuration file.
+        #========================================================================
+        #- dm sm_pw ${OMS_SCHEMA_PASSWORD}
+
+        - decrypt md5| "Abracadabra dabracaabrA"
+
+        #========================================================================
+        # sm_database_ddl
+        #
+        # Specifies whether to use Data Definition Language (DDL) when updating
+        # the data dictionary tables for object type changes.
+        #
+        # The value for this entry can be:
+        #
+        #    0 = Update the data dictionary for changes but don't execute DDLs,
+        #          such as for creating tables and adding columns.
+        #    1 = Use DDL to ensure that objects are mapped correctly to tables.
+        #========================================================================
+        - dm sm_oracle_ddl 1
+
+        #========================================================================
+        # dd_write_enable_fields
+        #
+        # Specifies whether this Data Manager can create fields in the data
+        # dictionary.
+        #
+        # The value for this entry can be:
+        #
+        #  0 = Disable creating fields in the data dictionary.
+        #  1 = Enable creating fields in the data dictionary.
+        #  Default: 0
+        #========================================================================
+        - dm dd_write_enable_fields 1
+
+        #========================================================================
+        # dd_write_enable_objects
+        #
+        # Specifies whether this Data Manager can edit, create, and delete
+        # custom storable classes in the data dictionary.
+        #
+        # Note: If you want the DM to be able to modify predefined storable
+        #       classes, see the entry for dd_write_enable_portal_objects.
+        #
+        #  The value for this entry can be:
+        #
+        #  0 = Disables editing, creating and deleting custom storable classes in the
+        #  data dictionary.
+        #  1 = Enables editing, creating and deleting custom storable classes in the
+        #  data dictionary.
+        #  Default: 0
+        #
+        #========================================================================
+        - dm dd_write_enable_objects 1
+
+        #========================================================================
+        # dd_write_enable_portal_objects
+        #
+        # Specifies whether this Data Manager can delete predefined Portal
+        # storable classes and add and delete fields in one of those classes.
+        #
+        # Note: If you want to modify custom storable classes but protect
+        #       predefined classes from accidental changes, use the
+        #       dd_write_enable_objects and dd_write_enable_fields entries.
+        #
+        # The value for this entry can be:
+        #       0 = Disables Data Manager for deleting predefined Portal
+        #           storable classes and also to add and delete fields in one of those classes.
+        #       1 = Enables Data Manager for deleting predefined Portal
+        #           storable classes and to add and delete fields in one of those classes.
+        # Default: 0
+        #
+        #========================================================================
+        - dm dd_write_enable_portal_objects 1
+
+        #************************************************************************
+        # Queue Management Information
+        #
+        # The entries below specify how this Portal process should manage
+        # transactions.
+        #
+        # For information on tuning the queuing entries to improve performance,
+        # see the online document "Portal Configuration and Tuning Guide."
+        #************************************************************************
+        #
+        #========================================================================
+        # dm_init_be_timeout
+        #
+        # timeout for dm_oracle child startup (post-fork): 2 * value == wait sec
+        #========================================================================
+        #- dm dm_init_be_timeout 9999
+        
+        #========================================================================
+        # dm_n_fe
+        #
+        # Specifies the number of front ends this DM creates and uses.
+        #
+        # The allowable range of values is:
+        #
+        #    Minimum = 1
+        #    Maximum = 16
+        #========================================================================
+        - dm dm_n_fe ${DM_NO_FRONT_ENDS}
+
+        #========================================================================
+        # dm_bigsize
+        #
+        # (UNIX only) Specifies the size of shared memory for "big" shared memory structures,
+        # such as those used for large searches (those with more than 128 results)
+        # or for PIN_FLDT_BUF fields larger than 4 KB.
+        #
+        # The allowable range of values is:
+        #
+        #    Minimum = 262144 bytes (256 KB)
+        #    Maximum = 206158429184 bytes (Approx. 192 GB)
+        #
+        # This value cannot be more than the value specified in qm_shmsize, in the
+        # qm configuration file.
+        #
+        # If you get memory errors, increase the value.
+        #========================================================================
+        - dm dm_bigsize ${DM_SHM_BIGSIZE}
+
+        #========================================================================
+        # dm_db_no
+        #
+        # Specifies the database number for this DM.
+        #
+        # The format is 0.0.0.n  / 0, where n is your database number.
+        # The default database number for the Portal Data Manager (Oracle or
+        # SQL Server) is 1. Other default database numbers are:
+        #
+        #    0.0.0.2   Clear Commerce
+        #    0.0.0.2   Paymentech
+        #    0.0.0.3   Email Data Manager
+        #    0.0.0.4   Taxware DM
+        #    0.0.4.1   Activity Log Data Manager
+        #    0.0.5.x   LDAP Data Manager
+        #========================================================================
+        - dm dm_db_no 0.0.0.1 / 0
+
+        #======================================================================
+        # dm_in_batch_size
+        #
+        # Number of objects to batch up and retrieve in one go when retrieving
+        # data from sub-tables (arrays or substructs) in a search query
+        #
+        # If the value is "1", then portal defaults to the old behaviour
+        # The maximum value is 160
+        #
+        # The default value is 80, which means up to 80 objects will be retrieved
+        # at one time. If the number required is greater than this, then the
+        # dm will request 80 mod n rows first, followed by batches of 80 from
+        # the database
+        #======================================================================
+        - dm dm_in_batch_size 80
+
+        #========================================================================
+        # dm_logfile
+        #
+        # Specifies the full path to the log file used by this DM.
+        #
+        # You can enter any valid path.
+        #========================================================================
+        - dm dm_logfile ${PIN_LOG_DIR}/dm_oracle.pinlog
+
+        #========================================================================
+        # dm_max_per_fe
+        #
+        # Specifies the maximum number of connections for each front end.
+        #
+        # The allowable range of values is:
+        #
+        #    Minimum                 = 8
+        #    Maximum (in Windows NT) = 63
+        #    Maximum (in UNIX)       = 512
+        #========================================================================
+        - dm dm_max_per_fe ${DM_MAX_PER_FE}
+
+        #========================================================================
+        # dm_n_be
+        #
+        # Specifies the number of back ends this DM creates and uses.
+        #
+        # The allowable range of values is:
+        #
+        #    Minimum = 1
+        #    Maximum = 256
+        #
+        # Important: Creating an Portal account requires two connections, one
+        #    transaction connection and one regular connection. You must have at
+        #    least two back ends for each account you are creating at one time.
+        #    See the online document "Portal Configuration and Tuning Guide."
+        #========================================================================
+        - dm dm_n_be ${DM_NO_BACK_ENDS}
+
+        #========================================================================
+        # dm_name
+        #
+        # Specifies the name of the computer where this DM runs.
+        #
+        # The name can be:
+        #
+        #    - (hyphen)                = Portal can use any IP address on the
+        #                                  DM computer.
+        #
+        #    <host name or IP address> = Portal should use a particular IP
+        #                                  address on the DM computer.
+        #
+        # This entry is optional. If you remove or disable it, Portal uses
+        # gethostname to find the IP address of the DM computer.
+        #========================================================================
+        - dm dm_name ${HOSTNAME}
+
+        #========================================================================
+        # dm_port
+        #
+        # Specifies the port number for this DM.
+        #
+        # This number was assigned to the DM when you installed Portal. If you
+        # change the port, make sure the port number does not conflict with
+        # another service. This number must be greater than 1000, unless you start
+        # the process as root.
+        #
+        # The CM configuration file must have a corresponding dm_pointer entry
+        # with the same port number.
+        #========================================================================
+        - dm dm_port ${DM_ORACLE_SERVICE_PORT}
+
+        #========================================================================
+        # dm_restart_children
+        #
+        # Specifies whether to replace child processes.
+        #
+        # The value for this entry can be:
+        #
+        #    0 = Do not replace child processes.
+        #    1 = (Default) The DM master process replaces any child DM processes
+        #          that fail.
+        #========================================================================
+        - dm dm_restart_children 1
+
+        #=======================================================================
+        # dm_restart_delay
+        #
+        # Specify interval delay when spawning and respawning dm back ends.
+        # If not specified, the default value "0" will be used. That is,
+        # there is no delay between spawning and respawning dm back ends.
+        # This is required when you want to control the dm spawning or
+        # connection bahavior.
+        #
+        # For NT system, this value is based on milliseconds.
+        # For Unix system, this value is based on microseconds.
+        #========================================================================
+        #- dm dm_restart_delay 0
+        
+        #========================================================================
+        # dm_shmsize
+        #
+        # (UNIX only) Specifies the size of shared memory segment, in bytes, that
+        # is shared between the front ends and back ends for this DM.
+        #
+        # The allowable range of values is:
+        #
+        #    Minimum = 2097152 bytes (2 MB)
+        #    Maximum = 274877905920 bytes  (Approx. 256 GB)
+        #
+        # Solaris: You must edit the /etc/system file because the system default
+        #          for the maximum allowable shared-memory segment is too low.
+        #          See "Problems with memory management" in the online
+        #          documentation.
+        #========================================================================
+        - dm dm_shmsize ${DM_SHM_SEGMENT_SIZE}
+
+        #========================================================================
+        # dm_sm_obj
+        #
+        # Specifies a pointer to the Storage Manager shared library that contains
+        # the code that the Data Manager uses to interact with the database.
+        #
+        # Portal was set up with the correct file during installation.
+        # DO NOT change this configuration entry.
+        #========================================================================
+        - dm dm_sm_obj ${PIN_HOME}/sys/dm_oracle/dm_oracle12c64.so
+
+        #========================================================================
+        # dm_trans_be_max
+        #
+        # Specifies the maximum number of back ends that can be used for
+        # processing transactions.
+        #
+        # By default, as many as half of the back ends can process transactions.
+        # To increase the number of back ends for processing transactions, remove
+        # the crosshatch (#) from the beginning of the line for this entry and
+        # enter the number you want. The number must be no greater than the total
+        # number of back ends (dm_n_be).
+        #========================================================================
+        - dm dm_trans_be_max ${DM_NO_TRANS_BE_MAX}
+
+        #========================================================================
+        # dm_trans_timeout
+        #
+        # Specifies the timeout value, in minutes, to be used by dm back-end
+        # processes in receiving the next opcode of a transaction.
+        #
+        # The value for this entry can be:
+        #
+        #    0 or less      = (Default) A DM back-end process waits forever
+        #                       for the next opcode request.
+        #    greater than 0 = A DM back-end process waits until the specified
+        #                       number of minutes have gone by and then, if no
+        #                       opcode request has arrived, aborts the transaction.
+        #
+        # This parameter takes effect if and only if a DM back-end process is
+        # processing a transaction.
+        #========================================================================
+        - dm dm_trans_timeout 0
+
+        #========================================================================
+        # extra_search
+        #
+        # Specifies if we want to do extra search count(*) on sub tables
+        # so we can allocate memory optimally
+        #
+        # The value for this entry can be:
+        #
+        #    0                  = (Default) not do the extra search
+        #    1                  = do the extra search and allocate memory optimally.
+        #========================================================================
+        - dm extra_search 0
+
+        #========================================================================
+        # sm_charset
+        #
+        #========================================================================
+        - dm sm_charset ${ORACLE_CHARACTERSET}
+
+        #========================================================================
+        # stmt_cache_entries
+        #
+        # Specifies the maximum number of Oracle statement handles to cache, to
+        # improve Portal performance.
+        #
+        # The value for this entry can be:
+        #
+        #    0 = Disable the statement cache.
+        #    1 = (Default) 32
+        #
+        # Note: If you need to cache more statement handles, please consult with
+        #       Portal PPSG for advice. For more details, see the online document
+        #       "Portal Configuration and Tuning Guide."
+        #========================================================================
+        - dm stmt_cache_entries ${DM_STMT_CACHE_ENTRIES}
+
+        - dm dm_sequence_cache_size ${DM_SEQUENCE_CACHE_SIZE}
+
+        #=========
+        # encrypt_passwd
+        #=========
+        - dm encrypt_passwd 1

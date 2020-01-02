@@ -1,0 +1,21 @@
+kind: CronJob
+apiVersion: batch/v1beta1
+metadata:
+  name: "{{ .Values.ocbrm.cronjob.deployment.app_name }}"
+  labels:
+      application: {{ .Chart.Name }}
+spec:
+  schedule: "{{ .Values.ocbrm.cronjob.deployment.schedule }}"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: kubectl
+            image:  "{{ .Values.imageRepository }}{{ .Values.ocbrm.cronjob.deployment.imageName }}:{{ .Values.ocbrm.cronjob.deployment.imageTag }}"
+            command: ["/bin/bash","-c", "kubectl -n {{ .Release.Namespace }} get pods  | awk '{print $1}' | grep 'boc-deployment' | xargs -I {} kubectl exec {} -- /bin/bash -c 'su -l omsuser -c \"cd {{ .Values.ocbrm.cronjob.deployment.app_dir }} && {{ .Values.ocbrm.cronjob.deployment.app_cmd }} {{ .Values.ocbrm.cronjob.deployment.app_cmd_args }} \"'"]
+            securityContext:
+              runAsUser: 1000
+          serviceAccountName: {{ .Values.ocbrm.cronjob.deployment.serviceAccountName }}
+          automountServiceAccountToken: true
+          restartPolicy: OnFailure

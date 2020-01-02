@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+   name: loadifwreg-config
+   namespace: {{ .Release.Namespace }}
+   labels:
+    application: {{ .Chart.Name }}
+data:
+    LoadIfwConfig.reg.tmpl: |
+     LoadIfwConfig
+     {
+         
+       LogMessageTable
+       {
+         MessageFilePath   = ./
+         MessageFileSuffix = .msg
+       }
+
+       ProcessLog
+       {
+         FilePath          = ./
+         FileName          = LoadIfwConfig
+         FileSuffix        = .log
+         WriteMessageKey   = True
+       }
+
+       DataPool
+       {
+         Database
+         {
+           ModuleName = DbInterface
+           Module
+           {
+             UserName     = {{ .Values.ocbrm.db.pipelineschemauser }}
+             DatabaseName = {{ .Values.ocbrm.db.pipelinealias }}
+             AccessLib    = oci12c161
+           }
+         }
+       }
+
+       XMLCustomizationFile = CustomConfig.xml
+       LoadDataFromDB = True
+       RowFetchSize = 100
+       SemaphoreFilePath = /oms/ifw/semaphore/semaphoreRT.reg
+       ReloadSemaphoreString = ifw.DataPool.DiscountModelDataModule.Module.Reload 
+     }

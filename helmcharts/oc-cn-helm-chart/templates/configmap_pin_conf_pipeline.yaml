@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pipe-pin-conf-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+      application: {{ .Chart.Name }}
+data:
+  pin.conf: |
+    - - pin_virtual_time {{ .Values.ocbrm.virtual_time.pvt }}/pin_virtual_time_file

@@ -1,0 +1,2827 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-pin-conf-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+      application: {{ .Chart.Name }}
+data:
+  pin.conf: |
+    #************************************************************************
+    # Configuration File for the Connection Manager (CM)
+    #
+    #
+    # This configuration file is automatically installed and configured with
+    # default values during Portal installation. You can edit this file to:
+    #   -- change the default values of the entries.
+    #   -- disable an entry by inserting a crosshatch (#) at the start of
+    #        the line.
+    #   -- enable a commented entry by removing the crosshatch (#).
+    # 
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # When editing this file, follow the instructions in each section.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #************************************************************************
+    
+    
+    #======================================================================
+    #
+    # You can edit this file to suit your specific configuration:
+    #  -- You can change the default values of an entry.
+    #  -- You can exclude an optional entry by adding the # symbol
+    #     at the beginning of the line.
+    #  -- You can include a commented entry by removing the # symbol.
+    #
+    # Before you make any changes to this file, save a backup copy.
+    #
+    # To edit this file, follow the instructions in the commented sections.
+    # For more information on the general syntax of configuration entries,
+    # see "Reference Guide to Portal Configuration Files" in the Portal
+    # online documentation.
+    #======================================================================
+    
+    #=======================================================================
+    # ptr_virtual_time
+    # 
+    # Enables the use of pin_virtual_time to advance Portal time, and 
+    # specifies the shared file for use by all Portal mangers.
+    #
+    # The entry has 2 values
+    #
+    # #/Empty     	to disable / enable pin_virtual_time in all pin.conf files
+    #		default = #	(disable)
+    #
+    # <filepath> 	location and name of the pin_virtual_time file shared by all Portal managers.
+    #		default = ${PIN_HOME}/lib/pin_virtual_time_file
+    #
+    #=======================================================================
+    #- - pin_virtual_time ${SHARED_VIRTUAL_TIME_FILE}    
+    
+    
+    #======================================================================
+    # advance_bill_cycle 
+    # 
+    # Sets the first billing date to be the day after account creation 
+    # 
+    # If you want to set the first billing date to be the day after account 
+    # creation set this value to 1. By default, this entry is set to 0 which 
+    # means that account is billed normally after one month. 
+    #======================================================================= 
+    #- fm_bill advance_bill_cycle 0
+    
+    
+    #========================================================================
+    # apply_folds
+    #
+    # To apply folds set this value to 1 
+    # 
+    # If you do not use folds, you can disable fold calculation by using 
+    # this entry. This entry is on by default, that is, folds are applied, 
+    # but you can turn it off to increase performance. 
+    #
+    #========================================================================
+    #- fm_bill apply_folds 1
+    
+    
+    #======================================================================
+    # apply_rollover
+    # Apply rollovers if this value is set to 1 
+    # 
+    # If you do not use rollovers, you can disable rollover calculation by using 
+    # this entry. This entry is on by default, that is, rollovers are applied, 
+    # but you can turn it off to increase performance. 
+    #======================================================================
+    #- fm_bill apply_rollover 1
+    
+    
+    #========================================================================
+    # backdate_trigger_auto_rerate
+    #
+    # Specifies whether to create auto-rerate job objects used by pin_rerate.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = (Default) The /job/rerate object is not automatically created
+    #           for backdated actions that could cause the need for rerating
+    #    1 = The /job/rerate object is automatically created.The application 
+    #          pin_rerate can look for these objects and use them to determine  
+    #          which events need rerating and how far back to go.
+    #=======================================================================
+    - fm_subs backdate_trigger_auto_rerate 0
+    
+    
+    #========================================================================
+    # balance_coordinator
+    # 
+    # This configuration enables Balance management FMs to work with the 
+    # transient /reservation_list object incase of Timos based Prepaid implementation. 
+    # When DM Timos is used in the Prepaid implementation, AAA 
+    # processing flow creates and manage the /reservation_list object for the given 
+    # /balance_group in Timos memory for the low latency requirements. In this case, 
+    # all the balance retrieval opcodes will work on the /balance_group and 
+    # /reservation_list objects to calculate the subscriber balance. 
+    # This configuration entry decides the Balance retrieval opcodes to work with 
+    # only 
+    # /balance_group or to include the /reservation_list while processing. 
+    # 
+    # When CM is connected to DM Oracle directly, then the balance_coordinator 
+    # entry in CM pin.conf should be set to 1. 
+    # 
+    # This variable should be set as follows 
+    # 
+    # CM connects to DM_TIMOS      - 0 - Balances opcodes will work with the 
+    # 				     /balance_group 
+    #                                    and /reservation_list objects.   
+    # CM connects to DM ORACLE     - 1 - Balances opcode will not work with the 
+    # 				     /reservation_list object. 
+    #=======================================================================
+    #- fm_bal balance_coordinator 1
+    
+    
+    #========================================================================
+    # cache_references_at_start
+    #
+    # Specifies whether to store objects referenced by price objects
+    # in memory in the CM cache when the CM starts. Objects referenced
+    # by price objects include BEIDs, GLIDs, tax suppliers, 
+    # event types, service types, and RUMs. 
+    #
+    #
+    # The value for this entry can be:
+    #
+    #    0 = The CM caches objects that are referenced by price objects 
+    #        in the CM cache every time a price list is committed. 
+    #         
+    #        In a production system where you rarely modify your price
+    #        list, set the flag to 0. This reserves the CM cache
+    #        for other uses and eliminates the need to restart the
+    #        CM to update the cache if you change the price list. 
+    #         
+    #    1 = (Default) The CM caches objects that are referenced by price 
+    #         objects one time when the CM starts. 
+    #
+    #        In a test environment where you modify your price list
+    #        often, set the flag to 1. This makes saving the  
+    #        price list faster since there is no need to load price 
+    #        reference objects every time you commit the price list
+    #        to the database. However, you must restart the CM after
+    #        your price list changes are committed. 
+    #
+    # Important: The objects that are referenced by price objects are 
+    #            created every time the CM starts. If these objects are 
+    #            changed in the database, the CM must be restarted to 
+    #            create the new information to place into the cache. 
+    #
+    #========================================================================
+    - fm_price cache_references_at_start  1
+    
+    
+    #========================================================================
+    # cdc_line_cancel_day_include
+    #
+    # Parameter that decides whether the day on which the Line was created be counted 
+    # to decrement contract days
+    #
+    # Default value of line_cancel_day_include is configured as 1
+    #
+    #========================================================================
+    #- fm_subscription cdc_line_cancel_day_include 1
+    
+    
+    #========================================================================
+    # cdc_line_create_day_include
+    #
+    # Parameter that decides whether the day on which the Line was created be counted
+    # to increment contract days
+    #
+    # Default value of cdc_line_create_day_include is configured as 1
+    #
+    #========================================================================
+    #- fm_subscription cdc_line_create_day_include 1
+    
+    
+    #========================================================================
+    # cipher
+    #
+    # This entry specifies the cipher suites enabled by CM for TLS 
+    # connections.To add multiple cipher suites, separate each cipher suite 
+    # by a comma. 
+    #
+    # This is an optional entry.
+    #
+    ##========================================================================
+    #- cm cipher SSL_RSA_WITH_AES_128_CBC_SHA
+    
+    
+    #************************************************************************
+    # CM Connectivity Configuration Entries
+    #
+    # The entries below specify how the CM connects with other Portal
+    # processes.
+    #************************************************************************
+    
+    
+    
+    #========================================================================
+    # cm_data_dictionary_cache
+    #
+    # Specifies attributes of the data-dictionary cache. This cache it utilized
+    # for branding purposes, and is filled as needed with the read, write and 
+    # modify settings for each storable class, thus allowing the cm to police 
+    # writes appropriately.
+    #
+    # The default settings are usually adequate, but you can change them by
+    # manipulating the values below. The values are the defaults, and in order
+    # represent [number of entries], [cache size], [hash size]
+    #
+    # Note: This cache cannot be disabled. Setting entries to zero will cause the
+    #       cm to fail during startup.
+    #
+    # Note: This entry will be read and the values are validated only if   
+    #       enforce_scoping is set to 1. 
+    #
+    #
+    # Note: For changes to take effect, the CM must be restarted
+    #========================================================================
+    - cm_cache cm_data_dictionary_cache 500, 524288, 32
+    
+    
+    #========================================================================
+    # cm_login_module
+    #
+    # Specifies the protocol for verifying applications that try to log in to
+    # the CM.
+    # 
+    # The value for this entry can be:
+    #
+    #    cm_login_null.dll  = The CM should only verify the service.
+    #    cm_login_pw001.dll = The CM should verify the service and also ask
+    #                           the application for a login name and validate
+    #                           the password.
+    #========================================================================
+    - cm cm_login_module ${PIN_HOME}/sys/cm/cm_login_pw001${LIBRARYEXTENSION}
+    
+    
+    #========================================================================
+    # cm_max_connects
+    #
+    # Specifies the maximum number of client connections to the CM.
+    # 
+    # The parent CM listens on the port for new connections and spawns a
+    # child process for each one. Use this entry to limit the maximum number
+    # of child CMs that are spawned by a single CM parent process (or thread).
+    #========================================================================
+    #- cm cm_max_connects 3
+    
+    
+    #========================================================================
+    # cm_name
+    #
+    # Specifies the name of the computer where the CM runs.
+    # 
+    # The name can be:
+    #
+    #    - (hyphen)                = Portal can use any IP address on the 
+    #                                  CM computer.
+    #
+    #    <host name or IP address> = Portal should use a particular IP
+    #                                  address on the CM computer.
+    #
+    # This entry is optional. If you remove it from the file, Portal uses
+    # gethostname to find the IP address of the CM computer.
+    #========================================================================
+    - cm cm_name ${CM_SERVICE_HOST}
+    
+    
+    #========================================================================
+    # cm_ports
+    #
+    # Specifies the port number of the computer where the CM runs.
+    # 
+    # This number was assigned to this process when you installed Portal.
+    # The default, 11960, is a commonly specified port for the CM. If you
+    # change the port, make sure the port number does not conflict with
+    # another service. This number must be greater than 1000, unless you
+    # start the process as root. 
+    #
+    # The parameter following the port number is a required tag that
+    # identifies the set of FMs you use with this CM. The tag matches the tag
+    # at the end of the fm_module entries elsewhere in this file.
+    # The default tag is pin.
+    #========================================================================
+    - cm cm_ports ${CM_SERVICE_PORT} pin
+    
+    
+    #************************************************************************
+    # Configuration Entries for CM Logging
+    #
+    # The entries below specify how the CM logs information about its activity.
+    #************************************************************************
+    
+    
+    
+    #========================================================================
+    # cm_logformat
+    #
+    # Specifies which PINLOG format to use.
+    # 
+    # The value for this entry can be:
+    #
+    #    0 = Use the original format. The date is locale-specific.
+    #    1 = Format the date as yyyy-mm-dd. The time includes milliseconds
+    #========================================================================
+    - cm cm_logformat 0
+    
+    
+    #========================================================================
+    # cm_loglevel
+    #
+    # Specifies how much information the CM logs.
+    # 
+    # The value for this entry can be:
+    #
+    #    0 = no logging
+    #    1 = (Default) log error messages only
+    #    2 = log error messages and warnings
+    #    3 = log error, warning, and debugging messages
+    #========================================================================
+    - cm cm_loglevel ${LOG_LEVEL}
+    
+    
+    #========================================================================
+    # cm_logfile
+    #
+    # Specifies the full path to the log file used by the CM.
+    #
+    # You can enter any valid path.
+    # 
+    # If you use multiple CMs, you can set all of them to log to the same file
+    # (use the same cm_logfile entry in each configuration file) or set each
+    # CM to log to a unique file.
+    #========================================================================
+    - cm cm_logfile ${PIN_LOG_DIR}/cm.pinlog
+    
+    
+    #************************************************************************
+    # Configuration Entry for CM Cache File
+    #************************************************************************
+    #
+    #========================================================================
+    # permissioning_0
+    #
+    # This entry is reserved for Portal. DO NOT change it.
+    #========================================================================
+    
+    
+    
+    #========================================================================
+    # cm_data_file
+    #
+    # Specifies the name and location of the shared memory file that caches
+    # some global information for the CM to improve performance.
+    # 
+    # If this file doesn't exist, Portal creates it when the CM starts.
+    #
+    # If you add the optional parameter %d to the entry, Portal creates a
+    # new cache file each time the CM starts, and includes the process ID of
+    # the CM as the filename extension. Use this option if you run more than
+    # one CM on a single computer and they use the same configuration file.
+    # Each CM creates a shared memory file identified by its process ID.
+    #========================================================================
+    - cm cm_data_file ${PIN_LOG_DIR}/cm.data.%d
+    
+    
+    #======================================================================
+    ## config_billing_cycle 
+    # 
+    # Specifies how long after the billing cycle ends that new events are   
+    # considered for the previous month.s bill.   
+    # 
+    # Set this entry to specify how long after the end of the billing cycle the   
+    # new events are considered for the previous month.s bill. If this value is 
+    # greater than config_billing_delay CM errors out. 
+    # Note: config_billing_cycle should be <= config_billing_delay 
+    # By default this value is set to 0.
+    #======================================================================
+    #- fm_bill config_billing_cycle 0
+    
+    
+    # - fm_rate cycle_arrear_proration 1
+    
+    
+    #======================================================================
+    # cycle_delay_align 
+    # 
+    # Specifies whether to align the product purchase, cycle, and 
+    # usage start and end times to the accounting cycle. 
+    # 
+    # If this value is 1 and if you configure delayed purchase, cycle, or usage 
+    # start and end times, they will be aligned to the accounting cycle provided 
+    # the delayed start and end time is a whole number, not a fraction 
+    # and also the delay should be measured in cycles. 
+    # By default this entry is set to 0 which means start and end times 
+    # are not aligned to the accounting cycle. 
+    #======================================================================
+    #- fm_bill cycle_delay_align 0
+    
+    
+    #========================================================================
+    # discounting_em_group
+    #
+    # Defines a member opcode in a group of opcodes provided by an
+    # External Manager (EM). 
+    #
+    # The group tag must match the tag in the "em_pointer" entries below.
+    # 
+    # Each group includes two values:
+    #
+    #    -- the EM tag, a string of 1 to 15 characters, that matches the
+    #         em_pointer tags
+    #    -- the opcode name or number
+    #========================================================================
+    - cm em_group discounting PCM_OP_RATE_DISCOUNT_EVENT
+    
+    
+    #========================================================================
+    # discounting_em_pointer
+    #
+    # Specifies where to find the External Manager(s) that provide other
+    # opcodes to the CM.
+    #
+    # Use a separate pointer for each EM on your system.
+    # 
+    # Each pointer includes four values:
+    #
+    #    <em tag>           = a string of 1 to 15 characters that matches
+    #                           the em_group keys
+    #    <address type tag> = "ip", for this release
+    #    <host>             = the name or IP address of the computer running
+    #                           the EM
+    #    <port>             = the TCP port number of the EM on this computer
+    #========================================================================
+    - cm em_pointer discounting ip ${EM_DISCOUNTING_SERVICE_HOST} ${EM_DISCOUNTING_SERVICE_PORT}
+    
+    
+    #========================================================================
+    # dm_attributes
+    #
+    # Specifies attributes associated with a particular database.
+    #
+    # These attributes are for every DM that belongs to a configured database
+    # number. Specify any or all of these values in a comma-separated list
+    # with no spaces:
+    #
+    #   scoped             = Turn on scoping enforcement. 
+    #   assign_account_obj = Assign an "owning" account reference when the
+    #                          object is created. This is typically used by
+    #                          database DMs.
+    #   searchable         = The DM is a database DM.
+    #========================================================================
+    - cm dm_attributes ${DM_ORACLE_DB} assign_account_obj, scoped, searchable
+    
+    
+    #========================================================================
+    # dm_pointer
+    #
+    # Specifies where to find one or more Data Managers for the Portal
+    # database.
+    #
+    # Use a separate dm_pointer for each DM on your system. 
+    # Each dm_pointer includes three values:
+    #
+    #    -- the database number, such as 0.0.0.1
+    #    -- the IP address or host name of the DM computer
+    #    -- the port number of the DM service
+    #========================================================================
+    - cm dm_pointer ${DM_ORACLE_DB} ip ${DM_ORACLE_SERVICE_HOST} ${DM_ORACLE_SERVICE_PORT}
+    
+    
+    #========================================================================
+    # enable_ssl
+    #
+    # Specifies whether TLS will be enabled for PCM connections
+    #
+    #    0 - TLS is disabled.
+    #    1 - TLS is enabled.
+    #
+    ##========================================================================
+    - cm enable_ssl ${ENABLE_SSL}
+    
+    
+    #========================================================================
+    # event_cache
+    #
+    # Enables or disables the event cache for the PIN_FLD_BAL_IMPACTS array.
+    # 
+    # You can save the cache space for invoicing by turning off this entry.
+    # The value for this entry can be:
+    #
+    #    0 = Disable event cache.
+    #    1 = (Default) Enable event cache.
+    #
+    #========================================================================
+    - fm_inv event_cache 1
+    
+    
+    #========================================================================
+    # event_fetch_size
+    #
+    # Size used for step search while searching events in 
+    # rerating/rebilling
+    # 
+    # This value can be changed as per the required number
+    # of events to be searched                                                       
+    #  
+    # Default Value is 10000
+    #========================================================================
+    #- fm_subscription event_fetch_size 10000
+    
+    
+    #========================================================================
+    # extra_rate_flags
+    #
+    # Default value of extra_rate_flags is configured as 0x00.
+    #========================================================================
+    # - fm_rate extra_rate_flags 0
+    
+    
+    #========================================================================
+    # fm_ar_tax_now
+    #
+    # Specifies whether a tax calculation for an account adjustment
+    # will be deferred to billing time or occur when the adjustment is created.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = The tax calculation will be deferred.
+    #    1 = The tax calculation will take place at adjustment creation time.
+    #
+    # If this line is commented out, the tax calculation is deferred.
+    #========================================================================
+    #- fm_ar tax_now 0
+    
+    
+    #========================================================================
+    # deal_purchase_for_closed_account
+    #
+    # Specifies whether an inactive or closed account or service can purchase a
+    # deal or not.
+    #
+    # The values for this entry can be:
+    # 0 = (Default) Do not allow purchase
+    # 1 = Allow purchase
+    #
+    #========================================================================
+    #fm_bill deal_purchase_for_closed_account 0
+    
+    
+    #========================================================================
+    # fm_offer_profile_cache
+    #
+    # Specifies attributes of the CM cache for the size of offer_profiles
+    #
+    # Important: If this entry is missing, offer_profiles would not be fetched
+    #            when static information is requested by GET_SUBSCRIBER_PROFILE.
+    #
+    # The default settings are usually adequate, but you can change
+    # them by editing the values below. For changes to take effect,
+    # the CM must be restarted.
+    #
+    #- cm_cache fm_offer_profile_cache [number of entries]
+    #                          [cache size]  [hash size]
+    #
+    # [number of entries] = the number of entries in the cache
+    #                       for offer_profiles. 
+    #        [cache size] = the memory in bytes of the cache
+    #                       for offer_profiles. 
+    #         [hash size] = the number of buckets for offer_profiles
+    #                       (used in the hashing algorithm). 
+    #
+    #========================================================================
+    - cm_cache fm_offer_profile_cache 20, 102400, 13
+    
+    
+    #========================================================================
+    # fm_price_cache_beid
+    #
+    # Specifies attributes of the CM cache for the size of beid.
+    #
+    # This entry is required in order to place resources and
+    # and rules into the cache when the CM starts.
+    #
+    # Important: If this entry is missing, the CM cannot start
+    #            and an error is logged in the cm.pinlog file.
+    #
+    # The default settings are usually adequate, but you can change
+    # them by editing the values below. For changes to take effect,
+    # the CM must be restarted.
+    #
+    #- cm_cache fm_price_cache_beid [number of entries]
+    #                          [cache size]  [hash size]
+    #
+    # [number of entries] = the number of entries in the cache
+    #                       for beid rules. The
+    #                       default is 200.
+    #        [cache size] = the memory in bytes of the cache
+    #                       for beid rules . The
+    #                       default is 524228.
+    #         [hash size] = the number of buckets for beid
+    #                       rules  (used in the
+    #                       hashing algorithm). The default is 32.
+    #
+    #========================================================================
+    - cm_cache fm_price_cache_beid 200, 524288, 32
+    
+    
+    #========================================================================
+    # fm_price_prod_provisioning_cache
+    #
+    # Specifies attributes of the CM cache for the size of product  
+    # provisioning tags.
+    #
+    # This entry is required because provisioning tags are not 
+    # placed in the CM cache when the CM starts.
+    #
+    # Important: If this entry is missing, the CM cannot start 
+    #            and an error is logged in the cm.pinlog file. 
+    #
+    # The default settings are usually adequate, but you can change 
+    # them by editing the values below. For changes to take effect, 
+    # the CM must be restarted.
+    #
+    #- cm_cache fm_price_prod_provisioning_cache [number of entries]
+    #                          [cache size]  [hash size]
+    # 
+    # [number of entries] = the number of entries in the cache
+    #                       for product provisioning tags. The 
+    #                       default is 100.
+    #        [cache size] = the memory in bytes of the cache  
+    #                       for product provisioning tags. The 
+    #                       default is 102400.
+    #         [hash size] = the number of buckets for product 
+    #                       provisioning tags (used in the 
+    #                       hashing algorithm). The default is 13.
+    #
+    #========================================================================
+    - cm_cache fm_price_prod_provisioning_cache 100, 102400, 13
+    
+    
+    #************************************************************************
+    # Configuration Entries for Rating Policies (fm_rate)
+    #************************************************************************
+    
+    
+    
+    #========================================================================
+    # provider_loc
+    #
+    # Specifies the city, state, ZIP code, and country where you
+    # provide services to your customers.
+    #
+    # Taxware uses this information to find tax rates.
+    #========================================================================
+    - fm_rate_pol provider_loc Columbus; OH; 43017; US
+    
+    
+    #========================================================================
+    # rate_cache_size
+    #
+    # Specifies the cache size, in kilobytes, for price list data.
+    #
+    # The default size is 2048 KB. The cache is stored in the cm_data_file.
+    # See the entry for cm_data_file elsewhere in this configuration file for
+    # more information.
+    # 
+    # Note: This entry applies only if you turn on price list caching by
+    #       modifying the fm_module entry for fm_rate_config. For more
+    #       information, see "Syntax for Facilities Module entries" in the
+    #       online documentation.
+    #========================================================================
+    - fm_rate rate_cache_size 2048
+    
+    
+    #========================================================================
+    # taxware_db
+    #
+    # Specifies the database number of the Taxware database.
+    #
+    # If you use Taxware, enable this entry by removing the crosshatch (#)
+    # from the beginning of the line and verifying that the database number
+    # matches the number specified in the dm_pointer entry of the Taxware DM
+    # configuration file.
+    #========================================================================
+    #- fm_rate taxware_db 0.0.3.1 /_tax_db 0
+    
+    
+    #- fm_rate vertex_db 0.0.8.1 /_tax_db 0
+    
+    
+    #========================================================================
+    # backdate_window
+    #
+    # Specifies the minimum time difference needed between the
+    # current time and the backdated event time for triggering automatic
+    # rerating.
+    #
+    # The default is 3600 seconds.
+    #
+    #========================================================================
+    - fm_subs backdate_window 3600
+    
+    
+    #========================================================================
+    # num_billing_cycles
+    #
+    # Specifies the maximum number of billing cycles allowed between the current
+    # time and the backdated event time of a backdated operation.
+    #
+    # The default is 1 billing cycle.
+    #
+    #========================================================================
+    - fm_subs num_billing_cycles 1
+    
+    
+    #========================================================================
+    # fm_utils_content_srvc_profile_cache
+    #
+    # Specifies attributes of the content service profile cache
+    #
+    # The default settings are usually adequate, but you can change them by
+    # manipulating the values below. The values are the defaults, and in order
+    # represent [number of entries], [cache size], [hash size]
+    #
+    # Note: For changes to take effect, the CM must be restarted
+    #========================================================================
+    - cm_cache fm_utils_content_srvc_profile_cache 100, 1048576, 13
+    
+    
+    #========================================================================
+    # fm_utils_data_dictionary_cache
+    #
+    # Specifies attributes of the data-dictionary cache. This cache is utilized
+    # by fm_utils to cache the data dictionary for lookups by the other fms.
+    #
+    # The default settings are usually adequate, but you can change them by
+    # manipulating the values below. The values are the defaults, and in order
+    # represent [number of entries], [cache size], [hash size]
+    #
+    # Note: Setting either the cache size, or number of entries to 0 (zero)
+    #       effectively disables the data dictionary cache. This can degrade
+    #       performance.
+    #
+    # Note: For changes to take effect, the CM must be restarted
+    #========================================================================
+    - cm_cache fm_utils_data_dictionary_cache 100, 512000, 32
+    
+    
+    #========================================================================
+    # fm_utils_gal_srvc_profile_cache
+    #
+    # Specifies attributes of the service profile cache. 
+    #
+    # The default settings are usually adequate, but you can change them by
+    # manipulating the values below. The values are the defaults, and in order
+    # represent [number of entries], [cache size], [hash size]
+    #
+    # Note: For changes to take effect, the CM must be restarted
+    #========================================================================
+    - cm_cache fm_utils_gal_srvc_profile_cache 100, 1048576, 13
+    
+    
+    #========================================================================
+    # inv_event_fetch_size
+    #
+    # Size used for step search while searching events
+    # 
+    # This value can be changed as per the required number
+    # of events to be searched                                                       
+    #  
+    # Default Value is 10000
+    #========================================================================
+    - fm_inv inv_event_fetch_size 10000
+    
+    
+    #========================================================================
+    # inv_item_fetch_size
+    #
+    # Size used for step search while searching items
+    # 
+    # This value can be changed as per the required number
+    # of items to be searched                                                       
+    #  
+    # Default Value is 10000
+    #========================================================================
+    - fm_inv inv_item_fetch_size 10000
+    
+    
+    #========================================================================
+    # inv_perf_features
+    #
+    # This entry is required to retain the balance_impact array in an event
+    #
+    # Default Value is 0x00000010
+    #========================================================================
+    - fm_inv inv_perf_features 0x00000010
+    
+    
+    #========================================================================
+    # item_search_batch
+    #
+    # Specifies the number of items returned when performing a step search. 
+    # By default, BRM returns 1000 items with each step of the search. 
+    # If you do not want to use step-search set the number of returned items to 0. 
+    #========================================================================
+    - fm_bill     item_search_batch     1000
+    
+    
+    #========================================================================
+    # keep_cancelled_products_or_discounts
+    #
+    # Specifies whether to keep canceled products and discounts
+    #
+    # The value for this entry can be:
+    # 1 = (Default) Keeps the canceled products and discounts
+    # 0 = Deletes the canceled products and discounts. If the canceled products 
+    #     and discounts are deleted, then rerating will not work. 
+    #
+    #========================================================================
+    - fm_subscription_pol keep_cancelled_products_or_discounts 1
+    
+    
+    #========================================================================
+    # keepalive
+    #
+    # (Windows NT only) Specifies whether to monitor the TCP connection.
+    #
+    # Note: This entry is not needed for UNIX systems, which generally
+    #       clean up the TCP socket when a connection is lost.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = (Default) The TCP connection is not monitored.
+    #    1 = The CM sets the TCP "keepalive" flag for its connection to the
+    #          client, forcing the connection to be monitored actively. If the
+    #          connection is lost, you can detect it quickly and clean up the
+    #          CM and DM.
+    #========================================================================
+    #- cm keepalive 0
+    
+    
+    #========================================================================
+    # log_price_change_event
+    #
+    # Specifies event creation and logging for price object changes.
+    #
+    # Price object changes include changes to products, deals, and 
+    # plans. Logging such events creates an audit trail that is  
+    # useful if you need to look up previous versions of a price
+    # object. 
+    #
+    # The value for this entry can be:
+    #
+    #    0 = (Default) Do not create events when price object changes 
+    #        are made, thus saving storage space.
+    #    1 = Create and log an event for each changed price object.
+    #========================================================================
+    - fm_price log_price_change_event  0
+    
+    
+    #========================================================================
+    # log_session
+    #
+    # Specifies log session statistics.
+    #
+    # This entry is reserved for Portal. DO NOT change it.
+    #========================================================================
+    #- cm log_session 1
+    
+    
+    #========================================================================
+    # login_audit
+    #
+    # Creates the session event�s storable object for each client application.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = Portal doesn't create this object.
+    #    1 = (Default) Portal creates a storable object for the session
+    #           event when a client application requests a login.
+    #
+    # To turn off session-event logging, remove the crosshatch (#) from the
+    # beginning of the line for this entry and replace 1 with 0.
+    #========================================================================
+    #- cm login_audit 0
+    
+    
+    #========================================================================
+    # long_cycle_roundup
+    #
+    # Round up for long cycle if this flag is 1
+    #
+    # If this value is "1", the fm_rate round up the long cycle to ceiling
+    # to charge for full cycle arrear. '0' value of this flag will keep the
+    # default processing. Default value for this flag will be treated as '0'
+    #========================================================================
+    #- fm_rate rating_longcycle_roundup_flag  1
+    
+    
+    #========================================================================
+    # multi_db
+    #
+    # Specifies whether the option for multiple databases was selected during
+    # installation.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = The multidatabase option was not selected.
+    #    1 = The multidatabase option was selected.
+    #
+    # DO NOT edit this value.
+    #========================================================================
+    - cm multi_db 0
+    
+    
+    #========================================================================
+    # non_curr_cdcd
+    #
+    # Aggregation counter for Contract Days for Billing Time Discount 
+    #
+    # Default value of CDCD is configured as 1000100
+    #
+    #========================================================================
+    #- fm_subscription non_curr_cdcd 1000100
+    
+    
+    #========================================================================
+    # non_currency_cdc
+    #
+    # Aggregation counter for Contract Days for Cycle fee discounts 
+    #
+    # Default value of CDC is configured as 1000099
+    #
+    #========================================================================
+    #- fm_subscription non_currency_cdc 1000099
+    
+    
+    #========================================================================
+    # non_currency_linecount
+    #
+    # Aggregation counter for number of lines
+    #
+    #    Default value of  linecount (lc) is configured as  1000101.
+    #
+    #========================================================================
+    #- fm_subscription non_currency_lc 1000101
+    
+    
+    #========================================================================
+    # non_currency_mfuc
+    #
+    # Aggregation counter for Monthly Fee and Usage 
+    #
+    # Default value of MFUC is configured as 1000097
+    #
+    #========================================================================
+    #- fm_subscription non_currency_mfuc 1000097
+    
+    
+    #======================================================================
+    # open_item_actg_include_prev_total 
+    # 
+    # Includes previous bill totals to the pending receivable value calculated 
+    # during billing for accounts with open item accounting type. 
+    # 
+    # If you want to include the previous balance of open items in the total   
+    # amount due of the current bill unit during open item accounting set this   
+    # value to 1. By default, this value is set to 0 which means the previous 
+    # total is not added to the pending amount due during open item accounting. 
+    #======================================================================
+    #- fm_bill open_item_actg_include_prev_total 0
+    
+    
+    #========================================================================
+    # passwd_age
+    #
+    # Specifies the number of days after which password expires.
+    #
+    # The value for this entry can be:
+    #
+    #    Any desired positive value.
+    #   
+    #========================================================================
+    - cm passwd_age 90
+    
+    
+    #************************************************************************
+    # Permissioning-Related Configuration Entries
+    #************************************************************************
+    
+    
+    
+    #========================================================================
+    # enforce_scoping
+    #
+    # Enables or disables limits on data access, based on the billing
+    # group of the associated account data. This option is used primarily 
+    # for branding.
+    #
+    # 0 - to disable branding 
+    # 1 - to enable branding 
+    #
+    #========================================================================
+     - cm enforce_scoping 0
+    
+    
+    #======================================================================
+    # pin_fld_mask_file
+    #
+    # Specifies the location of file used to control masking of sensitive data
+    # in flists returned from the cm. To enable this feature, uncomment the line, 
+    # edit the pin_fld_mask_file and restart the cm
+    #======================================================================= 
+    #- cm pin_fld_mask_file /oms/sys/cm/pin_fld_mask_file
+    
+    
+    #************************************************************************
+    # Configuration Entries for Policies
+    #************************************************************************
+    
+    
+    
+    #========================================================================
+    # actg_dom
+    #
+    # Specifies the day of the month when Portal should bill accounts.
+    #
+    # By default, Portal will use as a billing day either the day from 
+    # the actg_dom stanza (if it is specified), or the day on which the
+    # account was created.
+    #
+    # During account creation, it is possible to change this default by
+    # specifying a desirable billing day.
+    # In this case, the actg_dom stanza will not be used.
+    #  
+    # Portal may use as a billing day either days from 1 to 28, or all
+    # days from 1 to 31. 
+    # Please, see the documentation for the 31 billing day feature of how
+    # to change/set the appropriate behavior.
+    # 
+    #========================================================================
+    # - fm_cust_pol actg_dom 1
+    
+    
+    #========================================================================
+    # actg_type
+    #
+    # Specifies whether to use open-item accounting.
+    #
+    # By default, Portal uses balance-forward accounting for billinfos. 
+    # Portal checks to see which accounting was specified when the billinfos
+    # was created. If you don't specify the accounting type when you create
+    # customer billinfos, and you want to use open-item accounting for all
+    # billinfos, set the below configuration entry to 1.
+    # If you want to use balance forward accounting set the below configuration
+    # entry to 2.
+    #========================================================================
+    - fm_cust_pol actg_type 2
+    
+    
+    #========================================================================
+    # bill_when
+    #
+    # Specifies the number of accounting cycles before the customer is billed.
+    #
+    # By default, Portal bills for each accounting cycle. Portal checks
+    # to see if another billing cycle was specified when the account was
+    # created. If you don't specify the billing cycle when you create customer
+    # accounts and you want to specify a longer billing cycle for all accounts, 
+    # change this configuration entry.
+    #
+    # The default value is 1, specifying a one-month cycle. To change it,
+    # remove the crosshatch (#) from the start of the line for this entry and
+    # replace the "1" another number. For example, for quarterly billing, you
+    # would use "3" to specify a three-month cycle.
+    #========================================================================
+    - fm_cust_pol bill_when 1
+    
+    
+    #======================================================================
+    # calc_cycle_from_cycle_start_t
+    #
+    # Specifies whether or not to use the cycle-start-t of the product instance
+    # to calculate the cycle for backdated multi-month cycle fees.
+    # 
+    # The values for this entry can be:
+    # 0 = (Default) Use account-next-t to determine the cycle.
+    # 1 = Use cycle-start-t and BILLING DOM to determine the cycle.
+    # 
+    #======================================================================
+    #- fm_bill calc_cycle_from_cycle_start_t 0
+    
+    
+    #========================================================================
+    # cancel_tolerance
+    #
+    # Specifies the cancellation tolerance of account products, in minutes.
+    #
+    # This is the time after a product is purchased when it can be cancelled
+    # with a full refund. For example, this tolerance is needed when a
+    # customer service representative assigns the wrong product to a customer
+    # and needs to cancel it.
+    #========================================================================
+    #- fm_bill cancel_tolerance 15
+    
+    
+    #======================================================================
+    # config_billing_delay
+    #
+    # Specifies a delay for disabling the automatic triggering of billing
+    #
+    # If the system is configured to record delayed batch usage events in
+    # Portal, this entry lets you specify the delay, in days, before the
+    # billing is run. The value cannot be more days than one accounting cycle.
+    #
+    # When the pin_bill_accts application runs as part of the
+    # daily program pin_bill_day, it waits through the specified  delay to
+    # pick up accounts for billing. However, if a real-time or batch event
+    # triggers billing during this delay, cycle fees are charged as if there
+    # were no delay (without running the complete billing).
+    #
+    # By default, this configuration parameter is disabled, so the autobilling
+    # trigger is enabled. This is a system-wide parameter only.
+    #
+    # This entry is the same as the config_billing_delay entry in the
+    # pin_billd configuration file.
+    #
+    # In the enabled entry below, the billing run is not delayed but avoids auto
+    # triggering of billing.
+    #======================================================================
+    #- fm_bill config_billing_delay 10
+    
+    
+    #========================================================================
+    # cc_checksum
+    #
+    # Specifies whether to run a checksum validation on the customer's credit
+    # card.
+    # 
+    # The value for this entry can be:
+    #
+    #    0 = Do not perform this validation.
+    #    1 = (Default) Use a checksum to validate the credit card during
+    #          registration. 
+    #========================================================================
+    - fm_cust_pol cc_checksum 1
+    
+    
+    #========================================================================
+    # config_dir
+    #
+    # Specifies the location of ISP configuration data.
+    #
+    # Configuration data for an Internet service provider includes the
+    # mail-server address that you send to the customer's client software
+    # upon registration.
+    #========================================================================
+    - fm_cust_pol config_dir ${PIN_HOME}/sys/cm/config
+    
+    
+    #========================================================================
+    # country
+    #
+    # Specifies the default country.
+    #
+    # If a customer doesn�t enter a country name during registration, this 
+    # country is automatically assigned to the customer's account. The default
+    # is "USA".
+    #========================================================================
+    - fm_cust_pol country USA
+    
+    
+    #========================================================================
+    # creation_logging
+    #
+    # Specifies event logging for non-dollar events.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = (Default) Ignore non-dollar creation events during registration,
+    #          thus saving storage space and speeding account creation.
+    #    1 = Log these events.
+    #========================================================================
+    - fm_cust creation_logging 0
+    
+    
+    #========================================================================
+    # currency
+    #
+    # Specifies the default account currency.
+    # 
+    # By default, Portal uses US dollars as the currency for accounts. 
+    # Portal checks to see if another currency was specified when the 
+    # account was created. If you don't specify the currency when you create
+    # customer accounts and you want to use a different currency for each
+    # account, change this entry.
+    #
+    # To use a different currency, remove the crosshatch (#) from the
+    # beginning  of the line for this entry and replace 840 with another
+    # currency code. For a list of currency codes, see pin_currency.h.
+    #========================================================================
+    - fm_cust_pol currency 840
+    
+    
+    #======================================================================
+    # cycle_delay_use_special_days
+    #
+    # Specifies whether or not to use the special days if delay is defined 
+    # in cycles
+    # 
+    # The values for this entry can be:
+    # 0 = (Default) Do not use the special days
+    # 1 = Use special days
+    # 
+    #======================================================================
+    #- fm_bill cycle_delay_use_special_days 0
+    
+    
+    #========================================================================
+    # cycle_tax_interval
+    #
+    # How to calculate deferred taxes for hierarchies.
+    #
+    # This entry is used to determine tax computation of parent and
+    # children accounts.  If the entry is set to 'billing', the tax
+    # for the subordinate account will go to the parent account.  So, 
+    # at the end of the cycle, the parent will have both taxes (own
+    # and subord's). If the entry is set to 'accounting' (default), 
+    # then the tax for the subordinate will go to the subordinate 
+    # account, and the tax for the parent will go to the parent 
+    # account.  To use this entry, remove the crosshatch (#) from 
+    # the beginning of the line and specify 'billing' or 'accounting'.
+    #========================================================================
+    #- fm_bill cycle_tax_interval accounting
+    
+    
+    #========================================================================
+    # domain
+    #
+    # Specifies the email domain assigned to customers during registration.
+    #
+    # You can use any domain name, such as "myfirm.com" or "teacup.co.uk".
+    #========================================================================
+    - fm_cust_pol domain portal.com
+    
+    
+    #========================================================================
+    # em_db
+    #
+    # Specifies the Email Data Manager database number.
+    # 
+    # Delivery FMs use this entry to locate the email database. The value must
+    # be the same as the dm_db_no entry in the  configuration file for the
+    # email DM.
+    #========================================================================
+    - fm_delivery em_db 0.0.2.1 /_em_db 0
+    
+    
+    #========================================================================
+    # gl_segment
+    #
+    # Specifies the default general ledger segment for an account.
+    #
+    # Portal uses the general ledger segment when posting a GL report to
+    # identify the general ledger group to which the account belongs. If you
+    # do not specify the general ledger segment elsewhere when you create
+    # the account, Portal uses this default segment.
+    #
+    # The default is a period ("."), to indicate the root segment. You can
+    # change this default to another segment, such as ".myfirm".
+    #========================================================================
+    - fm_cust_pol gl_segment .
+    
+    
+    #========================================================================
+    # html_template
+    #
+    # Specifies which template to use to generate invoices.
+    #
+    # This option specifies which template, in /config/invoice_templates, the
+    # PCM_OP_INV_POL_FORMAT_INVOICE_HTML opcode uses to generate invoices.
+    # You can create your own template in the configuration object and change
+    # 101 to your POID.
+    #
+    # Note: If you are setting up brand-specific invoice templates, you should
+    #       disable this entry by typing a crosshatch (#) at the start of its
+    #       line. Existence of this entry overrides the brand-specific invoice
+    #       templates, so any invoice template pointed to by this entry will be
+    #       used for all brands.
+    #========================================================================
+    - fm_inv_pol html_template 0.0.0.1 /config/invoice_templates 101
+    
+    
+    #========================================================================
+    # include_zero_tax
+    #
+    # Specify whether to include zero tax amounts into the tax
+    # jurisdictions for the event's balance impacts.
+    #
+    # The values for this entry can be:
+    #
+    #    0 = Do not include zero tax amounts. (Default).
+    #    1 = Include zero tax amounts.
+    #========================================================================
+    # - fm_rate include_zero_tax 0
+    
+    
+    #========================================================================
+    # intro_dir
+    #
+    # Specifies the location of the introductory message.
+    #
+    # The message lets a customer confirm desire for the account. Enter the
+    # location of files that contain the introductory message you want to send
+    # to customers during registration, before each account is created.
+    #========================================================================
+     - fm_cust_pol intro_dir ${PIN_HOME}/sys/cm/intro
+    
+    
+    #========================================================================
+    # invoice_dir
+    #
+    # Specifies the directory where invoices are stored.
+    #
+    # This must be the same directory specified in the "-directory" parameter
+    # of the pin_invoice_gen utility.
+    #========================================================================
+    - fm_bill invoice_dir ${PIN_HOME}/apps/pin_billd/invoice_dir
+    
+    
+    #========================================================================
+    # merchant
+    #
+    # Specifies the merchant to receive money collected during credit-card
+    # processing.
+    #
+    # Portal attaches this merchant name to the account when creating the
+    # account. This name must match a merchant name entry in the configuration
+    # file for the credit-card processing data manager. For example, if the
+    # merchant is "psi", the merchant name in the configuration file for the
+    # credit-card DM must be "mid_psi".
+    #
+    # After you set up a merchant name with the credit-card processing
+    # company, replace "test" in this entry with the actual merchant name.
+    #========================================================================
+    - fm_cust_pol merchant test
+    
+    
+    #======================================================================
+    # new_account_welcome_msg
+    #
+    # Specifies whether Portal should send a default welcome message when
+    # it creates a new account.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = (Default) Do not send a welcome message.
+    #    1 = Send a welcome message when creating a new account.
+    #======================================================================
+    - fm_cust_pol new_account_welcome_msg 0
+    
+    
+    #========================================================================
+    # overdue_tolerance
+    #
+    # Specifies how Portal treats amounts applied to the item when they are
+    # less than the amount due as a result of euro and EMU conversions.
+    #
+    # The tolerance values defined for Portal resources can cause some
+    # variation between the converted amount and the billed amount.
+    #
+    # The value for this entry can be:
+    #
+    #    none              = Do not apply tolerance values defined for
+    #                          resources.
+    #    primary           = Apply tolerance values only if the amount applied 
+    #                          to the item is in the primary currency.
+    #    secondary         = Apply tolerance values only if the amount applied 
+    #                          to the item is in the secondary currency.
+    #    primary_secondary = Apply tolerance values if the amount applied to
+    #                          the item is in either currency.
+    #========================================================================
+    - fm_bill overdue_tolerance secondary
+    
+    
+    #======================================================================
+    # purchase_fees_backcharge
+    #
+    # Specifies Future purchase of product that starts in current billing
+    # cycle.
+    #
+    # The value for this entry can be: 
+    #
+    #  1 = Apply any deferred product purchase fees to this cycle.
+    #  0 = (Default) It will be applied to next cycle. 
+    #======================================================================
+    #- fm_bill purchase_fees_backcharge 
+    
+    
+    #========================================================================
+    # sender
+    #
+    # Specifies the postmaster name.
+    #
+    # By default, the email sender is "postmaster".
+    #========================================================================
+    - fm_cust_pol sender postmaster
+    
+    
+    #========================================================================
+    # service_centric_invoice
+    #
+    # Enables or disables the service-centric invoice feature.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = (Default) Disable the feature.
+    #    1 = Enable the feature, so the HTML invoice will be seen to be
+    #          grouped by service instances.
+    #========================================================================
+    - fm_inv_pol service_centric_invoice 0
+    
+    
+    #======================================================================
+    # stop_bill_closed_accounts
+    #
+    # By default, you can configure BRM to enable or disable billing of closed
+    # accounts.
+    # When billing of closed accounts is disabled, BRM excludes closed accounts
+    # from the billing run when the following conditions are met:
+    # 
+    # The account.s total balance due for every bill unit is zero.
+    # Note  For hierarchical accounts, the total balance due includes the totals
+    # from the subordinate bill unit of their child accounts.
+    # 
+    # Now for these conditions to be checked during billing the following parameter
+    # stop_bill_closed_accounts should be marked as 1.
+    # ,
+    # If this parameter is marked as 1 then,  during billing of the cycle in which
+    # the billinfo with zero total due became closed ,the assesment of the above
+    # conditions will happen. There will be a zero amount bill generated for this
+    # cycle but due to assesment the bill unit (billinfo) fo this closed account
+    # will be marked such that it will not be picked up for billing in the future.
+    # 
+    # By default the value of this parameter is 0 which means billing of closed
+    # accounts with zero total due is allowed unrestricted.
+    #======================================================================
+    - fm_bill stop_bill_closed_accounts 0
+    
+    
+    #========================================================================
+    # tax_return_juris
+    #
+    # Specifies if taxes should be summarized by jurisdiction level.
+    #
+    # The value for this entry can be:
+    #
+    #    summarize = Summarize taxes by jurisdiction level. (Default).
+    #    itemize   = Do not summarize taxes by jurisdiction level.
+    #========================================================================
+    # - fm_rate tax_return_juris summarize
+    
+    
+    #========================================================================
+    # tax_return_loglevel
+    #
+    # Specifies how much information the tax engine should report.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = Do not report any messages from the tax engine.
+    #    1 = Report messages from the tax engine as errors.
+    #    2 = (Default) Report messages from the tax engine as warnings.
+    #========================================================================
+    # - fm_rate tax_return_loglevel 2
+    
+    
+    #========================================================================
+    # tax_supplier_map
+    #
+    # Specifies the location of the tax_supplier.map file.
+    #
+    # You need to include this entry only if the tax package (such as Taxware,
+    # Vertex, or BillSoft) is the primary source of tax-supplier information
+    # and you have created a tax_supplier.map file. If Portal is the primary
+    # source of tax supplier information, you don't need the map file or this
+    # entry.
+    #
+    # To use this entry, remove the crosshatch (#) from the beginning of its
+    # line and replace <file_path> with the path to the tax_supplier.map file.
+    #========================================================================
+    #- fm_rate tax_supplier_map ${PIN_HOME}/sys/cm/tax_supplier_map
+    
+    
+    #========================================================================
+    # tax_valid
+    #
+    # Specifies how to validate the state and ZIP code during registration.
+    # Validation is possible only if the taxation_switch is enabled and the
+    # appropriate tax DM is running.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = (Default) Do not check the ZIP code. 
+    #    1 = Use Taxware Sales/Use to validate the ZIP code. (The Taxware DM
+    #          must be running).
+    #    2 = Use Taxware WorldTax to validate the ZIP code. (The Taxware DM
+    #          must be running).
+    #    3 = Use Quantum to validate the ZIP code. (The Vertex DM must be
+    #          running).
+    #    4 = Use CommTax21 to validate the ZIP code. (The Vertex DM must be
+    #          running).
+    #    5 = Use EZTax to validate the ZIP code. (The BillSoft DM must be
+    #          running).
+    #========================================================================
+    - fm_cust_pol tax_valid 0
+    
+    
+    #======================================================================
+    # taxation_switch
+    #
+    # Specifies whether taxation should be enabled/disabled in Portal.
+    #
+    #       0  - Taxation is disabled
+    #       1  - Enable real-time taxation
+    #       2  - Enable cycle-time taxation
+    #       3  - (Default) Enable both real and cycle time taxation
+    #
+    # Note: Disabling taxation will disable the following entries:
+    #
+    #   tax_valid           - Address and VAT validation
+    #   tax_return_loglevel - Specify how messages from tax engine are logged
+    #   tax_return_juris    - Specify if taxes should be summarized by juris level
+    #   include_zero_tax    - Include zero tax amounts into event's tax juris
+    #   cycle_tax_interval  - Specify if subords' taxes are rolled to parent
+    #
+    #======================================================================
+    #- fm_bill taxation_switch 3
+    
+    
+    #========================================================================
+    # taxcodes_map
+    #
+    # Specifies the location of the taxcodes_map file.
+    #
+    # The taxcodes_map file maps Portal tax codes to products of the tax
+    # packages that Portal supports.
+    #========================================================================
+    - fm_rate taxcodes_map ${PIN_HOME}/sys/cm/taxcodes_map
+    
+    
+    #========================================================================
+    # timestamp_rounding
+    #
+    # Specifies how to round timestamps of account products.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = (Default) Do not round timestamps.
+    #    1 = Round account product timestamps to midnight.
+    #========================================================================
+    - fm_bill timestamp_rounding 1
+    
+    
+    #========================================================================
+    # underdue_tolerance
+    #
+    #
+    # Specifies how Portal treats amounts applied to the item when they are
+    # more than the amount due as a result of euro and EMU conversions.
+    #
+    # The tolerance values defined for Portal resources can cause some
+    # variation between the converted amount and the billed amount.
+    #
+    # The value for this entry can be:
+    #
+    #    none              = Do not apply tolerance values defined for
+    #                          resources.
+    #    primary           = Apply tolerance values only if the amount applied 
+    #                          to the item is in the primary currency.
+    #    secondary         = Apply tolerance values only if the amount applied 
+    #                          to the item is in the secondary currency.
+    #    primary_secondary = Apply tolerance values if the amount applied to
+    #                          the item is in either currency.
+    #========================================================================
+    - fm_bill underdue_tolerance secondary
+    
+    
+    #======================================================================
+    # use_number_of_days_in_month
+    #
+    # Specifies how to calculate the proration scale when purchasing or
+    # cancelling a monthly product.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = (Default) Base the calculation on the number of days in the
+    #        cycle.
+    #    1 = Base the calculation on the number of days in the current
+    #        month. If the starting and ending dates of the cycle are in
+    #        the same month, base the calculation on the number of days in
+    #        the month.
+    #======================================================================
+    #- fm_bill use_number_of_days_in_month 0
+    
+    
+    #======================================================================
+    # validate_deal_dependencies
+    #
+    # Specifies whether to validate the deal pre_requisites and mutually
+    # exclusive relations. These relations can be configured thru the Pricing
+    # Tool.
+    #
+    # If this flag is enabled by setting a non-zero value say 1.
+    # If enabled then during purchase, cancel, status change, etc will do
+    # the deal level validations pre_requisite and mutually exclusive. If
+    # not valid, error message is logged.
+    #
+    # By default, this configuration parameter is disabled(commented) so
+    # there is no deal level validation. This is a system-wide parameter only.
+    #
+    #======================================================================
+    #- fm_utils validate_deal_dependencies 0
+    
+    
+    #========================================================================
+    # welcome_dir
+    #
+    # Specifies the location of the welcome message.
+    #
+    # Enter the location of files that contain the welcome message you send 
+    # to customers during registration, after the account is created.
+    #========================================================================
+    - fm_cust_pol welcome_dir ${PIN_HOME}/sys/cm/welcome
+    
+    
+    - fm_zonemap_pol update_interval 3600
+    
+    
+    #========================================================================
+    # primary_db
+    #
+    # Denotes which database is the primary database.
+    #
+    # Use this entry in conjunction with the multi_db entry below.
+    #========================================================================
+    # - cm primary_db 0.0.0.1 / 0
+    
+    
+    #========================================================================
+    # Enable immediate propagation of shared discount
+    # when a new discount is added/deleted to the group
+    # or a member subscribes/unsubscribes to the group.
+    # By default, it is disabled. Set the value to '1'
+    # to enable.
+    #========================================================================
+    - fm_subscription propagate_discount 0
+    
+    
+    #========================================================================
+    # rate_change
+    #
+    # Enables or disables the enhanced rate change management feature.
+    # 
+    # If this feature is enabled then rate changes for cycle events
+    # in the middle of the cycle will be handled according to old and
+    # new rates prorated. If disabled only the old rate will be applied
+    #
+    #    0 = (Default) Disable enhanced rate change management feature.
+    #    1 = Enable enhanced rate change management feature.
+    #
+    #========================================================================
+    - fm_subscription rate_change 0
+    
+    
+    #========================================================================
+    # rating_include_zero_tax
+    #
+    # Flag to control tax calculation on rated value
+    #
+    # Default value of include_zero_tax is configured as False
+    #========================================================================
+    # - fm_rate  include_zero_tax 0
+    
+    
+    #========================================================================
+    # rating_log_refresh_product
+    #
+    # To turn on this option, change the fm_rate log_refresh_product entry in the 
+    # CM configuration file (pin.conf) to 1. If this entry is absent or set to zero, 
+    # Portal does not log changes to the price lists. 
+    #
+    # Default value of log_refresh_product is configured as 0.
+    #========================================================================
+    # - fm_rate  log_refresh_product 0
+    
+    
+    #========================================================================
+    # rating_max_scale
+    #
+    # rating_max_scale defines the precison level of decimal values
+    #
+    # Default value of rating_max_scale is configured as 10 decimal place
+    #========================================================================
+    # - fm_rate  rating_max_scale 10
+    
+    
+    #========================================================================
+    # rating_refresh_product_interval
+    #
+    # Specifies the interval, after which product will be refreshed in cache
+    #
+    # Default value of refresh_product_interval is configured as 3600 seconds.
+    #========================================================================
+    # - fm_rate  refresh_product_interval 3600
+    
+    
+    #========================================================================
+    # rating_timezone
+    #
+    # Define the timezone to be used to rate the event
+    #
+    # Default value of rating_timezone is configured as default i.e server time zone
+    #========================================================================
+     - fm_rate  rating_timezone US/Pacific
+    
+    
+    #========================================================================
+    # fm_required
+    #
+    # Required Facilities Modules (FM) configuration entries
+    #
+    # The entries below specify the required FMs that are linked to the CM when
+    # the CM starts. The FMs required by the CM are included in this file when
+    # you install Portal. 
+    #
+    # Caution: DO NOT modify these entries unless you need to change the
+    #          location of the shared library file. DO NOT change the order of
+    #          these entries, because certain modules depend on others being
+    #          loaded before them.
+    #========================================================================
+    - cm fm_module ${PIN_HOME}/lib/fm_utils${LIBRARYEXTENSION} fm_utils_config fm_utils_init pin
+    - cm fm_module ${PIN_HOME}/lib/fm_bill_utils${LIBRARYEXTENSION} fm_bill_utils_config fm_bill_utils_init pin
+    - cm fm_module ${PIN_HOME}/lib/fm_sdk${LIBRARYEXTENSION} fm_sdk_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_act${LIBRARYEXTENSION} fm_act_config fm_act_init pin
+    - cm fm_module ${PIN_HOME}/lib/fm_subscription${LIBRARYEXTENSION} fm_subscription_config fm_subscription_init pin
+    - cm fm_module ${PIN_HOME}/lib/fm_subscription_pol${LIBRARYEXTENSION} fm_subscription_pol_config fm_subscription_pol_init pin
+    - cm fm_module ${PIN_HOME}/lib/fm_rate${LIBRARYEXTENSION} fm_rate_config fm_rate_init pin
+    - cm fm_module ${PIN_HOME}/lib/fm_rate_pol${LIBRARYEXTENSION} fm_rate_pol_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_group${LIBRARYEXTENSION} fm_group_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_cust${LIBRARYEXTENSION} fm_cust_config fm_cust_init pin
+    - cm fm_module ${PIN_HOME}/lib/fm_zonemap${LIBRARYEXTENSION} fm_zonemap_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_cust_pol${LIBRARYEXTENSION} fm_cust_pol_config fm_cust_pol_init pin
+    - cm fm_module ${PIN_HOME}/lib/fm_bill${LIBRARYEXTENSION} fm_bill_config fm_bill_init pin
+    - cm fm_module ${PIN_HOME}/lib/fm_bill_pol${LIBRARYEXTENSION} fm_bill_pol_config fm_bill_pol_init pin
+    - cm fm_module ${PIN_HOME}/lib/fm_bal${LIBRARYEXTENSION} fm_bal_config fm_bal_init pin
+    - cm fm_module ${PIN_HOME}/lib/fm_bal_pol${LIBRARYEXTENSION} fm_bal_pol_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_inv${LIBRARYEXTENSION} fm_inv_config fm_inv_init pin
+    - cm fm_module ${PIN_HOME}/lib/fm_inv_pol${LIBRARYEXTENSION} fm_inv_pol_config fm_inv_pol_init pin
+    - cm fm_module ${PIN_HOME}/lib/fm_act_pol${LIBRARYEXTENSION} fm_act_pol_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_price${LIBRARYEXTENSION} fm_price_config fm_price_init pin
+    - cm fm_module ${PIN_HOME}/lib/fm_price_pol${LIBRARYEXTENSION} fm_price_pol_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_gl${LIBRARYEXTENSION} fm_gl_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_perm${LIBRARYEXTENSION} fm_perm_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_gel${LIBRARYEXTENSION} fm_gel_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_zonemap_pol${LIBRARYEXTENSION} fm_zonemap_pol_config fm_zonemap_pol_get_lineage_init pin
+    - cm fm_module ${PIN_HOME}/lib/fm_ar${LIBRARYEXTENSION} fm_ar_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_ar_pol${LIBRARYEXTENSION} fm_ar_pol_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_remit${LIBRARYEXTENSION} fm_remit_config fm_remit_init pin
+    - cm fm_module ${PIN_HOME}/lib/fm_remit_pol${LIBRARYEXTENSION} fm_remit_pol_config - pin
+    #- cm fm_module ${PIN_HOME}/lib/fm_reserve${LIBRARYEXTENSION} fm_reserve_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_device${LIBRARYEXTENSION} fm_device_config fm_device_init pin
+    - cm fm_module ${PIN_HOME}/lib/fm_device_pol${LIBRARYEXTENSION} fm_device_pol_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_custcare${LIBRARYEXTENSION} fm_custcare_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_filter_set${LIBRARYEXTENSION} fm_filter_set_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_rerate${LIBRARYEXTENSION} fm_rerate_config - pin
+    #- cm fm_module ${PIN_HOME}/lib/fm_asm${LIBRARYEXTENSION} fm_asm_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_job${LIBRARYEXTENSION} fm_job_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_monitor${LIBRARYEXTENSION} fm_monitor_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_offer_profile${LIBRARYEXTENSION} fm_offer_profile_config fm_offer_profile_init pin
+    
+    
+    #========================================================================
+    # rerating_em_group
+    #
+    # Defines a member opcode in a group of opcodes provided by an
+    # External Manager (EM). 
+    #
+    # The group tag must match the tag in the "em_pointer" entries below.
+    # 
+    # Each group includes two values:
+    #
+    #    -- the EM tag, a string of 1 to 15 characters, that matches the
+    #         em_pointer tags
+    #    -- the opcode name or number
+    #========================================================================
+    - cm em_group rerating PCM_OP_RATE_PIPELINE_EVENT
+    
+    
+    #========================================================================
+    # rerating_em_pointer
+    #
+    # Specifies where to find the External Manager(s) that provide other
+    # opcodes to the CM.
+    #
+    # Use a separate pointer for each EM on your system.
+    # 
+    # Each pointer includes four values:
+    #
+    #    <em tag>           = a string of 1 to 15 characters that matches
+    #                           the em_group keys
+    #    <address type tag> = "ip", for this release
+    #    <host>             = the name or IP address of the computer running
+    #                           the EM
+    #    <port>             = the TCP port number of the EM on this computer
+    #========================================================================
+    - cm em_pointer rerating ip ${CM_SERVICE_HOST} 24000
+    
+    
+    #========================================================================
+    # rollover_zeroout_discounts
+    #
+    # This is to support the Negative Discounts functionality 
+    # in the previous releases. Now the discount grants are all negative, 
+    # so if the bucket goes positive, we need a configuration to 
+    # zero-out the positive bucket. Rollover configuration for buckets gone 
+    # positive. 
+    #========================================================================
+    #- fm_rate rollover_zeroout_discounts 0
+    
+    
+    #========================================================================
+    # show_rerate_details
+    #
+    # Specifies whether to display shadow adjustments
+    # due to re-rating, in the invoice.
+    #
+    # By default we keep all the shadow adjustments that were generated
+    # due to re-rating.
+    # If this entry is set to 1, re-rated events which have RERATE_OBJ set
+    # will be dropped from the invoice details.
+    # Any shadow adjustment e.g event
+    # adjustment before billing will create a shadow event which still remains
+    # in the invoice details.
+    #
+    #    0 = (Default) Include the shadow events for rerated events in the invoice.
+    #    1 =  Drop the shadow events for rerated events in the invoice.
+    # 
+    #========================================================================
+    - fm_inv_pol show_rerate_details 0
+    
+    
+    #========================================================================
+    # ssl_auth
+    #
+    # To enable two-way server and client authentication between the CM and 
+    # the PCM client, uncomment the following entry.The PCM client must have
+    # a certificate in the client wallet to present to CM 
+    #
+    # This is an optional entry.
+    #
+    ##========================================================================
+    #- cm ssl_auth 2-way
+    
+    
+    #======================================================================
+    # tax_reversal_with_tax
+    #
+    # Specifies whether Portal will apply a tax reversal for an adjustment, dispute, 
+    # or settlement if the opcode does not specify a tax treatment.
+    #
+    # The value for this entry can be:
+    #
+    #    1 = A tax reversal will not occur.
+    #    2 = A tax reversal will occur.
+    #
+    # If this line is commented out, the tax reversal will not occur.
+    #======================================================================
+    #- fm_ar tax_reversal_with_tax 1
+    
+    
+    #========================================================================
+    # time_stamp_cdc
+    #
+    # Parameter that decides whether the day on which the service was reactivated
+    # be counted to increment contract days 
+    #
+    # Default value of time_stamp_cdc is configured as 1
+    #
+    #========================================================================
+    #- fm_subscription time_stamp_cdc 1
+    
+    
+    #========================================================================
+    # timeout
+    #
+    # Specifies the timeout value for receiving the next opcode request
+    # from an application.
+    #
+    # The value for this entry can be:
+    #
+    #    0 or less      = (Default) A CM child process waits infinitely for
+    #                       the next opcode request.
+    #    greater than 0 = A CM child process waits until the specified number
+    #                       of minutes has elapsed and then, if no opcode 
+    #                       request has arrived, the CM child process terminates.
+    #========================================================================
+    - cm cm_timeout 5
+    
+    
+    #========================================================================
+    # timezone_file
+    #
+    # The timezone_file entry specifies the location of the file through which 
+    # custom time zone entries can be added.
+    #
+    # Custom time zone entries can be added in the sample_timezone.txt file
+    #========================================================================
+    # - fm_rate timezone_file sample_timezone.txt
+    
+    
+    #========================================================================
+    # userid
+    #
+    # Identifies the CM for logging into the Data Manager.
+    # 
+    # The identification includes the Portal database number, 
+    # object type (/service or /account), and the service object ID 1. 
+    # The CM uses the database number to identify the Portal database 
+    # and to connect to the correct Data Manager.
+    #
+    # The database number, in the form 0.0.0.N, is the number assigned to 
+    # your Portal database when you installed the system. The default
+    # is 0.0.0.1.
+    #
+    # For connections that don't require a login name and password, the CM
+    # also passes the service type to the database.
+    #
+    # This entry is reserved for Portal; DO NOT change it.
+    #========================================================================
+    - cm userid 0.0.0.1 /service 1
+    
+    
+    #======================================================================
+    # valid_backward_interval 
+    # 
+    # Prevents billing when billing date is set in the past 
+    # 
+    # To control auto-triggered billing for events in the past, you can set a   
+    # value for the valid_backward_interval entry. 
+    # By default, this entry is set to 0. This means that validation of 
+    # billing time and current time is not performed. 
+    #======================================================================
+    #- fm_bill valid_backward_interval 0
+    
+    
+    #========================================================================
+    # wallet
+    #
+    # This entry specifies the location of the Oracle wallet used by CM for 
+    # storing the SSL certificate.
+    #
+    # This is an optional entry.
+    #
+    ##========================================================================
+    #- cm wallet ${PIN_HOME}/wallet/server
+    
+    
+    #========================================================================
+    # zoning_em_group
+    #
+    # Defines a member opcode in a group of opcodes provided by an
+    # External Manager (EM). 
+    #
+    # The group tag must match the tag in the "em_pointer" entries below.
+    # 
+    # Each group includes two values:
+    #
+    #    -- the EM tag, a string of 1 to 15 characters, that matches the
+    #         em_pointer tags
+    #    -- the opcode name or number
+    #========================================================================
+    - cm em_group zoning PCM_OP_RATE_GET_ZONEMAP_INFO
+    
+    
+    #========================================================================
+    # zoning_em_pointer
+    #
+    # Specifies where to find the External Manager(s) that provide other
+    # opcodes to the CM.
+    #
+    # Use a separate pointer for each EM on your system.
+    # 
+    # Each pointer includes four values:
+    #
+    #    <em tag>           = a string of 1 to 15 characters that matches
+    #                           the em_group keys
+    #    <address type tag> = "ip", for this release
+    #    <host>             = the name or IP address of the computer running
+    #                           the EM
+    #    <port>             = the TCP port number of the EM on this computer
+    #========================================================================
+    - cm em_pointer zoning ip ${CM_SERVICE_HOST} 34000
+    
+    
+    #========================================================================
+    # adu_fm_module
+    #
+    # Required Facilities Modules (FM) configuration entries
+    #
+    # The entries below specify the required FMs that are linked to the CM when
+    # the CM starts. The FMs required by the CM are included in this file when
+    # you install Portal. 
+    #
+    # Caution: DO NOT modify these entries unless you need to change the
+    #          location of the shared library file. DO NOT change the order of
+    #          these entries, because certain modules depend on others being
+    #          loaded before them.
+    #=======================================================================
+    - cm fm_module ${PIN_HOME}/lib/fm_adu${LIBRARYEXTENSION} fm_adu_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_adu_pol${LIBRARYEXTENSION} fm_adu_pol_config - pin
+    
+    
+    
+    #========================================================================
+    # config_export_fm_module
+    #
+    # Required Facilities Modules (FM) configuration entries
+    #
+    # The entries below specify the required FMs that are linked to the CM when
+    # the CM starts. The FMs required by the CM are included in this file when
+    # you install Portal. 
+    #
+    # Caution: DO NOT modify these entries unless you need to change the
+    #          location of the shared library file. DO NOT change the order of
+    #          these entries, because certain modules depend on others being
+    #          loaded before them.
+    #=======================================================================
+    - cm fm_module ${PIN_HOME}/lib/fm_gl_pol${LIBRARYEXTENSION} fm_gl_pol_config - pin
+    
+    
+    
+    #========================================================================
+    # billing segment config refresh delay
+    #
+    # Specifies how often the data in the cached /config/billing_segment
+    # object is automatically refreshed with data from the database.
+    #
+    # IMPORTANT  To refresh this data periodically without restarting the CM,
+    # you must uncomment this entry.
+    #
+    # To prevent this data from being automatically refreshed, comment out
+    # this entry.
+    #
+    # The value for this entry is in seconds.
+    #
+    # For example, to refresh the data every 24 hours, set this entry to
+    # 84600 (60 seconds x 60 minutes x 24 hours).
+    # 
+    #========================================================================
+    #- fm_cust billing_segment_config_refresh_delay 86400
+    
+    
+    #========================================================================
+    # cust billing segment
+    #
+    # Allocates size attributes of the CM cache to the 
+    # PIN_FLD_BILLING_SEGMENTS array in the /config/billing_segment object.
+    # This array stores the IDs and descriptions of all the billing segments
+    # in your system.
+    #
+    # This entry is required to add this data to the cache when the CM
+    # starts.
+    #
+    # The default settings are usually adequate, but if necessary, you can
+    # increase the allocated cache space by editing the [cache size] value
+    # below. For changes to take effect, the CM must be restarted.
+    #
+    # Syntax
+    #
+    #   - cm_cache fm_cust_billing_segment [number of entries], 
+    #                         [cache size], [hash size]
+    #
+    # Parameters
+    #
+    #   [number of entries]   The number of entries in the cache
+    #                         allocated to this data. The default is 1.
+    #
+    #   [cache size]          The memory in bytes of the cache
+    #                         allocated to this data. The default is 51200.
+    #
+    #   [hash size]           The number of buckets allocated to this data.
+    #                         The default is 1.
+    #
+    #========================================================================
+    - cm_cache fm_cust_billing_segment 1, 51200, 1
+    
+    
+    #========================================================================
+    # fm cust dom map
+    #
+    # Allocates size attributes of the CM cache to the PIN_FLD_MAP array in
+    # the /config/billing_segment object. This array stores all the billing
+    # segment and accounting day of month (DOM) associations in your system.
+    #
+    # This entry is required to add this data to the cache when the CM
+    # starts.
+    #
+    # The default settings are usually adequate, but if necessary, you can
+    # increase the allocated cache space by editing the [cache size] value
+    # below. For changes to take effect, the CM must be restarted.
+    #
+    # Syntax
+    #
+    #   - cm_cache fm_cust_dom_map [number of entries], [cache size],
+    #                         [hash size]
+    #
+    # Parameters
+    #
+    #   [number of entries]   The number of entries in the cache allocated
+    #                         to this data. The default is 1.
+    #
+    #   [cache size]          The memory in bytes of the cache allocated to
+    #                         this data. The default is 102400.
+    #
+    #   [hash size]           The number of buckets allocated to this data.
+    #                         The default is 1.
+    #
+    #========================================================================
+    - cm_cache fm_cust_dom_map 1, 102400, 1
+    
+    
+    #========================================================================
+    # cust login exclusion
+    #
+    # Allocates size attributes of the CM cache to the 
+    # PIN_FLD_LOGIN_EXCLUSION array in the /config/login_exclusion object.
+    # This array stores the IDs and descriptions of all the login exclusions
+    # in your system.
+    #
+    # This entry is required to add this data to the cache when the CM
+    # starts.
+    #
+    # The default settings are usually adequate, but if necessary, you can
+    # increase the allocated cache space by editing the [cache size] value
+    # below. For changes to take effect, the CM must be restarted.
+    #
+    # Syntax
+    #
+    #   - cm_cache fm_cust_login_exclusion [number of entries], 
+    #                         [cache size], [hash size]
+    #
+    # Parameters
+    #
+    #   [number of entries]   The number of entries in the cache
+    #                         allocated to this data. The default is 1.
+    #
+    #   [cache size]          The memory in bytes of the cache
+    #                         allocated to this data. The default is 51200.
+    #
+    #   [hash size]           The number of buckets allocated to this data.
+    #                         The default is 1.
+    #
+    #========================================================================
+    - cm_cache fm_cust_login_exclusion 1, 51200, 1
+    #- cm dm_pointer 0.0.1.1 ip ${DM_FUSA_SERVICE_HOST} ${DM_FUSA_SERVICE_PORT}
+
+    ## AccountSyncTool
+    - cm fm_module ${PIN_HOME}/lib/fm_ifw_sync${LIBRARYEXTENSION} fm_ifw_sync_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_ifw_sync_pol${LIBRARYEXTENSION} fm_ifw_sync_pol_config - pin
+
+    ## BRMServicesFrameworkMgr Begining
+    - cm fm_module ${PIN_HOME}/lib/fm_tcf${LIBRARYEXTENSION} fm_tcf_config fm_tcf_init pin
+    - cm fm_module ${PIN_HOME}/lib/fm_tcf_pol${LIBRARYEXTENSION} fm_tcf_pol_config - pin
+
+    #========================================================================
+    # fm_tcf_agent_return
+    #
+    # This is the value used for setting the provisioning status when
+    # provisioning is simulated.
+    #
+    #      0 - Provisioning is success (Default)
+    #      1 - Provisioning is Failed
+    #
+    #=======================================================================
+    - fm_tcf agent_return 0
+
+    #========================================================================
+    # fm_tcf_provisioning_enabled
+    #
+    # Entry for Disabling Provisioning
+    #
+    #=======================================================================
+    - fm_tcf provisioning_enabled  0
+
+    #========================================================================
+    # fm_tcf_simulate_agent
+    #
+    # In provisioning enabled environment, if provisioning needs to be simulated
+    # then this entry should be set to 1. By doing that service order will not be
+    # published to the agent. If this entry is set to 0 then service order will be
+    # published.
+    #
+    #=======================================================================
+    - fm_tcf simulate_agent 1
+
+    #========================================================================
+    # fm_tcf_support_multiple_so_enabled
+    #
+    # Entry for support_multiple_so
+    # Value  1 -> Enable multiple service order
+    # Value  0 or not configuring this entry -> Service order generation will be in sequence
+    # (Original behaviour / Default Mode )
+    #
+    #=======================================================================
+    - fm_tcf support_multiple_so  0
+
+    #========================================================================
+    # provisioning_db_no
+    #
+    # Specifies the number of the database to which provisioning connects
+    # to, to send the Service Order.
+    #========================================================================
+    - fm_tcf prov_db 0.0.10.2 / 0
+
+    #========================================================================
+    # provisioning_fm_required
+    #
+    # Required Facilities Modules (FM) configuration entries
+    #
+    # The entries below specify the required FMs that are linked to the CM when
+    # the CM starts. The FMs required by the CM are included in this file when
+    # you install Portal.
+    #
+    # Caution: DO NOT modify these entries unless you need to change the
+    #          location of the shared library file. DO NOT change the order of
+    #          these entries, because certain modules depend on others being
+    #          loaded before them.
+    #========================================================================
+
+    - cm fm_module ${PIN_HOME}/lib/fm_prov${LIBRARYEXTENSION} fm_prov_config fm_prov_init pin
+    - cm fm_module ${PIN_HOME}/lib/fm_prov_pol${LIBRARYEXTENSION} fm_prov_pol_config - pin
+
+
+    # CollectionMgr
+    - cm fm_module ${PIN_HOME}/lib/fm_collections${LIBRARYEXTENSION} fm_collections_config fm_collections_init pin
+    - cm fm_module ${PIN_HOME}/lib/fm_collections_pol${LIBRARYEXTENSION} fm_collections_pol_config - pin
+
+    #=======================================================================
+    # collections_action_dependency
+    # By default this feature is disabled(0).
+    #=======================================================================
+    #- fm_collections collections_action_dependency 1
+
+    #=======================================================================
+    # collections_config_actions_cache
+    #
+    #=======================================================================
+    - cm_cache fm_collections_config_actions_cache 256, 40960, 64
+
+    #=======================================================================
+    # collections_config_profiles_cache
+    #
+    #=======================================================================
+    - cm_cache fm_collections_config_profiles_cache 32, 20480, 16
+
+    #=======================================================================
+    # collections_config_scenario_cache
+    #
+    #=======================================================================
+    - cm_cache fm_collections_config_scenario_cache 256, 40960, 64
+    #=======================================================================
+    # fm_collections
+    # If the value of the old_overdue_behavior is 0
+    # The latest bill due date is considered to calculate the over due date.
+    # If the value of the old_overdue_behavior is 1
+    # The earliest bill due date is considered to calculate the over due date.
+    # The default will value will be 0.
+    #
+    #=======================================================================
+    #- fm_collections old_overdue_behavior 1
+
+    ## ContentMgr
+    - cm fm_module ${PIN_HOME}/lib/fm_content${LIBRARYEXTENSION} fm_content_config fm_content_init pin
+    - cm fm_module ${PIN_HOME}/lib/fm_content_pol${LIBRARYEXTENSION} fm_content_pol_config - pin
+
+    #========================================================================
+    # fm_utils_content_srvc_profile_cache
+    #
+    # Specifies attributes of the content service profile cache
+    #
+    # The default settings are usually adequate, but you can change them by
+    # manipulating the values below. The values are the defaults, and in order
+    # represent [number of entries], [cache size], [hash size]
+    #
+    # Note: For changes to take effect, the CM must be restarted
+    #========================================================================
+    - cm_cache fm_utils_content_srvc_profile_cache 100, 1048576, 13
+
+    #========================================================================
+    # content_prerated_mode
+    #
+    # To enable treating the amount based requests as pre-rated events (Skip rating calls) set,
+    #  content_prerated_mode 0(default)
+    #
+    # - To enable the rating mode , set
+    #  content_prerated_mode 1
+    #
+    # By default the value is set to 0.
+    #========================================================================
+    - cm content_prerated_mode 0
+
+    #=======================================================================
+    # content_use_profile
+    #
+    # Enabling Service Profiles
+    # The entry below specifies if the content products are using
+    # Service Profiles
+    # Valid Values for this are
+    # 0 - The Content Products do not use Service Profiles
+    # 1 - The Content Products use Service Profiles
+    # By default the value is set to 1.
+    #=======================================================================
+    - cm content_use_profiles 1
+
+    #=======================================================================
+    # content_profile_cache_ttl
+    #
+    # The duration (in seconds) for which content service profiles
+    # will remain in the CM cache.
+    #=======================================================================
+    - cm content_profile_cache_ttl 3600    
+
+    ## EAI_FrameworkMgr
+    - cm fm_module ${PIN_HOME}/lib/fm_publish${LIBRARYEXTENSION} fm_publish_config - pin
+
+    #========================================================================
+    # em_eai_pointer
+    #
+    # Specifies where to find the external manager that provides the opcode
+    # for the EAI Framework.
+    #========================================================================
+    - cm em_pointer publish ip ${EM_EAI_SERVICE_HOST} ${EM_EAI_SERVICE_PORT}
+
+    #========================================================================
+    # em_eai_group
+    #
+    # Defines the member opcode in a group provided by the EAI Framework.
+    #========================================================================
+    - cm em_group publish PCM_OP_PUBLISH_GEN_PAYLOAD
+
+    #========================================================================
+    # enable_eai_publish
+    #
+    # Enables publishing of business events using the EAI Framework.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = (Default) Portal doesn't publish the business events.
+    #    1 = Portal publishes the business events through the EAI framework.
+    #========================================================================
+    - fm_publish enable_publish 0
+
+    #========================================================================
+    # dm_eai_pointer
+    #
+    # Specifies where to find the EAI Framework Data Manager.
+    #========================================================================
+    - cm dm_pointer 0.0.9.1 ip ${DM_EAI_SERVICE_HOST} ${DM_EAI_SERVICE_PORT}# dm_eai
+
+    ## GPRSMgr
+    - cm fm_module ${PIN_HOME}/lib/fm_tcf_gprs_pol${LIBRARYEXTENSION} fm_gprs_pol_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_tcf_gprs${LIBRARYEXTENSION} fm_gprs_config - pin
+
+    ## GSMMgr
+    - cm fm_module ${PIN_HOME}/lib/fm_gsm${LIBRARYEXTENSION} fm_gsm_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_gsm_pol${LIBRARYEXTENSION} fm_gsm_pol_config - pin
+
+    ## InventoryMgr
+    - cm fm_module ${PIN_HOME}/lib/fm_order${LIBRARYEXTENSION} fm_order_config fm_order_init pin
+    - cm fm_module ${PIN_HOME}/lib/fm_order_pol${LIBRARYEXTENSION} fm_order_pol_config - pin
+
+    #========================================================================
+    # order_db_no
+    #
+    # Specifies the number of the database to which Order Manager connects
+    # to send the Orders.
+    #========================================================================
+    - fm_order primary_database 0.0.0.1 / 0
+
+    ## IPAddressMgr
+    - cm fm_module ${PIN_HOME}/lib/fm_ip${LIBRARYEXTENSION} fm_ip_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_ip_pol${LIBRARYEXTENSION} fm_ip_pol_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_apn_pol${LIBRARYEXTENSION} fm_apn_pol_config - pin
+
+    ## LDAPMgr
+    - cm fm_module ${PIN_HOME}/lib/fm_channel${LIBRARYEXTENSION} fm_channel_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_repl_pol${LIBRARYEXTENSION} fm_repl_pol_config - pin
+
+    #========================================================================
+    # enable_push
+    #
+    # Specifies whether to track changes to objects and to update channel
+    # objects.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = (Default) Don't update channel objects.
+    #    1 = Update channel objects.
+    #========================================================================
+    - fm_channel enable_push 1
+
+    #========================================================================
+    # ldap_dm_pointer
+    #
+    # Specifies your LDAP Data Manager.
+    #
+    # The default database number is 0.0.5.X, where X is the number of the
+    # of the Oracle database.
+    #========================================================================
+    #- cm dm_pointer 0.0.5.1 ip ${DM_LDAP_SERVICE_HOST} ${DM_LDAP_SERVICE_PORT}
+
+    #========================================================================
+    # ldap_env
+    #
+    # Specifies the LDAP environment that Portal uses for data replication.
+    #
+    # The value for this entry can be:
+    #
+    #    ldap = LDAP environment
+    #========================================================================
+    - fm_repl_pol ldap_env ldap
+
+    #========================================================================
+    # user_scheme
+    #
+    # Specifies a scheme for mapping events to a single object for pushing
+    # to the LDAP directory server.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = Use the "one-to-one mapping scheme," which maps Portal
+    #          /account and /service objects to separate entries in the
+    #          directory server.
+    #    1 = (Default) Use the "user mapping scheme," which maps Portal
+    #          /account and /service objects to one entry in the directory
+    #          server.
+    #========================================================================
+    - fm_repl_pol user_scheme 1
+
+    ## MultiDBMgr
+    - cm fm_module ${PIN_HOME}/lib/fm_global_search${LIBRARYEXTENSION} fm_global_search_config - pin
+
+    #========================================================================
+    # multi_db
+    #
+    # Specifies whether the option for multiple databases was selected during
+    # installation.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = The multidatabase option was not selected.
+    #    1 = The multidatabase option was selected.
+    #
+    # DO NOT edit this value.
+    #========================================================================
+    - cm multi_db 0
+
+    #========================================================================
+    # primary_db
+    #
+    # Denotes which database is the primary database.
+    #
+    # Use this entry in conjunction with the multi_db entry below.
+    #========================================================================
+    ## - cm primary_db 0.0.0.1 / 0
+
+    ## NumberMgr
+    - cm fm_module ${PIN_HOME}/lib/fm_num${LIBRARYEXTENSION} fm_num_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_num_pol${LIBRARYEXTENSION} fm_num_pol_config - pin
+
+    ## PaymentechMgr
+    - cm fm_module ${PIN_HOME}/lib/fm_pymt${LIBRARYEXTENSION} fm_pymt_config fm_pymt_init pin
+    - cm fm_module ${PIN_HOME}/lib/fm_pymt_pol${LIBRARYEXTENSION} fm_pymt_pol_config - pin
+
+    #========================================================================
+    # cc_collect
+    #
+    # Specifies whether to collect the current balance of an account during
+    # registration.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = Don't charge the customer during registration.
+    #    1 = (Default) Charge the customer during registration.
+    #========================================================================
+    - fm_pymt_pol cc_collect 1
+
+    #========================================================================
+    # cc_revalidation_interval
+    #
+    # Specifies the time limit, in seconds, for trying to revalidate a
+    # customer's credit card during registration.
+    #
+    # Portal won't attempt to validate a credit card till
+    # specified time has not elapsed. The default
+    # time limit is 3600 seconds (60 minutes).
+    #========================================================================
+    - fm_pymt_pol cc_revalidation_interval 3600
+
+    #========================================================================
+    # cc_validate
+    #
+    # Specifies whether to validate customer credit cards during registration.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = Portal doesn't validate the card.
+    #    1 = (Default) Portal validates the card.
+    #========================================================================
+    - fm_pymt_pol cc_validate 1
+
+    #========================================================================
+    # config_payment
+    #
+    # Configures the Modular Payment Interface.
+    #
+    # The default Portal object ID is 200, but you can override it by
+    # creataing another configuration object in the database and modifying
+    # this entry.
+    #========================================================================
+    - fm_pymt config_payment 0.0.0.1 /config/payment 200
+
+    #========================================================================
+    # minimum_payment
+    #
+    # Specifies the minimum payment amount.
+    #    2.00 = (Default)
+    #========================================================================
+    - fm_pymt_pol minimum_payment 2.00
+
+    #========================================================================
+    # validate_acct
+    #
+    # Specifies the account for logging credit-card validations during
+    # registration.
+    #
+    # You can't store this information with each account, because validation
+    # of a credit card is performed before the account is created. The default
+    # account is:
+    #
+    #     0.0.0.1 /account 1
+    #
+    # which is the root account in your database. You can change "1" to some
+    # other account, so long as it has a bill type that isn't affected by
+    # billing operations or events.
+    #========================================================================
+    - fm_pymt_pol validate_acct 0.0.0.1 /account 1
+
+    #========================================================================
+    # payment_batch_lock
+    #
+    # Specifies whether to open a read/write transaction at the account
+    # level or at batch level while doing the payments through Payment
+    # tool. By default it is batch level.
+    # Use 0 to lock at the account level or 1 to lock at the batch level.
+    #========================================================================
+    - fm_pymt payment_batch_lock 1
+
+    #========================================================================
+    # pol_minimum_refund
+    #
+    # Specifies the minimum refund amount.
+    #    2.00 = (Default)
+    #========================================================================
+    - fm_pymt_pol minimum_refund 2.00
+
+    #========================================================================
+    # cvv2_required
+    #
+    # For Paymentech credit-card processor users, specifies whether
+    # to require credit-card verification (CVV) data for Visa card
+    # transactions, as a method of fraud prevention.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = (Default) Do not require CVV data.
+    #    1 = Require CVV data.
+    #
+    # Note: Until the end of 1999, cards could be issued without
+    #       this information.
+    #========================================================================
+    - fm_pymt_pol cvv2_required 0
+
+    #========================================================================
+    # cid_required
+    #
+    # For Paymentech credit-card processor users, specifies whether to
+    # require credit-card verification (CID) data for American Express
+    # card transactions, as a method of fraud prevention.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = (Default) Do not require CID data.
+    #    1 = Require CID data.
+    #========================================================================
+    - fm_pymt_pol cid_required 0
+
+    #========================================================================
+    # dd_validate
+    #
+    # Specifies whether to validate customers� direct-debit accounts
+    # during registration.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = Do not validate the account.
+    #    1 = (Default) Validate the account.
+    #========================================================================
+    - fm_pymt_pol dd_validate 1
+
+    #========================================================================
+    # dd_revalidation_interval
+    #
+    # Specifies the time limit, in seconds, before Portal tries to
+    # revalidate a customer's direct-debit account during registration.
+    #
+    # Portal won't attempt to validate an account till
+    # the specified time hasn't elapsed. The default time limit is
+    # 3600 seconds (1 hour).
+    #========================================================================
+    - fm_pymt_pol dd_revalidation_interval 3600
+
+    #========================================================================
+    # dd_collect
+    #
+    # Specifies whether to collect the current balance of each account
+    # during registration.
+    #
+    # The value for this entry can be:
+    #
+    #    0 = Do not charge the customer.
+    #    1 = (Default) Charge the customer for the current balance.
+    #========================================================================
+    - fm_pymt_pol dd_collect 1
+
+    ## RevAssuranceMgr
+    #========================================================================
+    # Process_Audit_db_no
+    #
+    # Specifies the number of the database to which provisioning connects
+    # to, to send the Service Order.
+    #========================================================================
+    - fm_process_audit primary_database 0.0.0.1 / 0
+
+    #========================================================================
+    # Process_Audit_manager_fm_required
+    #
+    # Required Facilities Modules (FM) configuration entries
+    #
+    # The entries below specify the required FMs that are linked to the CM when
+    # the CM starts. The FMs required by the CM are included in this file when
+    # you install Portal.
+    #
+    # Caution: DO NOT modify these entries unless you need to change the
+    #          location of the shared library file. DO NOT change the order of
+    #          these entries, because certain modules depend on others being
+    #          loaded before them.
+    #=======================================================================
+    - cm fm_module ${PIN_HOME}/lib/fm_process_audit${LIBRARYEXTENSION} fm_process_audit_config fm_process_audit_init pin
+    - cm fm_module ${PIN_HOME}/lib/fm_process_audit_pol_create${LIBRARYEXTENSION} fm_process_audit_pol_config - pin
+
+    #========================================================================
+    # writeoff_batch_id_prefix
+    #
+    # Specifies the prefix for batch id generated for each suspense writeoff action
+    #
+    # This is a optional, if not provided defaults to "WRITTENOFF_"
+    #========================================================================
+    - fm_process_audit writeoff_batch_id_prefix WRITTENOFF_
+
+
+    #========================================================================
+    # writeoff_control_point_id
+    #
+    # For written-off EDRs, Revenue Assurance Manager collects the original
+    # batch ID and the number of EDRs that were written off in the batch.
+    #
+    # This parameter specifies the control point ID to collect revenue
+    # assurance data on written-off EDRs. For more details on control points,
+    # refer to BRM documentation.
+    #
+    # Default value is CP_SuspenseWriteOff
+    # This entry is mandatory
+    #========================================================================
+    - fm_process_audit writeoff_control_point_id CP_SuspenseWriteOff
+
+
+    ## SIMMgr
+    - cm fm_module ${PIN_HOME}/lib/fm_sim${LIBRARYEXTENSION} fm_sim_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_sim_pol${LIBRARYEXTENSION} fm_sim_pol_config - pin 
+
+    ## SMSSettlement_Reports
+    - cm fm_module ${PIN_HOME}/lib/fm_ic${LIBRARYEXTENSION} fm_ic_config - pin
+
+    ## SuspenseMgr 
+    - cm fm_module ${PIN_HOME}/lib/fm_suspense${LIBRARYEXTENSION} fm_suspense_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_batch_suspense${LIBRARYEXTENSION} fm_batch_suspense_config - pin
+
+    ## VertexMgr
+    #========================================================================
+    # taxware_db
+    #
+    # Specifies the database number of the Taxware database.
+    #
+    # If you use Taxware, enable this entry by removing the crosshatch (#)
+    # from the beginning of the line and verifying that the database number
+    # matches the number specified in the dm_pointer entry of the Taxware DM
+    # configuration file.
+    #========================================================================
+    #- fm_rate vertex_db 0.0.8.1 /_tax_db 0
+
+    #========================================================================
+    # vertex_dm_pointer
+    #
+    #========================================================================
+    #- cm dm_pointer 0.0.8.1 ip ${DM_TAX_SERVICE_HOST} ${DM_TAX_SERVICE_PORT}  # dm_vertex
+
+    ## VoucherMgr
+    - cm fm_module ${PIN_HOME}/lib/fm_voucher${LIBRARYEXTENSION} fm_voucher_config - pin
+    - cm fm_module ${PIN_HOME}/lib/fm_voucher_pol${LIBRARYEXTENSION} fm_voucher_pol_config - pin
+
+    #========================================================================
+    # voucher_db_no
+    #
+    # Specifies the number of the database to which Voucher manager connects
+    # to send the Vouchers.
+    #========================================================================
+    - fm_voucher primary_database 0.0.0.1 / 0
+    
+    
+    ## dm_aq
+    #========================================================================
+    # dm_aq_dm_pointer
+    # Specifies where to find the external manager that provides the opcode
+    # for CRM Synchronization.
+    #========================================================================
+    - cm dm_pointer 0.0.9.7 ip ${DM_AQ_SERVICE_HOST} ${DM_AQ_SERVICE_PORT}
+
+    #========================================================================
+    # ifw_sync_dm_pointer
+    # Specifies where to find the external manager that provides the opcode
+    # for IFW Synchronization.
+    ##========================================================================
+    - cm dm_pointer 0.0.9.9 ip ${DM_IFW_SYNC_SERVICE_HOST} ${DM_IFW_SYNC_SERVICE_PORT}
+
+    ## dm_invoice
+    #=========
+    # dm_invoice_dm_attributes
+    #=========
+    #- cm dm_attributes 0.0.6.1 assign_account_obj
+    
+    #=========
+    # dm_invoice_dm_pointer
+    #=========
+    #- cm dm_pointer 0.0.6.1 ip ${DM_INVOICE_SERVICE_HOST} ${DM_INVOICE_SERVICE_PORT}
+    
+    #=========
+    # dm_invoice_db_no
+    #=========
+    #- fm_cust_pol invoice_db 0.0.6.1 /invoice 0
+    
+    ## dm_prov_telco
+    #========================================================================
+    # dm_provisioning_pointer
+    #
+    # Specifies where to find the Provisioning Data Manager.
+    #========================================================================
+    #- cm dm_pointer 0.0.10.2 ip ${DM_PROV_TELCO_SERVICE_HOST} ${DM_PROV_TELCO_SERVICE_PORT}
+    
+    #========================================================================
+    # Invoice_formatter_em_pointer
+    #========================================================================
+    - cm em_pointer formatter ip ${FORMATTER_SERVICE_HOST} ${FORMATTER_SERVICE_PORT}
+    #========================================================================
+    # Invoice_formatter_em_group
+    #========================================================================
+    - cm em_group formatter 960
+    #========================================================================
+    # For publishing events to ECE outside CNE
+    #========================================================================
+    #- cm em_group ece PCM_OP_ECE_PUBLISH_EVENT
+    #- cm em_pointer ece ip <ECE Host> <ECE EM GW Port>
+    #- cm ece_real_time_sync_db_no 0.0.9.8 /0 0
+    #- cm em_group ece PCM_OP_BAL_GET_ECE_BALANCES 
+    #- cm em_group ece PCM_OP_RATE_ECE_EVENT

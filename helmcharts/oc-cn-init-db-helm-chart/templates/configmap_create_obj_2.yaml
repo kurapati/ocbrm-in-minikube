@@ -1,0 +1,901 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: create-obj-2-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+      application: {{ .Chart.Name }}
+data:
+  create_obj_2.source: |
+
+        <PCM_OP $PIN_OPNAME=$PIN_CONF_INIT_OPNAME; $PIN_OPFLAGS=0>
+        0 PIN_FLD_POID           POID [0] 0.0.0.1 /config/telco/gsm/sms -1 0
+        0 PIN_FLD_HOSTNAME                   STR [0] "-"
+        0 PIN_FLD_NAME                       STR [0] "/config/telco/gsm/sms"
+        0 PIN_FLD_PROGRAM_NAME               STR [0] "load_pin_telco_tags"
+        0 PIN_FLD_PROD_PROVISIONING_TAGS  ARRAY [0] allocated 20, used 6
+        1     PIN_FLD_PROVISIONING_TAG    STR [0] "SMS Corporate Premium"
+        1     PIN_FLD_DESCR           STR [0] "SMS International service package"
+        1     PIN_FLD_DATE_CHANGE_IMPACT   ENUM [0] 1
+        1     PIN_FLD_SERVICE_EXTENSIONS  ARRAY [0] allocated 20, used 2
+        2         PIN_FLD_NAME            STR [0] "BEARER_SERVICE"
+        2         PIN_FLD_VALUE           STR [0] "T20"
+        1     PIN_FLD_TELCO_FEATURES  ARRAY [0] allocated 20, used 1
+        2         PIN_FLD_NAME            STR [0] "BAOC"
+        1     PIN_FLD_TELCO_FEATURES  ARRAY [1] allocated 20, used 1
+        2         PIN_FLD_NAME            STR [0] "BICRO"
+        0 PIN_FLD_PROD_PROVISIONING_TAGS  ARRAY [1] allocated 20, used 6
+        1     PIN_FLD_PROVISIONING_TAG    STR [0] "SMS Corporate Plus"
+        1     PIN_FLD_DESCR           STR [0] "SMS International service package"
+        1     PIN_FLD_DATE_CHANGE_IMPACT   ENUM [0] 1
+        1     PIN_FLD_SERVICE_EXTENSIONS  ARRAY [0] allocated 20, used 2
+        2         PIN_FLD_NAME            STR [0] "BEARER_SERVICE"
+        2         PIN_FLD_VALUE           STR [0] "T20"
+        1     PIN_FLD_TELCO_FEATURES  ARRAY [0] allocated 20, used 1
+        2         PIN_FLD_NAME            STR [0] "BAOC"
+        1     PIN_FLD_TELCO_FEATURES  ARRAY [1] allocated 20, used 1
+        2         PIN_FLD_NAME            STR [0] "BICRO"
+        0 PIN_FLD_PROD_PROVISIONING_TAGS  ARRAY [2] allocated 20, used 6
+        1     PIN_FLD_PROVISIONING_TAG    STR [0] "SMS Standard"
+        1     PIN_FLD_DESCR           STR [0] "SMS service package"
+        1     PIN_FLD_DATE_CHANGE_IMPACT   ENUM [0] 1
+        1     PIN_FLD_SERVICE_EXTENSIONS  ARRAY [0] allocated 20, used 2
+        2         PIN_FLD_NAME            STR [0] "BEARER_SERVICE"
+        2         PIN_FLD_VALUE           STR [0] "T20"
+        1     PIN_FLD_TELCO_FEATURES  ARRAY [0] allocated 20, used 1
+        2         PIN_FLD_NAME            STR [0] "BAOC"
+        1     PIN_FLD_TELCO_FEATURES  ARRAY [1] allocated 20, used 1
+        2         PIN_FLD_NAME            STR [0] "BICRO"
+        0 PIN_FLD_PROD_PROVISIONING_TAGS  ARRAY [3] allocated 20, used 3
+        1     PIN_FLD_PROVISIONING_TAG    STR [0] "SMS Add On Standard: Promotions and SS"
+        1     PIN_FLD_DESCR           STR [0] "Current SS: Call Barring (BAICR and BIOC)"
+        1     PIN_FLD_DATE_CHANGE_IMPACT   ENUM [0] 1
+        0 PIN_FLD_PROD_PROVISIONING_TAGS  ARRAY [4] allocated 20, used 4
+        1     PIN_FLD_PROVISIONING_TAG    STR [0] "SMS Teen"
+        1     PIN_FLD_DESCR           STR [0] "SMS service package"
+        1     PIN_FLD_DATE_CHANGE_IMPACT   ENUM [0] 1
+        1     PIN_FLD_SERVICE_EXTENSIONS  ARRAY [0] allocated 20, used 2
+        2         PIN_FLD_NAME            STR [0] "BEARER_SERVICE"
+        2         PIN_FLD_VALUE           STR [0] "T20"
+        0 PIN_FLD_PROD_PROVISIONING_TAGS  ARRAY [5] allocated 20, used 5
+        1     PIN_FLD_PROVISIONING_TAG    STR [0] "SMS Teen Add On: Promotions and SS"
+        1     PIN_FLD_DESCR           STR [0] "Current Promotion: Call Barring (BAICR and BIOC)"
+        1     PIN_FLD_DATE_CHANGE_IMPACT   ENUM [0] 1
+        1     PIN_FLD_TELCO_FEATURES  ARRAY [0] allocated 20, used 1
+        2         PIN_FLD_NAME            STR [0] "BAOC"
+        1     PIN_FLD_TELCO_FEATURES  ARRAY [1] allocated 20, used 1
+        2         PIN_FLD_NAME            STR [0] "BICRO"
+        0 PIN_FLD_PROD_PROVISIONING_TAGS  ARRAY [6] allocated 20, used 4
+        1     PIN_FLD_PROVISIONING_TAG    STR [0] "SMS Basic"
+        1     PIN_FLD_DESCR           STR [0] "SMS basic service package"
+        1     PIN_FLD_DATE_CHANGE_IMPACT   ENUM [0] 1
+        1     PIN_FLD_SERVICE_EXTENSIONS  ARRAY [0] allocated 20, used 2
+        2         PIN_FLD_NAME            STR [0] "BEARER_SERVICE"
+        2         PIN_FLD_VALUE           STR [0] "T20"
+        0 PIN_FLD_PROD_PROVISIONING_TAGS  ARRAY [7] allocated 20, used 6
+        1     PIN_FLD_PROVISIONING_TAG    STR [0] "SMS International"
+        1     PIN_FLD_DESCR           STR [0] "SMS International service package"
+        1     PIN_FLD_DATE_CHANGE_IMPACT   ENUM [0] 1
+        1     PIN_FLD_SERVICE_EXTENSIONS  ARRAY [0] allocated 20, used 2
+        2         PIN_FLD_NAME            STR [0] "BEARER_SERVICE"
+        2         PIN_FLD_VALUE           STR [0] "T20"
+        1     PIN_FLD_TELCO_FEATURES  ARRAY [0] allocated 20, used 1
+        2         PIN_FLD_NAME            STR [0] "BAOC"
+        1     PIN_FLD_TELCO_FEATURES  ARRAY [1] allocated 20, used 1
+        2         PIN_FLD_NAME            STR [0] "BICRO"
+        0 PIN_FLD_ACCOUNT_OBJ    POID [0] 0.0.0.1 /account 1 0
+        </PCM_OP>
+
+        # pin_notify
+        <PCM_OP $PIN_OPNAME=$PIN_CONF_INIT_OPNAME; $PIN_OPFLAGS=0>
+        0 PIN_FLD_POID           POID [0] 0.0.0.1 /config/notify 0 0
+        0 PIN_FLD_NAME            STR [0] "pin_notify"
+        0 PIN_FLD_HOSTNAME        STR [0] "-"
+        0 PIN_FLD_PROGRAM_NAME    STR [0] "-"
+        0 PIN_FLD_VERSION         STR [0] "1"
+        0 PIN_FLD_EVENTS        ARRAY [0] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 301
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/session"
+        0 PIN_FLD_EVENTS        ARRAY [1] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 301
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/session/dialup"
+        0 PIN_FLD_EVENTS        ARRAY [2] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 301
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/notification/threshold"
+        0 PIN_FLD_EVENTS        ARRAY [3] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 301
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/notification/datethreshold"
+        0 PIN_FLD_EVENTS        ARRAY [4] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 304
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/notification/limit"
+        0 PIN_FLD_EVENTS        ARRAY [5] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 304
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/notification/datexpire"
+        0 PIN_FLD_EVENTS        ARRAY [6] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/audit/collections/action"
+        0 PIN_FLD_EVENTS        ARRAY [7] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/audit/customer/payinfo/cc"
+        0 PIN_FLD_EVENTS        ARRAY [8] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/audit/customer/payinfo/dd"
+        0 PIN_FLD_EVENTS        ARRAY [9] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/audit/customer/payinfo/invoice"
+        0 PIN_FLD_EVENTS        ARRAY [10] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/audit/customer/payinfo/sepa"
+        0 PIN_FLD_EVENTS        ARRAY [11] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/adjustment/account"
+        0 PIN_FLD_EVENTS        ARRAY [12] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/adjustment/bill"
+        0 PIN_FLD_EVENTS        ARRAY [13] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/adjustment/event"
+        0 PIN_FLD_EVENTS        ARRAY [14] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/adjustment/event/deferred"
+        0 PIN_FLD_EVENTS        ARRAY [15] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/adjustment/item"
+        0 PIN_FLD_EVENTS        ARRAY [16] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/adjustment/tax_event"
+        0 PIN_FLD_EVENTS        ARRAY [17] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/best_pricing"
+        0 PIN_FLD_EVENTS        ARRAY [18] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/bundle/create"
+        0 PIN_FLD_EVENTS        ARRAY [19] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/bundle/modify"
+        0 PIN_FLD_EVENTS        ARRAY [20] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/cdc_update"
+        0 PIN_FLD_EVENTS        ARRAY [21] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/cdcd_update"
+        0 PIN_FLD_EVENTS        ARRAY [22] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/charge/cc"
+        0 PIN_FLD_EVENTS        ARRAY [23] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/charge/dd"
+        0 PIN_FLD_EVENTS        ARRAY [24] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/charge/ddebit"
+        0 PIN_FLD_EVENTS        ARRAY [25] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/charge/invoice"
+        0 PIN_FLD_EVENTS        ARRAY [26] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/corrective_bill"
+        0 PIN_FLD_EVENTS        ARRAY [27] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/credit"
+        0 PIN_FLD_EVENTS        ARRAY [28] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/cycle/discount"
+        0 PIN_FLD_EVENTS        ARRAY [29] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/cycle/fold"
+        0 PIN_FLD_EVENTS        ARRAY [30] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/cycle/rollover"
+        0 PIN_FLD_EVENTS        ARRAY [31] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/cycle/rollover/monthly"
+        0 PIN_FLD_EVENTS        ARRAY [32] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/cycle/rollover_correction"
+        0 PIN_FLD_EVENTS        ARRAY [33] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/cycle/rollover_transfer"
+        0 PIN_FLD_EVENTS        ARRAY [34] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/cycle/tax"
+        0 PIN_FLD_EVENTS        ARRAY [35] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/deal/cancel"
+        0 PIN_FLD_EVENTS        ARRAY [36] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/deal/purchase"
+        0 PIN_FLD_EVENTS        ARRAY [37] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/debit"
+        0 PIN_FLD_EVENTS        ARRAY [38] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/discount/action/cancel"
+        0 PIN_FLD_EVENTS        ARRAY [39] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/discount/action/modify"
+        0 PIN_FLD_EVENTS        ARRAY [40] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/discount/action/modify/status"
+        0 PIN_FLD_EVENTS        ARRAY [41] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/discount/action/purchase"
+        0 PIN_FLD_EVENTS        ARRAY [42] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/discount/action/set_validity"
+        0 PIN_FLD_EVENTS        ARRAY [43] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/dispute"
+        0 PIN_FLD_EVENTS        ARRAY [44] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/dispute/bill"
+        0 PIN_FLD_EVENTS        ARRAY [45] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/dispute/event"
+        0 PIN_FLD_EVENTS        ARRAY [46] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/dispute/item"
+        0 PIN_FLD_EVENTS        ARRAY [47] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/dispute/tax_event"
+        0 PIN_FLD_EVENTS        ARRAY [48] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/fee/failed_payment"
+        0 PIN_FLD_EVENTS        ARRAY [49] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/finance_charge"
+        0 PIN_FLD_EVENTS        ARRAY [50] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/incentive"
+        0 PIN_FLD_EVENTS        ARRAY [51] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/invoice"
+        0 PIN_FLD_EVENTS        ARRAY [52] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/item"
+        0 PIN_FLD_EVENTS        ARRAY [53] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/item/transfer"
+        0 PIN_FLD_EVENTS        ARRAY [54] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/late_fee"
+        0 PIN_FLD_EVENTS        ARRAY [55] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/lcupdate"
+        0 PIN_FLD_EVENTS        ARRAY [56] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/limit"
+        0 PIN_FLD_EVENTS        ARRAY [57] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/mfuc_update"
+        0 PIN_FLD_EVENTS        ARRAY [58] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/monitor/delete"
+        0 PIN_FLD_EVENTS        ARRAY [59] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/monitor/update"
+        0 PIN_FLD_EVENTS        ARRAY [60] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/ordered_balgrp/create"
+        0 PIN_FLD_EVENTS        ARRAY [61] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/ordered_balgrp/delete"
+        0 PIN_FLD_EVENTS        ARRAY [62] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/ordered_balgrp/modify"
+        0 PIN_FLD_EVENTS        ARRAY [63] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/payment"
+        0 PIN_FLD_EVENTS        ARRAY [64] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/payment/cash"
+        0 PIN_FLD_EVENTS        ARRAY [65] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/payment/cc"
+        0 PIN_FLD_EVENTS        ARRAY [66] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/payment/check"
+        0 PIN_FLD_EVENTS        ARRAY [67] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/payment/dd"
+        0 PIN_FLD_EVENTS        ARRAY [68] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/payment/ddebit"
+        0 PIN_FLD_EVENTS        ARRAY [69] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/payment/failed"
+        0 PIN_FLD_EVENTS        ARRAY [70] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/payment/payorder"
+        0 PIN_FLD_EVENTS        ARRAY [71] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/payment/postalorder"
+        0 PIN_FLD_EVENTS        ARRAY [72] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/payment/sap"
+        0 PIN_FLD_EVENTS        ARRAY [73] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/payment/sepa"
+        0 PIN_FLD_EVENTS        ARRAY [74] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/payment/voucher"
+        0 PIN_FLD_EVENTS        ARRAY [75] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/payment/wtransfer"
+        0 PIN_FLD_EVENTS        ARRAY [76] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/product/action/cancel"
+        0 PIN_FLD_EVENTS        ARRAY [77] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/product/action/modify"
+        0 PIN_FLD_EVENTS        ARRAY [78] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/product/action/modify/status"
+        0 PIN_FLD_EVENTS        ARRAY [79] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/product/action/purchase"
+        0 PIN_FLD_EVENTS        ARRAY [80] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/product/action/set_validity"
+        0 PIN_FLD_EVENTS        ARRAY [81] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/product/fee/cancel"
+        0 PIN_FLD_EVENTS        ARRAY [82] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/product/fee/cycle/cycle_arrear"
+        0 PIN_FLD_EVENTS        ARRAY [83] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/product/fee/cycle/cycle_forward_annual"
+        0 PIN_FLD_EVENTS        ARRAY [84] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/product/fee/cycle/cycle_forward_arrear"
+        0 PIN_FLD_EVENTS        ARRAY [85] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/product/fee/cycle/cycle_forward_bimonthly"
+        0 PIN_FLD_EVENTS        ARRAY [86] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/product/fee/cycle/cycle_forward_monthly"
+        0 PIN_FLD_EVENTS        ARRAY [87] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/product/fee/cycle/cycle_forward_quarterly"
+        0 PIN_FLD_EVENTS        ARRAY [88] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/product/fee/cycle/cycle_forward_semiannual"
+        0 PIN_FLD_EVENTS        ARRAY [89] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/product/fee/purchase"
+        0 PIN_FLD_EVENTS        ARRAY [90] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/provision"
+        0 PIN_FLD_EVENTS        ARRAY [91] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/provision/dd"
+        0 PIN_FLD_EVENTS        ARRAY [92] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/purchase_fee"
+        0 PIN_FLD_EVENTS        ARRAY [93] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/refund"
+        0 PIN_FLD_EVENTS        ARRAY [94] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/refund/cash"
+        0 PIN_FLD_EVENTS        ARRAY [95] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/refund/cc"
+        0 PIN_FLD_EVENTS        ARRAY [96] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/refund/check"
+        0 PIN_FLD_EVENTS        ARRAY [97] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/refund/dd"
+        0 PIN_FLD_EVENTS        ARRAY [98] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/refund/ddebit"
+        0 PIN_FLD_EVENTS        ARRAY [99] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/refund/payorder"
+        0 PIN_FLD_EVENTS        ARRAY [100] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/refund/postalorder"
+        0 PIN_FLD_EVENTS        ARRAY [101] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/refund/sepa"
+        0 PIN_FLD_EVENTS        ARRAY [102] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/refund/voucher"
+        0 PIN_FLD_EVENTS        ARRAY [103] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/refund/wtransfer"
+        0 PIN_FLD_EVENTS        ARRAY [104] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/remittance"
+        0 PIN_FLD_EVENTS        ARRAY [105] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/reversal/cash"
+        0 PIN_FLD_EVENTS        ARRAY [106] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/reversal/cc"
+        0 PIN_FLD_EVENTS        ARRAY [107] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/reversal/check"
+        0 PIN_FLD_EVENTS        ARRAY [108] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/reversal/dd"
+        0 PIN_FLD_EVENTS        ARRAY [109] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/reversal/ddebit"
+        0 PIN_FLD_EVENTS        ARRAY [110] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/reversal/failed"
+        0 PIN_FLD_EVENTS        ARRAY [111] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/reversal/payorder"
+        0 PIN_FLD_EVENTS        ARRAY [112] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/reversal/postalorder"
+        0 PIN_FLD_EVENTS        ARRAY [113] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/reversal/sepa"
+        0 PIN_FLD_EVENTS        ARRAY [114] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/reversal/voucher"
+        0 PIN_FLD_EVENTS        ARRAY [115] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/reversal/wtransfer"
+        0 PIN_FLD_EVENTS        ARRAY [116] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/sap"
+        0 PIN_FLD_EVENTS        ARRAY [117] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/sap/sap_charges"
+        0 PIN_FLD_EVENTS        ARRAY [118] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/settlement/bill"
+        0 PIN_FLD_EVENTS        ARRAY [119] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/settlement/event"
+        0 PIN_FLD_EVENTS        ARRAY [120] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/settlement/item"
+        0 PIN_FLD_EVENTS        ARRAY [121] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/settlement/tax_event"
+        0 PIN_FLD_EVENTS        ARRAY [122] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/sub_bal_validity"
+        0 PIN_FLD_EVENTS        ARRAY [123] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/suppression"
+        0 PIN_FLD_EVENTS        ARRAY [124] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/suppression/exception"
+        0 PIN_FLD_EVENTS        ARRAY [125] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/validate"
+        0 PIN_FLD_EVENTS        ARRAY [126] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/validate/cc"
+        0 PIN_FLD_EVENTS        ARRAY [127] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/validate/dd"
+        0 PIN_FLD_EVENTS        ARRAY [128] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/vouchertopup"
+        0 PIN_FLD_EVENTS        ARRAY [129] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/writeoff"
+        0 PIN_FLD_EVENTS        ARRAY [130] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/writeoff/account"
+        0 PIN_FLD_EVENTS        ARRAY [131] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/writeoff/bill"
+        0 PIN_FLD_EVENTS        ARRAY [132] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/writeoff/billinfo"
+        0 PIN_FLD_EVENTS        ARRAY [133] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/writeoff/item"
+        0 PIN_FLD_EVENTS        ARRAY [134] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/writeoff/tax_account"
+        0 PIN_FLD_EVENTS        ARRAY [135] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/writeoff/tax_bill"
+        0 PIN_FLD_EVENTS        ARRAY [136] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/writeoff/tax_billinfo"
+        0 PIN_FLD_EVENTS        ARRAY [137] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/writeoff/tax_item"
+        0 PIN_FLD_EVENTS        ARRAY [138] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/writeoff_reversal"
+        0 PIN_FLD_EVENTS        ARRAY [139] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/writeoff_reversal/tax"
+        0 PIN_FLD_EVENTS        ARRAY [140] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/broadband"
+        0 PIN_FLD_EVENTS        ARRAY [141] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/broadband/usage"
+        0 PIN_FLD_EVENTS        ARRAY [142] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/control_rerate"
+        0 PIN_FLD_EVENTS        ARRAY [143] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/customer/actginfo"
+        0 PIN_FLD_EVENTS        ARRAY [144] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/customer/billinfo/create"
+        0 PIN_FLD_EVENTS        ARRAY [145] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/customer/billinfo/delete"
+        0 PIN_FLD_EVENTS        ARRAY [146] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/customer/billinfo/modify"
+        0 PIN_FLD_EVENTS        ARRAY [147] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/customer/locale"
+        0 PIN_FLD_EVENTS        ARRAY [148] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/customer/login"
+        0 PIN_FLD_EVENTS        ARRAY [149] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/customer/nameinfo"
+        0 PIN_FLD_EVENTS        ARRAY [150] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/customer/password"
+        0 PIN_FLD_EVENTS        ARRAY [151] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/customer/status"
+        0 PIN_FLD_EVENTS        ARRAY [152] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/device/associate"
+        0 PIN_FLD_EVENTS        ARRAY [153] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/device/attribute"
+        0 PIN_FLD_EVENTS        ARRAY [154] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/device/brand"
+        0 PIN_FLD_EVENTS        ARRAY [155] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/device/create"
+        0 PIN_FLD_EVENTS        ARRAY [156] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/device/delete"
+        0 PIN_FLD_EVENTS        ARRAY [157] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/device/disassociate"
+        0 PIN_FLD_EVENTS        ARRAY [158] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/device/replace"
+        0 PIN_FLD_EVENTS        ARRAY [159] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/device/state"
+        0 PIN_FLD_EVENTS        ARRAY [160] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/group"
+        0 PIN_FLD_EVENTS        ARRAY [161] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/group/collections_targets"
+        0 PIN_FLD_EVENTS        ARRAY [162] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/group/member"
+        0 PIN_FLD_EVENTS        ARRAY [163] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/group/parent"
+        0 PIN_FLD_EVENTS        ARRAY [164] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/group/sharing/charges"
+        0 PIN_FLD_EVENTS        ARRAY [165] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/group/sharing/charges/create"
+        0 PIN_FLD_EVENTS        ARRAY [166] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/group/sharing/charges/delete"
+        0 PIN_FLD_EVENTS        ARRAY [167] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/group/sharing/charges/modify"
+        0 PIN_FLD_EVENTS        ARRAY [168] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/group/sharing/discounts"
+        0 PIN_FLD_EVENTS        ARRAY [169] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/group/sharing/discounts/create"
+        0 PIN_FLD_EVENTS        ARRAY [170] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/group/sharing/discounts/delete"
+        0 PIN_FLD_EVENTS        ARRAY [171] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/group/sharing/discounts/modify"
+        0 PIN_FLD_EVENTS        ARRAY [172] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/group/sharing/monitor"
+        0 PIN_FLD_EVENTS        ARRAY [173] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/group/sharing/monitor/create"
+        0 PIN_FLD_EVENTS        ARRAY [174] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/group/sharing/monitor/delete"
+        0 PIN_FLD_EVENTS        ARRAY [175] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/group/sharing/monitor/modify"
+        0 PIN_FLD_EVENTS        ARRAY [176] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/group/sharing/profiles"
+        0 PIN_FLD_EVENTS        ARRAY [177] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/group/sharing/profiles/create"
+        0 PIN_FLD_EVENTS        ARRAY [178] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/group/sharing/profiles/delete"
+        0 PIN_FLD_EVENTS        ARRAY [179] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/group/sharing/profiles/modify"
+        0 PIN_FLD_EVENTS        ARRAY [180] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/notification/account/create"
+        0 PIN_FLD_EVENTS        ARRAY [181] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/notification/bill_now/start"
+        0 PIN_FLD_EVENTS        ARRAY [182] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/notification/billing/start"
+        0 PIN_FLD_EVENTS        ARRAY [183] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/notification/refund/create"
+        0 PIN_FLD_EVENTS        ARRAY [184] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/notification/service_item/make_bill"
+        0 PIN_FLD_EVENTS        ARRAY [185] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/process_audit"
+        0 PIN_FLD_EVENTS        ARRAY [186] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/schedule/create"
+        0 PIN_FLD_EVENTS        ARRAY [187] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/schedule/delete"
+        0 PIN_FLD_EVENTS        ARRAY [188] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/schedule/execute"
+        0 PIN_FLD_EVENTS        ARRAY [189] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 179
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/schedule/modify"
+        0 PIN_FLD_EVENTS        ARRAY [190] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 2706
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/notification/device/state"
+        0 PIN_FLD_EVENTS        ARRAY [191] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 2706
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/notification/device/state/in_transition"
+        0 PIN_FLD_EVENTS        ARRAY [192] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 2354
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/settlement/notify"
+        0 PIN_FLD_EVENTS        ARRAY [193] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 2355
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/billing/dispute/notify"
+        0 PIN_FLD_EVENTS        ARRAY [194] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 3787
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/notification/auto_rerate"
+        0 PIN_FLD_EVENTS        ARRAY [195] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 3787
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/notification/rate_change"
+        0 PIN_FLD_EVENTS        ARRAY [196] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 3787
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/notification/rollover_correction/rerate"
+        0 PIN_FLD_EVENTS        ARRAY [197] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 3768
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/audit/price/product_update"
+        0 PIN_FLD_EVENTS        ARRAY [198] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 3768
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/audit/price/product_complete"
+        0 PIN_FLD_EVENTS        ARRAY [199] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 1301
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/notification/suspense/recycle"
+        0 PIN_FLD_EVENTS        ARRAY [200] allocated 20, used 3
+        1     PIN_FLD_OPCODE          INT [0] 1301
+        1     PIN_FLD_FLAGS           INT [0] 0
+        1     PIN_FLD_TYPE_STR        STR [0] "/event/notification/suspense/batch_resubmit"
+        0 PIN_FLD_ACCOUNT_OBJ    POID [0] 0.0.0.1 /account 1 0
+        </PCM_OP>

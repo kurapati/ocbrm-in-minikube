@@ -1,0 +1,128 @@
+---
+### Deployment Descriptor
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: realtime-pipe
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.ocbrm.realtimepipe.deployment.replicaCount }}
+  selector:
+    matchLabels:
+      application: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        application: {{ .Chart.Name }}
+        component: oms-realtime-pipe
+      name: realtime-pipe
+    spec:
+      containers:
+      - name: realtime-pipe
+        image: "{{ .Values.imageRepository }}{{ .Values.ocbrm.realtimepipe.deployment.imageName }}:{{ .Values.ocbrm.realtimepipe.deployment.imageTag }}"
+        ports:
+          - name: rtp
+            containerPort: {{ .Values.ocbrm.realtimepipe.deployment.port }}
+        env:
+        - name: INIT_DB
+          value: "{{ .Values.ocbrm.init_database }}"
+        - name: TZ
+          value: "{{ .Values.ocbrm.TZ }}"
+        - name: TNS_ADMIN
+          value: "{{ .Values.ocbrm.tnsAdmin }}"
+        - name: IFW_INFRANET_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: oms_schema_password
+        - name: IFW_INTEGRATE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: pipeline_schema_password
+        - name: OLD_CLIENT
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: old_client
+        - name: CLIENT_WALLET_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: client_wallet_password
+        - name: OMS_SCHEMA_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: OMS_SCHEMA_USERNAME
+        - name: OMS_SCHEMA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: oms_schema_password
+        - name: OMS_DB_ALIAS
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: OMS_DB_ALIAS
+        - name: BRM_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: brm_root_password
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - name: wirelessrealtime-reg-volume
+          mountPath: /oms/ifw/conf/wirelessRealtime.reg.tmpl
+          subPath: wirelessRealtime.reg.tmpl
+        - name: loadifw-reg-volume
+          mountPath: /oms/ifw/tools/XmlLoader/LoadIfwConfig.reg.tmpl
+          subPath: LoadIfwConfig.reg.tmpl
+        - name: dm-oracle-tnsnames-ora-volume
+          mountPath: /oms/ora_k8/
+        - name: common-semaphore
+          mountPath: /oms/ifw/semaphore/
+        - name: oms-logs
+          mountPath: {{ .Values.ocbrm.realtimepipe.deployment.logPipeDir }}
+        - name: oms-logs-process
+          mountPath: {{ .Values.ocbrm.realtimepipe.deployment.logProcessDir }}
+      hostname: realtime-pipe
+      dnsPolicy: ClusterFirst
+      volumes:
+        - name: wirelessrealtime-reg-volume
+          configMap:
+            name: wirelessrealtime-reg-config
+        - name: loadifw-reg-volume
+          configMap:
+            name: loadifwreg-config
+        - name: dm-oracle-tnsnames-ora-volume
+          configMap:
+            name: db-config
+            items:
+              - key: tnsnames.ora
+                path: tnsnames.ora
+              - key: sqlnet.ora
+                path: sqlnet.ora
+        - name: oms-logs
+          emptyDir: {}
+        - name: oms-logs-process
+          emptyDir: {}
+        - name: common-semaphore
+          persistentVolumeClaim:
+           claimName: common-semaphore
+---
+kind: Service
+apiVersion: v1
+metadata:
+ name: rtp
+ namespace: {{ .Release.Namespace }}
+ labels:
+   application: {{ .Chart.Name }}
+spec:
+ selector:
+   component: oms-realtime-pipe
+ ports:
+ - name: rtp
+   port: {{ .Values.ocbrm.realtimepipe.deployment.port }}
+   protocol: TCP
+ type: {{ .Values.ocbrm.realtimepipe.service.type }}

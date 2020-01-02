@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: oracle-database-deployment
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            component: oracle-database
+    template:
+        metadata:
+            labels:
+                component: oracle-database
+        spec:
+            volumes:
+                - name: oracle-storage
+                  persistentVolumeClaim:
+                    claimName: database-persistent-volume-claim
+            containers:
+                - name: oracle-database
+                  image: bhaskarkurapati/oracle-database:12.2.0.1-ee
+                  imagePullPolicy: IfNotPresent
+                  ports:
+                    - containerPort: 1521
+                  volumeMounts:
+                    - name: oracle-storage
+                      mountPath: /opt/oracle/oradata
+                  env:
+                    - name: ORACLE_SID
+                      value: ORCLCDB
+                    - name: ORACLE_PDB
+                      value: ORCLPDB1
+                    - name: ORACLE_CHARACTERSET
+                      value: AL32UTF8
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: oracle-database-cluster-ip-service
+spec:
+    type: ClusterIP
+    selector:
+        component: oracle-database
+    ports:
+        - port: 1521
+          targetPort: 1521

@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-infranet-properties
+  namespace: {{ .Release.Namespace }}
+  labels:
+      application: {{ .Chart.Name }}
+data:
+  Infranet.properties: |
+    #infranet.connection=pcp://root.0.0.0.1:${BRM_ROOT_PASSWORD}@{{ .Values.ocbrm.cm.deployment.host }}:{{ .Values.ocbrm.cm.deployment.port }}/0.0.0.1 /service/admin_client 1
+    infranet.login.type=1
+    infranet.log.file={{ .Values.ocbrm.logDir }}/javapcm.log
+    infranet.log.level={{ .Values.ocbrm.LOG_LEVEL }}
+    infranet.log.logallebuf=true
+    # To enable SSL, make sure to provide correct values for below config entries. e.g wallet location and filename etc.
+    infranet.pcp.ssl.enabled = {{ .Values.ocbrm.isSSLEnabled }}
+    infranet.pcp.ssl.wallet.location = /oms/wallet/client
+    infranet.pcp.ssl.wallet.filename = cwallet.sso

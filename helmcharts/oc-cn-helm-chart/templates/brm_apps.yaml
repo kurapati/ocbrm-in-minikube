@@ -1,0 +1,224 @@
+---
+### Deployment Descriptor
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: brm-apps
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.ocbrm.brm_apps.deployment.replicaCount }}
+  selector:
+    matchLabels:
+      application: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        application: {{ .Chart.Name }}
+        component: oms-brm-apps
+      name: brm-apps
+    spec:
+      containers:
+      - name: brm-apps
+        image: "{{ .Values.imageRepository }}{{ .Values.ocbrm.brm_apps.deployment.imageName }}:{{ .Values.ocbrm.brm_apps.deployment.imageTag }}"
+        env:
+        - name: INIT_DB
+          value: "{{ .Values.ocbrm.init_database }}"
+        - name: TZ
+          value: "{{ .Values.ocbrm.TZ }}"
+        - name: ENABLE_SSL
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: ENABLE_SSL
+        - name: SERVICE_FQDN
+          value: "{{ .Values.ocbrm.brm_apps.deployment.host }}"
+        - name: TNS_ADMIN
+          value: "{{ .Values.ocbrm.tnsAdmin }}"
+        - name: LIBRARYEXTENSION
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: LIBRARYEXTENSION
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: LOG_LEVEL
+        - name: CLIENT_WALLET_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: client_wallet_password
+        - name: OMS_SCHEMA_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: OMS_SCHEMA_USERNAME
+        - name: OMS_SCHEMA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: oms_schema_password
+        - name: OMS_DB_ALIAS
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: OMS_DB_ALIAS
+        - name: BRM_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: brm_root_password
+        - name: OLD_ROOT
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: old_root
+        - name: OLD_CLIENT
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: old_client
+        - name: ROOT_WALLET_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: root_wallet_password
+        - name: SERVER_WALLET_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: server_wallet_password
+        - name: CM_SERVICE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: CM_SERVICE_HOST
+        - name: CM_SERVICE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: CM_SERVICE_PORT
+        - name: VIRTUAL_TIME_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: VIRTUAL_TIME_ENABLED
+        - name: VIRTUAL_TIME_SETTING
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: VIRTUAL_TIME_SETTING
+        - name: SHARED_VIRTUAL_TIME_FILE
+          value: {{ .Values.ocbrm.virtual_time.pvt }}/pin_virtual_time_file
+        imagePullPolicy: {{ .Values.ocbrm.imagePullPolicy }}
+        terminationMessagePolicy: FallbackToLogsOnError
+        volumeMounts:
+        - name: virtual-time-volume
+          mountPath: {{ .Values.ocbrm.virtual_time.pvt }}
+        - name: dm-oracle-tnsnames-ora-volume
+          mountPath: {{ .Values.ocbrm.tnsAdmin }}
+        - name: pin-conf-config-brm-apps-volume-1
+          mountPath: /oms/pin_confs1
+        - name: pin-conf-config-brm-apps-volume-2
+          mountPath: /oms/pin_confs2
+        - name: infranet-properties-brm-apps-volume
+          mountPath: /oms/infranets
+      hostname: brm-apps
+      dnsPolicy: ClusterFirst
+      volumes:
+        - name: virtual-time-volume
+          persistentVolumeClaim:
+            claimName: {{ .Values.ocbrm.virtual_time.pvc }}
+        - name: dm-oracle-tnsnames-ora-volume
+          configMap:
+            name: db-config
+            items:
+              - key: tnsnames.ora
+                path: tnsnames.ora
+              - key: sqlnet.ora
+                path: sqlnet.ora
+        - name: pin-conf-config-brm-apps-volume-1
+          configMap:
+            name: pin-conf-config-brm-apps-1
+            items:
+              - key: pin_billd.conf
+                path: pin_billd.conf
+              - key: pin_export_price.conf
+                path: pin_export_price.conf
+              - key: pin_inv.conf
+                path: pin_inv.conf
+              - key: pin_trial_bill.conf
+                path: pin_trial_bill.conf
+              - key: pin_generate_analytics.conf
+                path: pin_generate_analytics.conf
+              - key: pin_subscription.conf
+                path: pin_subscription.conf
+              - key: pin_rerate.conf
+                path: pin_rerate.conf
+              - key: pin_crypt.conf
+                path: pin_crypt.conf
+              - key: pin_rate_change.conf
+                path: pin_rate_change.conf
+              - key: sample_handler.conf
+                path: sample_handler.conf
+              - key: pin_balance_transfer.conf
+                path: pin_balance_transfer.conf
+              - key: pin_collections.conf
+                path: pin_collections.conf
+              - key: pin_ra_check_thresholds.conf
+                path: pin_ra_check_thresholds.conf
+              - key: partition_utils.values
+                path: partition_utils.values
+        - name: pin-conf-config-brm-apps-volume-2
+          configMap:
+            name: pin-conf-config-brm-apps-2
+            items:
+              - key: load_channel_config.conf
+                path: load_channel_config.conf
+              - key: exportapps.conf
+                path: exportapps.conf
+              - key: pin_state_change.conf
+                path: pin_state_change.conf
+              - key: integrate_sync.conf
+                path: integrate_sync.conf
+              - key: pin_unlock_service.conf
+                path: pin_unlock_service.conf
+              - key: load_notification_event.conf
+                path: load_notification_event.conf
+              - key: pin_remit.conf
+                path: pin_remit.conf
+              - key: load_config.conf
+                path: load_config.conf
+              - key: pin_bulk_adjust.conf
+                path: pin_bulk_adjust.conf
+              - key: pin_bill_handler.conf
+                path: pin_bill_handler.conf
+              - key: pin_ar_taxes.conf
+                path: pin_ar_taxes.conf
+              - key: pin_event_extract.conf
+                path: pin_event_extract.conf
+              - key: pin_monitor.conf
+                path: pin_monitor.conf
+              - key: pin_ood_handler_process.conf
+                path: pin_ood_handler_process.conf
+              - key: pin_ood_handler.conf
+                path: pin_ood_handler.conf
+              - key: setup_scripts.conf
+                path: setup_scripts.conf
+        - name: infranet-properties-brm-apps-volume
+          configMap:
+            name: infranet-properties-brm-apps
+            items:
+              - key: device_management_Infranet.properties
+                path: device_management_Infranet.properties
+              - key: load_price_list_Infranet.properties
+                path: load_price_list_Infranet.properties
+              - key: pin_job_executor_Infranet.properties
+                path: pin_job_executor_Infranet.properties
+              - key: pin_sepa_Infranet.properties
+                path: pin_sepa_Infranet.properties
+              - key: pin_inv_doc_gen_Infranet.properties
+                path: pin_inv_doc_gen_Infranet.properties
+
+---

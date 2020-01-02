@@ -1,0 +1,11 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: formatter-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    application: {{ .Chart.Name }}
+data:
+  PXSLT_ENGINE: com.portal.pxslt.PXSLTEngineXdkImpl
+  SERVICE_FQDN: formatter

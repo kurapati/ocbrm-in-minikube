@@ -1,0 +1,1714 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+   name: wirelessrealtime-reg-config
+   namespace: {{ .Release.Namespace }}
+   labels:
+    application: {{ .Chart.Name }}
+data:
+    wirelessRealtime.reg.tmpl: |
+     ifw
+     { 
+       Active = TRUE
+       ProcessLoopTimeout  = 10
+       QueueRequestTimeout = 0
+     
+       Instrumentation
+       {
+         #-----------------------------------------------------------
+         # ProbeBroker registry entries.
+         #    ProbeInfoFilePath - The path that contains all probe
+         #                        info files used by instrumented objects.
+         #-----------------------------------------------------------
+         ProbeBroker
+         {
+           ProbeInfoFilePath = ./instrumentation
+         }
+     
+         #-----------------------------------------------------------
+         # SnmpServer registry entries. (Optional)
+         #    Port - The SNMP AgentX port number.
+         #    ProcessDescription - The description of this process.
+         #                         If not specified, the process description
+         #                         has format as follows:
+         #                         <<user>>:<<process_name>>::<<registry_filename>>
+         #-----------------------------------------------------------
+         #SnmpServer
+         #{
+         #  Port = < SNMP AgentX Port >
+         #  ProcessDescription = ifw
+         #}
+     
+         #-----------------------------------------------------------
+         # HttpServer registry entries. (Optional)
+         #    Port - The Http port number.
+         #    StyleSheetFile - The full path name of style sheet file.
+         #    PortalLogoFile - The full path name of Portal logo file.
+         #-----------------------------------------------------------
+         #HttpServer
+         #{
+         #  Port = < HTTP Port >
+         #  StyleSheetFile = ./instrumentation/portal_omf.xsl
+         #  PortalLogoFile = ./instrumentation/portal_omf.gif
+         #}
+       }
+     
+       DiagnosticDataHandler   
+       {
+         DiagnosticFilePath = ./log
+         DiagnosticFileName = diagnostic.dat      
+       }
+     
+       LogMessageTable
+       {
+         MessageFilePath   = ./etc
+         MessageFileSuffix = .msg
+       }
+     
+       Semaphore 
+       {  
+         FilePath = ./semaphore
+         FileName = semaphoreRT.reg
+         TimeBasedChecking = True
+       } 
+     
+       Registry 
+       { 
+         FilePath           = ./info
+         FileName           = info_RT.reg
+         NiceFormatFileName = infoNice_RT.reg
+     
+         Buffer 
+         { 
+           Size = 1000
+         } 
+       } 
+     
+       ProcessLog 
+       { 
+         ModuleName = LOG
+         Module 
+         { 
+           ITO 
+           { 
+             FilePath          = ./log/process
+             FileName          = processSIMPLE_RT
+             FileSuffix        = .log
+             ProcessName       = ifw
+             MessageGroup      = IFW
+             ShowOriginator    = TRUE
+           } 
+     
+           Buffer 
+           { 
+             Size = 1000
+           } 
+         } 
+       } 
+     
+       DataPool 
+       {
+         RealtimePipeline
+         {
+           ModuleName = NET_EM
+           Module
+           {
+             ThreadPool
+              {
+                # Enable either Port or UnixSockFile, Only Port is SUPPORTED in Windows platform
+                # For TCP/IP port
+                Port = {{ .Values.ocbrm.realtimepipe.deployment.port }}
+                # For Unix Sock, NOT SUPPORTED in Windows platform
+                # UnixSockFile = << Realtime Pipeline file >>
+                # For Performance, Threads should be
+                # Equal to or More than Total RT Pipelines
+                Threads = {{ .Values.ocbrm.realtimepipe.deployment.rtp_num_thread }}
+              }
+     
+              DiscountOpcode
+              {
+                # Discounting opcode is PCM_OP_RATE_DISCOUNT_EVENT
+                OpcodeName = PCM_OP_RATE_DISCOUNT_EVENT
+                # This paramerter is set to '2' Pipelines in this example
+                NumberOfRTPipelines = {{ .Values.ocbrm.realtimepipe.deployment.rtp_num_pipe }}
+                # This paramerter is set for name of pipeline
+                # We should have  '2' Pipelines in this example,
+                # DiscountPipeline0 and DiscountPipeline1 
+                PipelineName = DiscountPipeline
+              }
+     	 
+              ReratingOpcode
+              {
+                # Rerating opcode is PCM_OP_RATE_PIPELINE_EVENT
+                OpcodeName = PCM_OP_RATE_PIPELINE_EVENT
+                # The Flist field name used for pipeline routing
+                FieldName = PIN_FLD_POID
+     
+                GSMEvent
+                {
+                  # FieldValue that should match PIN_FLD_POID for GSM pipeline routing.
+                  FieldValue = /event/delayed/session/telco/gsm
+                  # Name given to this pipleine
+                  PipelineName =  RealtimePipelineGSM  
+                  # Instances of the RealtimePipelineGSM to create
+                  NumberOfRTPipelines = {{ .Values.ocbrm.realtimepipe.deployment.rtp_num_pipe }}
+                }
+     
+                GPRSEvent
+                {
+                  # FieldValue that should match PIN_FLD_POID for GPRS pipeline routing.
+                  FieldValue = /event/delayed/session/gprs
+                  # Name given to this pipleine
+                  PipelineName =  RealtimePipelineGPRS  
+                  # Instances of the RealtimePipelineGPRS to create
+                  NumberOfRTPipelines = {{ .Values.ocbrm.realtimepipe.deployment.rtp_num_pipe }}
+                }
+                
+     	 }
+     
+              ZoneOpcode
+              {
+                OpcodeName = PCM_OP_RATE_GET_ZONEMAP_INFO
+                #NumberOfRTPipelines = ${RTP_NUM_PIPE}
+                NumberOfRTPipelines = 1
+                PipelineName = RealtimePipelineZone
+              }
+     
+          }
+        }
+     
+         #-----------------------------------
+         # Login Integrate
+         #-----------------------------------
+         Login
+         {
+           ModuleName = DBC
+           Module
+           {
+             UserName           = {{ .Values.ocbrm.db.pipelineschemauser }}
+             DatabaseName       = {{ .Values.ocbrm.db.pipelinealias }}
+             AccessLib          = oci12c161
+             Connections        = 5
+     
+             #ConvertToUpperCase = False
+             #UsableCheckTable   = IFW_DBVERSION
+           }
+         }
+         
+         #-----------------------------------
+         # Login Infranet
+         #-----------------------------------
+         LoginInfranet
+         {
+           ModuleName = DBC
+           Module
+           {
+             # Common
+             UserName           = {{ .Values.ocbrm.db.schemauser }}
+             DatabaseName       = {{ .Values.ocbrm.db.alias }}
+             AccessLib          = oci12c161
+             Connections        = 5
+     
+             #ConvertToUpperCase = False
+             #UsableCheckTable   = IFW_DBVERSION
+           }
+         }
+     
+         #--------------------------------------------------------
+         # PortalConfig Data Module
+         #-----------------------------------------------------------
+         PortalConfigDataModule
+         {
+           ModuleName = DAT_PortalConfig
+           Module
+           {
+             ReuseOnFailure = True
+             InfranetConnection = ifw.DataPool.LoginInfranet
+           }
+         }
+     
+         #-----------------------------------------------------------
+         # Infranet Customer Data
+         #-----------------------------------------------------------
+         CustomerData
+         {
+           ModuleName = DAT_AccountRealtime
+           Module
+           {
+           }
+         }
+     
+         #-----------------------------------------------------------
+         # Discount Model Data Module
+         #-----------------------------------------------------------
+         DiscountModelDataModule
+         {
+           ModuleName = DAT_Discount
+           Module
+           {
+             InfranetConnection  = ifw.DataPool.LoginInfranet
+             IntegrateConnection = ifw.DataPool.Login
+             AccountDataModule   = ifw.DataPool.CustomerData
+             PortalConfigDataModule = ifw.DataPool.PortalConfigDataModule
+           }
+         }
+     
+         #-----------------------------------------------------------
+         # Balance Data Module
+         #-----------------------------------------------------------
+         BalanceDataModule
+         {
+           ModuleName = DAT_BalanceRealtime
+           Module
+           {
+           }
+         }
+     
+         #-----------------------------------------------------------
+         # Zone Data Module
+         #-----------------------------------------------------------
+         ZoneDataModule
+         {
+           ModuleName = DAT_Zone
+           Module
+           {
+             ReuseOnFailure = FALSE
+             Source         = DataBase
+             MaxAge         = 0
+             DistCalcMode   = DISC
+             DataConnection = ifw.DataPool.Login
+             LoadZoneDescription = False
+             LoadZoneEntryName = False
+             CliMode         = DEC
+             RealTime	= TRUE
+     
+             ZoneModels
+             {
+             }
+           }
+         }
+         
+         #-----------------------------------------------------------
+         # USC Map Data Module
+         #-----------------------------------------------------------
+         USCDataModule
+         {
+           ModuleName = DAT_USC_Map
+           Module
+           {
+             Source         = DataBase
+             DataConnection = ifw.DataPool.Login
+             LoadZoneDescription = False
+             LoadZoneEntryName = False
+     #        PreCompiledDataDir = ./compiled_usc_data
+     #        NumberOfThreads = 5
+     #        UscGroups {  ALL_RATE }
+           }
+         }
+             
+         #-----------------------------------------------------------
+         # Rateplan Data Module
+         #-----------------------------------------------------------
+         RateplanDataModule
+         {
+           ModuleName = DAT_Rateplan
+           Module
+           {
+             DataConnection = ifw.DataPool.Login
+           }
+         }
+         
+         #-----------------------------------------------------------
+         # Price Data Module
+         #-----------------------------------------------------------
+         PriceDataModule
+         {
+           ModuleName = DAT_PriceModel
+           Module
+           {
+             DataConnection = ifw.DataPool.Login
+           }
+         }
+         
+         #-----------------------------------------------------------
+         # Calendar Data Module
+         #-----------------------------------------------------------
+         CalendarDataModule
+         {
+           ModuleName = DAT_Calendar
+           Module
+           {
+             DataConnection = ifw.DataPool.Login
+           }
+         }
+         
+         #-----------------------------------------------------------
+         # Time Data Module
+         #-----------------------------------------------------------
+         TimeDataModule
+         {
+           ModuleName = DAT_TimeModel
+           Module
+           {
+             DataConnection = ifw.DataPool.Login
+           }
+         }
+         
+         #-----------------------------------------------------------
+         # DayRate Data Module
+         #-----------------------------------------------------------
+         DayRateDataModule
+         {
+           ModuleName = DAT_Dayrate
+           Module
+           {
+             DataConnection = ifw.DataPool.Login
+           }
+         }
+         
+         #-----------------------------------------------------------
+         # Currency Data Module
+         #-----------------------------------------------------------
+         CurrencyDataModule
+         {
+           ModuleName = DAT_Currency
+           Module
+           {
+             InfranetConnection  = ifw.DataPool.LoginInfranet
+             ReuseOnFailure = false
+           }
+         }
+     
+         #--------------------------------------------------------
+         # ModelSelector Data Module
+         #-----------------------------------------------------------
+         ModelSelectorDataModule
+         {
+           ModuleName = DAT_ModelSelector
+           Module
+           {
+             IntegrateConnection = ifw.DataPool.Login
+           }
+         }
+     
+       }  
+      
+       TransactionIdController
+       {
+         Source = Database
+     
+         Generator
+         {
+           DataConnection = Login
+           FileName = ./tam/TamTransId_RT.dat
+           Increment = 10
+         }
+       }
+     
+       SequencerPool
+       {
+       }
+     
+       Pipelines
+       {  
+         Instances
+         {
+           # Pipeline name that requires multi-instances
+           DiscountPipeline                       
+           {
+             # the required number of instances, should match with NumberOfRTPipelines
+             NumberOfInstances = 2            
+             InstanceSpecificRegistries
+             {
+                # Entry1, Entry2 ... can be any valid name string
+                Entry1 = TransactionManager.BinaryLogFileName   
+                Entry2 = PipelineLog.Module.ITO.FileName 
+                Entry3 = Output.OutputLog.FileName 
+                #Entry4 = Functions.Standard.FunctionPool.EdrDump_PreAnal.Module.FileName
+                #Entry5 = Functions.Standard.FunctionPool.EdrDump_PreDisc.Module.FileName
+                #Entry6 = Functions.Standard.FunctionPool.EdrDump_PostDisc.Module.FileName
+             }
+           }
+           
+           RealtimePipelineGSM                      
+           {
+             # the required number of instances, should match with NumberOfRTPipelines
+             NumberOfInstances = 2            
+             InstanceSpecificRegistries
+             {
+                # Entry1, Entry2 ... can be any valid name string
+                Entry1 = TransactionManager.BinaryLogFileName   
+                Entry2 = PipelineLog.Module.ITO.FileName 
+                Entry3 = Output.OutputLog.FileName
+                #Entry4 = Functions.Standard.FunctionPool.EdrDump_Initial.Module.FileName
+                #Entry5 = Functions.Standard.FunctionPool.EdrDump_PostDiscounting.Module.FileName
+                #Entry6 = Functions.Standard.FunctionPool.EdrDump_PreDiscounting.Module.FileName
+                #Entry7 = Functions.Standard.FunctionPool.EdrDump_PostRating.Module.FileName
+                #Entry8 = Functions.Standard.FunctionPool.EdrDump_PreRating.Module.FileName
+             }
+           }
+     
+           RealtimePipelineGPRS                       
+           {
+             # the required number of instances, should match with NumberOfRTPipelines
+             NumberOfInstances = 2            
+             InstanceSpecificRegistries
+             {
+                # Entry1, Entry2 ... can be any valid name string
+                Entry1 = TransactionManager.BinaryLogFileName   
+                Entry2 = PipelineLog.Module.ITO.FileName 
+                Entry3 = Output.OutputLog.FileName 
+                #Entry4 = Functions.Standard.FunctionPool.EdrDump_Initial.Module.FileName
+                #Entry5 = Functions.Standard.FunctionPool.EdrDump_PostDiscounting.Module.FileName
+                #Entry6 = Functions.Standard.FunctionPool.EdrDump_PreDiscounting.Module.FileName
+                #Entry7 = Functions.Standard.FunctionPool.EdrDump_PostRating.Module.FileName
+                #Entry8 = Functions.Standard.FunctionPool.EdrDump_PreRating.Module.FileName
+             }
+           }
+     
+           RealtimePipelineZone                       
+           {
+             # the required number of instances, should match with NumberOfRTPipelines
+             NumberOfInstances = 1            
+             InstanceSpecificRegistries
+             {
+                # Entry1, Entry2 ... can be any valid name string
+                Entry1 = TransactionManager.BinaryLogFileName   
+                Entry2 = PipelineLog.Module.ITO.FileName 
+                Entry3 = Output.OutputLog.FileName 
+             }
+           }
+         }
+         #-----------------------------------
+         DiscountPipeline
+         {
+           Active = TRUE
+           MultiThreaded = FALSE
+     
+           RejectStream = PcmOutput
+     
+           TransactionManager
+           {
+             RedoEnabled = False
+             SingleTransaction = False
+     
+             BinaryLogFileName = ./tam/binaryLogFile_RT.dat
+           }
+     
+           EdrFactory
+           {
+             Description = ./formatDesc/Portal/containerDesc.dsc
+             DataConnection = Login
+           }
+     
+           #---------------------------------
+           # Pipeline Log Section
+           #---------------------------------
+           PipelineLog
+           {
+             ModuleName  = LOG
+             Module
+             {
+               ITO
+               {
+                 FilePath          = ./log/pipeline
+                 FileName          = pipeline_RT.log
+                 ProcessName       = ifw
+                 MessageGroup      = IFW
+                 ShowOriginator    = TRUE
+                 SuppressErrors
+                 {
+                   ERR_SPEC_VERSION_INVALID
+                   ERR_RELEASE_VERSION_INVALID
+                 }
+               }
+     
+               Buffer
+               {
+                 Size = 1000
+               }
+             }
+           }
+     
+           Input
+           {
+             UnitsPerTransaction = 1
+     		NoThread = TRUE
+     
+             InputModule
+             {
+               ModuleName  = INP_Realtime
+               Module
+               {
+                 DefaultOutput = PcmOutput
+                 OpcodeMapping = ./formatDesc/Formats/Realtime/discount_event.xml
+                 MappingScript = ./iScriptLib/iScriptLib_Standard/ISC_InMapRealtimeDiscount.isc
+               }
+             }
+           }
+      
+           #---------------------------------
+           # Functions Section
+           #---------------------------------
+           Functions
+           {
+             Standard
+             {
+               FunctionPool
+               {
+     ##            EdrDump_PreAnal
+     ##            {
+     ##              ModuleName = FCT_EdrDump
+     ##              Module
+     ##              {
+     ##                Active = False
+     ##                FileName = ./log/dump/preAnalysisRT.txt
+     ##              }
+     ##            }
+     
+                 #--------------------------------------------------
+                 # Discount Analysis
+                 #--------------------------------------------------
+                 DiscountAnalysisModule
+                 {
+                   ModuleName = FCT_DiscountAnalysis
+                   Module
+                   {
+                     Active                   = TRUE
+                     DiscountModelDataModule  = ifw.DataPool.DiscountModelDataModule
+                     ModelSelectorDataModule  = ifw.DataPool.ModelSelectorDataModule
+                   }
+                 }
+     
+     
+     ##    	     EdrDump_PreDisc
+     ##            {
+     ##              ModuleName = FCT_EdrDump
+     ##              Module
+     ##              {
+     ##                Active = False
+     ##                FileName = ./log/dump/preDiscRT.txt
+     ##              }
+     ##            }
+                #--------------------------------------------------
+                 # Discounting
+                 #--------------------------------------------------
+                 ApolloDiscountModule
+                 {
+                   ModuleName = FCT_Discount
+                   Module
+                   {
+                     Active                   = TRUE
+                     DiscountDataModule       = ifw.DataPool.DiscountModelDataModule
+                     BalanceDataModule        = ifw.DataPool.BalanceDataModule
+                     AccountDataModule        = ifw.DataPool.CustomerData
+                     CurrencyDataModule       = ifw.DataPool.CurrencyDataModule
+                     DiscountMoreThanPossible = False
+                     TaxationMode             = 3   #[0-3] needs to in sync with 'taxation_switch' entry in pin.conf
+                     DiscountTrace = {{ .Values.ocbrm.realtimepipe.deployment.discount_trace }}
+                   }
+                 }
+     
+                #--------------------------------------------------
+                 # Rounding (Discounting)
+                 #--------------------------------------------------
+                 Round_Discounting
+                 {
+                   ModuleName = FCT_Rounding
+                   Module
+                   {
+                     Active             = TRUE
+                     CurrencyDataModule = ifw.DataPool.CurrencyDataModule
+                     Mode               = Discounting
+                   }
+                 }
+     
+     ##            EdrDump_PostDisc
+     ##            {
+     ##              ModuleName = FCT_EdrDump
+     ##              Module
+     ##              {
+     ##                Active = False
+     ##                FileName = ./log/dump/postDiscRT.txt
+     ##              }
+     ##            }
+     
+                 #--------------------------------------------------
+                 # Credit Limit Check
+                 #--------------------------------------------------
+                 CreditLimitCheckModule
+                 {
+                   ModuleName = FCT_CreditLimitCheck
+                   Module
+                   {
+                     Active  = TRUE
+                     CurrencyDataModule = ifw.DataPool.CurrencyDataModule
+     		PortalConfigDataModule = ifw.DataPool.PortalConfigDataModule
+     		#StepValue = 1
+                   }
+                 }
+     
+               }
+             }
+           }
+     
+           #---------------------------------
+           # Output Section
+           #---------------------------------
+           Output
+           {
+             WriteDefaultEdr              = False
+             SpecificationVersionNumber   = 2
+     
+             SequenceGeneration           = Unit
+             #Unit - Transaction
+     
+             MaxErrorRates
+             {
+               INF_EDR_REJECTED           = 70
+               ERR_CUST_NOT_FOUND         = 55
+               ERR_CHARGED_ZONE_NOT_FOUND = 55
+             }
+     
+             OutputCollection
+             {
+               PcmOutput 
+               {
+                 ModuleName = OUT_Realtime
+                 Module
+                 { 
+                   DoRating = false	
+                   #MappingScript = ./iScriptLib/iScriptLib_Standard/ISC_SampleOUTRealtime.isc
+                 } 
+               }
+     
+             }
+     
+             OutputLog
+             {
+               FilePath        = ./log/stream
+               FileName        = streamRT
+               FilePrefix      = log_
+               FileSuffix      = .log
+     
+               SuppressErrors
+               {
+                 ERR_SPEC_VERSION_INVALID
+                 ERR_RELEASE_VERSION_INVALID
+               }
+             }
+           }
+         } #END DiscountPipeline   
+         
+         #-----------------------------------
+         RealtimePipelineGSM
+         {
+           Active = TRUE
+           MultiThreaded = FALSE
+     
+           RejectStream = PcmOutput
+           #RejectStream = DevNull
+           
+           TransactionManager
+           {
+             RedoEnabled = False
+             SingleTransaction = False
+     
+             BinaryLogFileName = ./tam/binaryLogFile_RT_GSM.dat
+           }
+     
+           EdrFactory
+           {
+             Description = ./formatDesc/Portal/containerDesc.dsc
+             DataConnection = Login
+           }
+     
+           #---------------------------------
+           # Pipeline Log Section
+           #---------------------------------
+           PipelineLog
+           {
+             ModuleName  = LOG
+             Module
+             {
+               ITO
+               {
+                 FilePath          = ./log/pipeline
+                 FileName          = pipeline_RT_GSM.log
+                 ProcessName       = ifw
+                 MessageGroup      = IFW
+                 ShowOriginator    = TRUE
+                 SuppressErrors
+                 {
+                   ERR_SPEC_VERSION_INVALID
+                   ERR_RELEASE_VERSION_INVALID
+                 }
+               }
+     
+               Buffer
+               {
+                 Size = 1000
+               }
+             }
+           }
+     
+           Input
+           {
+             UnitsPerTransaction = 1
+                     NoThread = TRUE
+     
+             InputModule
+             {
+               ModuleName  = INP_Realtime
+               Module
+               {
+                 DefaultOutput = PcmOutput
+                 OpcodeMapping = ./formatDesc/Formats/Realtime/rate_event.xml
+                 #MappingScript = <Optional Input IScript> 
+               }
+             }
+           }
+      
+           #---------------------------------
+           # Functions Section
+           #---------------------------------
+           Functions
+           {
+             Standard
+             {
+               FunctionPool
+               {
+               
+                 #--------------------------------------------------
+                 # Initial EDR dump
+                 #--------------------------------------------------
+     ##            EdrDump_Initial
+     ##            {
+     ##              ModuleName = FCT_EdrDump
+     ##              Module
+     ##              {
+     ##                Active = False
+     ##                FileName = ./log/dump/initial_RT_GSM.txt
+     ##              }
+     ##            }
+               
+                 #--------------------------------------------------
+                 # Service Code Mapping
+                 #--------------------------------------------------
+                 ServiceCodeMap 
+                 { 
+                   ModuleName = FCT_ServiceCodeMap
+                   Module 
+                   { 
+                     Active             = TRUE
+                     DataConnection     = ifw.DataPool.Login
+                     MapGroup           = ALL_RATE
+                   } 
+                 } 
+                            
+                 #--------------------------------------------------
+                 # Profile analysis
+                 #--------------------------------------------------
+                 ProfileAnalyzer
+                 {
+                   ModuleName = FCT_IScript
+                   Module
+                   {
+                     Active = False
+                     Source = FILE
+                     Scripts
+                     {
+                       ProfileAnalyzer
+                       {
+                         ProfileName = FRIENDS_FAMILY
+                         LabelSeparator = ,
+                         FileName = ./iScriptLib/iScriptLib_Standard/ISC_ProfileAnalyzer.isc
+                       }
+                     }
+                   }
+                 }
+      
+                 #--------------------------------------------------
+                 # Usage Type Mapping
+                 #--------------------------------------------------              
+                 UsageType
+                 { 
+                    ModuleName = FCT_IRules 
+                    Module 
+                    { 
+                      Active = TRUE
+                      Source = File 
+                      Descriptions 
+                      { 
+                        UsageTypeDetermination= ./iScriptLib/iScriptLib_Standard/IRL_UsageType.irl
+                      }
+                    } 
+                 }  
+     
+                 #--------------------------------------------------
+                 # FCT_Filter_Set registry entry fields.
+                 #--------------------------------------------------
+                 Filter_Set
+                 {
+                   ModuleName                 = FCT_Filter_Set
+                   Module
+                   {
+                     Active                   = False
+                     DiscountDataModule       = ifw.DataPool.DiscountModelDataModule
+                     AccountDataModule        = ifw.DataPool.CustomerData
+                     InfranetConnection       = ifw.DataPool.LoginInfranet
+                     IntegrateConnection      = ifw.DataPool.Login
+                   }
+                 }
+     
+                 #--------------------------------------------------
+                 # Customer Individual Rating
+                 #--------------------------------------------------
+                 CustomerRating
+                 { 
+                   ModuleName = FCT_CustomerRating 
+                   Module 
+                   { 
+                     Active          = TRUE
+                     Mode            = CUSTOMER 
+                     DataConnection  = ifw.DataPool.Login 
+                     DefaultRateplan = Standard
+                     LeastCostRating = False
+                   } 
+                 }
+                             
+                 #--------------------------------------------------
+                 # Pre-Rating (Zoning)
+                 #--------------------------------------------------
+                 PreRatingZone
+                 {
+                   ModuleName = FCT_PreRating
+                   Module
+                   {
+                     Active = TRUE
+                     RateplanDataModule = ifw.DataPool.RateplanDataModule
+                     ZoneDataModule = ifw.DataPool.ZoneDataModule
+                   }
+                 }
+                                         
+                 #--------------------------------------------------
+                 # Usage Scenario Mapping
+                 #--------------------------------------------------
+                 UsageScenarioMap
+                 {
+                   ModuleName = FCT_USC_Map
+                   Module
+                   {
+                     Active = TRUE
+                     DataModule = ifw.DataPool.USCDataModule
+                     DefaultUSCGroup = ALL_RATE
+                   }
+                 }
+     
+                 #--------------------------------------------------
+                 # Rate Service Class Mapping
+                 #--------------------------------------------------              
+                 RateServiceClassMap 
+                 { 
+                   ModuleName = FCT_RSC_Map 
+                   Module 
+                   {
+                     Active          = TRUE 
+                     DataConnection  = ifw.DataPool.Login
+                     DefaultRscGroup = ALL_RATE
+                   } 
+                 }
+                             
+                 #--------------------------------------------------
+                 # Pre-Rating EDR dump
+                 #--------------------------------------------------
+     ##            EdrDump_PreRating
+     ##            {
+     ##              ModuleName = FCT_EdrDump
+     ##              Module
+     ##              {
+     ##                Active = False
+     ##                FileName = ./log/dump/pre_rating_RT_GSM.txt
+     ##              }
+     ##            }
+                             
+                 #--------------------------------------------------
+                 # Main Rating (Pricing)
+                 #--------------------------------------------------
+                 MainRating
+                 {
+                   ModuleName = FCT_MainRating
+                   Module
+                   {
+                     Active             	= TRUE
+                     RateplanDataModule 	= ifw.DataPool.RateplanDataModule
+                     CalendarDataModule 	= ifw.DataPool.CalendarDataModule
+                     TimeDataModule     	= ifw.DataPool.TimeDataModule
+                     PriceDataModule    	= ifw.DataPool.PriceDataModule
+                     CurrencyDataModule 	= ifw.DataPool.CurrencyDataModule
+     		ModelSelectorDataModule = ifw.DataPool.ModelSelectorDataModule
+                   }
+                 }
+                 
+                 #--------------------------------------------------
+                 # Special Dayrates
+                 #--------------------------------------------------
+                 SpecialDayRate
+                 {
+                   ModuleName = FCT_Dayrate
+                   Module
+                   {
+                     Active = TRUE
+                     DayrateDataModule = ifw.DataPool.DayRateDataModule
+                   }
+                 }
+     
+                 #--------------------------------------------------
+                 # Rate Adjustment
+                 #--------------------------------------------------
+                 RateAdjustment
+                 {
+                   ModuleName = FCT_RateAdjust
+                   Module
+                   {
+                     Active         = TRUE
+                     Source         = Database
+                     DataConnection = ifw.DataPool.Login
+                   }
+                 }
+     
+                 #--------------------------------------------------
+                 # Rounding (Rating)
+                 #--------------------------------------------------
+                 Round_Rating
+                 {
+                   ModuleName = FCT_Rounding
+                   Module
+                   {
+                     Active             = TRUE
+                     CurrencyDataModule = ifw.DataPool.CurrencyDataModule
+                     Mode               = RATING
+                   }
+                 } 
+                 
+                 #--------------------------------------------------
+                 # Post-Rating EDR dump
+                 #--------------------------------------------------
+     ##            EdrDump_PostRating
+     ##            {
+     ##              ModuleName = FCT_EdrDump
+     ##              Module
+     ##              {
+     ##                Active = False
+     ##                FileName = ./log/dump/post_rating_RT_GSM.txt
+     ##              }
+     ##            }
+                 
+                 #--------------------------------------------------
+                 # Discount Analysis
+                 #--------------------------------------------------
+                 DiscountAnalysisModule
+                 {
+                   ModuleName = FCT_DiscountAnalysis
+                   Module
+                   {
+                     Active                   = TRUE
+                     DiscountModelDataModule  = ifw.DataPool.DiscountModelDataModule
+     		ModelSelectorDataModule  = ifw.DataPool.ModelSelectorDataModule
+                   }
+                 }
+                 
+                 #--------------------------------------------------
+                 # Pre-Discounting EDR dump
+                 #--------------------------------------------------
+     ##            EdrDump_PreDiscounting
+     ##            {
+     ##              ModuleName = FCT_EdrDump
+     ##              Module
+     ##              {
+     ##                Active = False
+     ##                FileName = ./log/dump/pre_discounting_RT_GSM.txt
+     ##              }
+     ##            }
+                 
+                 #--------------------------------------------------
+                 # Discounting
+                 #--------------------------------------------------
+                 ApolloDiscountModule
+                 {
+                   ModuleName = FCT_Discount
+                   Module
+                   {
+                     Active                   = TRUE
+                     DiscountDataModule       = ifw.DataPool.DiscountModelDataModule
+                     BalanceDataModule        = ifw.DataPool.BalanceDataModule
+                     AccountDataModule        = ifw.DataPool.CustomerData
+                     CurrencyDataModule       = ifw.DataPool.CurrencyDataModule
+                     DiscountMoreThanPossible = False
+                     DiscountTrace = {{ .Values.ocbrm.realtimepipe.deployment.discount_trace }}
+                   }
+                 }
+                 
+                 #--------------------------------------------------
+                 # Rounding (Discounting)
+                 #--------------------------------------------------
+                 Round_Discounting
+                 {
+                   ModuleName = FCT_Rounding
+                   Module
+                   {
+                     Active             = TRUE
+                     CurrencyDataModule = ifw.DataPool.CurrencyDataModule
+                     Mode               = Discounting
+                   }
+                 }
+                 
+                 #--------------------------------------------------
+                 # Post-Discounting EDR dump
+                 #--------------------------------------------------
+     ##            EdrDump_PostDiscounting
+     ##            {
+     ##              ModuleName = FCT_EdrDump
+     ##              Module
+     ##              {
+     ##                Active = False
+     ##                FileName = ./log/dump/post_discounting_RT_GSM.txt
+     ##              }
+     ##            }
+               }
+             }
+           }
+     
+           #---------------------------------
+           # Output Section
+           #---------------------------------
+           Output
+           {
+             WriteDefaultEdr              = False
+             SpecificationVersionNumber   = 2
+     
+             SequenceGeneration           = Unit
+             #Unit - Transaction
+     
+             MaxErrorRates
+             {
+               INF_EDR_REJECTED           = 70
+               ERR_CUST_NOT_FOUND         = 55
+               ERR_CHARGED_ZONE_NOT_FOUND = 55
+             }
+     
+             OutputCollection
+             {
+             
+               #--------------------------------------------------------------------
+               # The DevNull stream
+               #--------------------------------------------------------------------
+               DevNull
+               {
+                 ModuleName = OUT_DevNull
+                 Module
+                 { 
+                 } 
+               } # end of DevNull
+               
+               PcmOutput
+               {
+                 ModuleName = OUT_Realtime
+                 Module
+                 {
+                   #MappingScript = ./iScriptLib/iScriptLib_Standard/ISC_SampleOUTRealtime.isc
+                 }
+               }
+     
+             }
+     
+             OutputLog
+             {
+               FilePath        = ./log/stream
+               FileName        = streamRT_GSM
+               FilePrefix      = log_
+               FileSuffix      = .log
+     
+               SuppressErrors
+               {
+                 ERR_SPEC_VERSION_INVALID
+                 ERR_RELEASE_VERSION_INVALID
+               }
+             }
+           }
+         } #END RealtimePipelineGSM
+         
+         #-----------------------------------
+         RealtimePipelineGPRS
+         {
+           Active = TRUE
+           MultiThreaded = FALSE
+     
+           RejectStream = PcmOutput
+           #RejectStream = DevNull
+           
+           TransactionManager
+           {
+             RedoEnabled = False
+             SingleTransaction = False
+     
+             BinaryLogFileName = ./tam/binaryLogFile_RT_GPRS.dat
+           }
+     
+           EdrFactory
+           {
+             Description = ./formatDesc/Portal/containerDesc.dsc
+             DataConnection = Login
+           }
+     
+           #---------------------------------
+           # Pipeline Log Section
+           #---------------------------------
+           PipelineLog
+           {
+             ModuleName  = LOG
+             Module
+             {
+               ITO
+               {
+                 FilePath          = ./log/pipeline
+                 FileName          = pipeline_RT_GPRS.log
+                 ProcessName       = ifw
+                 MessageGroup      = IFW
+                 ShowOriginator    = TRUE
+                 SuppressErrors
+                 {
+                   ERR_SPEC_VERSION_INVALID
+                   ERR_RELEASE_VERSION_INVALID
+                 }
+               }
+     
+               Buffer
+               {
+                 Size = 1000
+               }
+             }
+           }
+     
+           Input
+           {
+             UnitsPerTransaction = 1
+                     NoThread = TRUE
+     
+             InputModule
+             {
+               ModuleName  = INP_Realtime
+               Module
+               {
+                 DefaultOutput = PcmOutput
+                 OpcodeMapping = ./formatDesc/Formats/Realtime/rate_event.xml
+                 #MappingScript = <Optional Input IScript> 
+               }
+             }
+           }
+      
+           #---------------------------------
+           # Functions Section
+           #---------------------------------
+           Functions
+           {
+             Standard
+             {
+               FunctionPool
+               {
+               
+                 #--------------------------------------------------
+                 # Initial EDR dump
+                 #--------------------------------------------------
+     ##            EdrDump_Initial
+     ##            {
+     ##              ModuleName = FCT_EdrDump
+     ##              Module
+     ##              {
+     ##                Active = False
+     ##                FileName = ./log/dump/initial_RT_GPRS.txt
+     ##              }
+     ##            }
+               
+                 #--------------------------------------------------
+                 # Service Code Mapping
+                 #--------------------------------------------------
+                 ServiceCodeMap 
+                 { 
+                   ModuleName = FCT_ServiceCodeMap
+                   Module 
+                   { 
+                     Active             = TRUE
+                     DataConnection     = ifw.DataPool.Login
+                     MapGroup           = ALL_RATE
+                   } 
+                 } 
+                             
+                 #--------------------------------------------------
+                 # Usage Type Mapping
+                 #--------------------------------------------------              
+                 UsageType
+                 { 
+                    ModuleName = FCT_IRules 
+                    Module 
+                    { 
+                      Active = TRUE
+                      Source = File 
+                      Descriptions 
+                      { 
+                        UsageTypeDetermination= ./iScriptLib/iScriptLib_Standard/IRL_UsageType.irl
+                      }
+                    } 
+                 }  
+     
+                 #--------------------------------------------------
+                 # FCT_Filter_Set registry entry fields.
+                 #--------------------------------------------------
+                 Filter_Set
+                 {
+                   ModuleName                 = FCT_Filter_Set
+                   Module
+                   {
+                     Active                   = False
+                     DiscountDataModule       = ifw.DataPool.DiscountModelDataModule
+                     AccountDataModule        = ifw.DataPool.CustomerData
+                     InfranetConnection       = ifw.DataPool.LoginInfranet
+                     IntegrateConnection      = ifw.DataPool.Login
+                   }
+                 }
+     
+                 #--------------------------------------------------
+                 # Customer Individual Rating
+                 #--------------------------------------------------
+                 CustomerRating
+                 { 
+                   ModuleName = FCT_CustomerRating 
+                   Module 
+                   { 
+                     Active          = TRUE
+                     Mode            = CUSTOMER 
+                     DataConnection  = ifw.DataPool.Login 
+                     DefaultRateplan = Standard
+                     LeastCostRating = False
+                   } 
+                 }
+                             
+                 #--------------------------------------------------
+                 # Pre-Rating (Zoning)
+                 #--------------------------------------------------
+                 PreRatingZone
+                 {
+                   ModuleName = FCT_PreRating
+                   Module
+                   {
+                     Active = TRUE
+                     RateplanDataModule = ifw.DataPool.RateplanDataModule
+                     ZoneDataModule = ifw.DataPool.ZoneDataModule
+                   }
+                 }
+                             
+     
+                 #--------------------------------------------------
+                 # Access Point Name Mapping (after zoning)
+                 #--------------------------------------------------              
+                 APNMap
+                 {
+                   ModuleName = FCT_APN_Map 
+                   Module 
+                   { 
+                     Active         = TRUE
+                     DataConnection = ifw.DataPool.Login
+                     APNGroup {} 
+                   }
+                 } 
+                 
+                 #--------------------------------------------------
+                 # Usage Scenario Mapping
+                 #--------------------------------------------------
+                 UsageScenarioMap
+                 {
+                   ModuleName = FCT_USC_Map
+                   Module
+                   {
+                     Active = TRUE
+                     DataModule = ifw.DataPool.USCDataModule
+                     DefaultUSCGroup = ALL_RATE
+                   }
+                 }
+     
+                 #--------------------------------------------------
+                 # Rate Service Class Mapping
+                 #--------------------------------------------------              
+                 RateServiceClassMap 
+                 { 
+                   ModuleName = FCT_RSC_Map 
+                   Module 
+                   {
+                     Active          = TRUE 
+                     DataConnection  = ifw.DataPool.Login
+                     DefaultRscGroup = ALL_RATE
+                   } 
+                 }
+                             
+                 #--------------------------------------------------
+                 # Pre-Rating EDR dump
+                 #--------------------------------------------------
+     ##            EdrDump_PreRating
+     ##            {
+     ##              ModuleName = FCT_EdrDump
+     ##              Module
+     ##              {
+     ##                Active = False
+     ##                FileName = ./log/dump/pre_rating_RT_GPRS.txt
+     ##              }
+     ##            }
+                             
+                 #--------------------------------------------------
+                 # Main Rating (Pricing)
+                 #--------------------------------------------------
+                 MainRating
+                 {
+                   ModuleName = FCT_MainRating
+                   Module
+                   {
+                     Active             = TRUE
+                     RateplanDataModule = ifw.DataPool.RateplanDataModule
+                     CalendarDataModule = ifw.DataPool.CalendarDataModule
+                     TimeDataModule     = ifw.DataPool.TimeDataModule
+                     PriceDataModule    = ifw.DataPool.PriceDataModule
+                     CurrencyDataModule = ifw.DataPool.CurrencyDataModule
+     		ModelSelectorDataModule = ifw.DataPool.ModelSelectorDataModule
+                   }
+                 }
+                 
+                 
+                 #--------------------------------------------------
+                 # Special Dayrates
+                 #--------------------------------------------------
+                 SpecialDayRate
+                 {
+                   ModuleName = FCT_Dayrate
+                   Module
+                   {
+                     Active = TRUE
+                     DayrateDataModule = ifw.DataPool.DayRateDataModule
+                   }
+                 }
+     
+                 #--------------------------------------------------
+                 # Rate Adjustment
+                 #--------------------------------------------------
+                 RateAdjustment
+                 {
+                   ModuleName = FCT_RateAdjust
+                   Module
+                   {
+                     Active         = TRUE
+                     Source         = Database
+                     DataConnection = ifw.DataPool.Login
+                   }
+                 }
+     
+                 #--------------------------------------------------
+                 # Rounding (Rating)
+                 #--------------------------------------------------
+                 Round_Rating
+                 {
+                   ModuleName = FCT_Rounding
+                   Module
+                   {
+                     Active             = TRUE
+                     CurrencyDataModule = ifw.DataPool.CurrencyDataModule
+                     Mode               = RATING
+                   }
+                 } 
+                 
+                 #--------------------------------------------------
+                 # Post-Rating EDR dump
+                 #--------------------------------------------------
+     ##            EdrDump_PostRating
+     ##            {
+     ##              ModuleName = FCT_EdrDump
+     ##              Module
+     ##              {
+     ##                Active = False
+     ##                FileName = ./log/dump/post_rating_RT_GPRS.txt
+     ##              }
+     ##            }
+                 
+                 #--------------------------------------------------
+                 # Discount Analysis
+                 #--------------------------------------------------
+                 DiscountAnalysisModule
+                 {
+                   ModuleName = FCT_DiscountAnalysis
+                   Module
+                   {
+                     Active                   = TRUE
+                     DiscountModelDataModule  = ifw.DataPool.DiscountModelDataModule
+     		ModelSelectorDataModule  =  ifw.DataPool.ModelSelectorDataModule
+                   }
+                 }
+                 
+                 #--------------------------------------------------
+                 # Pre-Discounting EDR dump
+                 #--------------------------------------------------
+     ##            EdrDump_PreDiscounting
+     ##            {
+     ##              ModuleName = FCT_EdrDump
+     ##              Module
+     ##              {
+     ##                Active = False
+     ##                FileName = ./log/dump/pre_discounting_RT_GPRS.txt
+     ##              }
+     ##            }
+                 
+                 #--------------------------------------------------
+                 # Discounting
+                 #--------------------------------------------------
+                 ApolloDiscountModule
+                 {
+                   ModuleName = FCT_Discount
+                   Module
+                   {
+                     Active                   = TRUE
+                     DiscountDataModule       = ifw.DataPool.DiscountModelDataModule
+                     BalanceDataModule        = ifw.DataPool.BalanceDataModule
+                     AccountDataModule        = ifw.DataPool.CustomerData
+                     CurrencyDataModule       = ifw.DataPool.CurrencyDataModule
+                     DiscountMoreThanPossible = False
+                     DiscountTrace = {{ .Values.ocbrm.realtimepipe.deployment.discount_trace }}
+                   }
+                 }
+                 
+                 #--------------------------------------------------
+                 # Rounding (Discounting)
+                 #--------------------------------------------------
+                 Round_Discounting
+                 {
+                   ModuleName = FCT_Rounding
+                   Module
+                   {
+                     Active             = TRUE
+                     CurrencyDataModule = ifw.DataPool.CurrencyDataModule
+                     Mode               = Discounting
+                   }
+                 }
+                 
+                 #--------------------------------------------------
+                 # Post-Discounting EDR dump
+                 #--------------------------------------------------
+     ##            EdrDump_PostDiscounting
+     ##            {
+     ##              ModuleName = FCT_EdrDump
+     ##              Module
+     ##              {
+     ##                Active = False
+     ##                FileName = ./log/dump/post_discounting_RT_GPRS.txt
+     ##              }
+     ##            }
+               }
+             }
+           }
+     
+           #---------------------------------
+           # Output Section
+           #---------------------------------
+           Output
+           {
+             WriteDefaultEdr              = False
+             SpecificationVersionNumber   = 2
+     
+             SequenceGeneration           = Unit
+             #Unit - Transaction
+     
+             MaxErrorRates
+             {
+               INF_EDR_REJECTED           = 70
+               ERR_CUST_NOT_FOUND         = 55
+               ERR_CHARGED_ZONE_NOT_FOUND = 55
+             }
+     
+             OutputCollection
+             {
+             
+               #--------------------------------------------------------------------
+               # The DevNull stream
+               #--------------------------------------------------------------------
+               DevNull
+               {
+                 ModuleName = OUT_DevNull
+                 Module
+                 { 
+                 } 
+               } # end of DevNull
+               
+               PcmOutput
+               {
+                 ModuleName = OUT_Realtime
+                 Module
+                 {
+                   #MappingScript = ./iScriptLib/iScriptLib_Standard/ISC_SampleOUTRealtime.isc
+                 }
+               }
+     
+             }
+     
+             OutputLog
+             {
+               FilePath        = ./log/stream
+               FileName        = streamRT_GPRS
+               FilePrefix      = log_
+               FileSuffix      = .log
+     
+               SuppressErrors
+               {
+                 ERR_SPEC_VERSION_INVALID
+                 ERR_RELEASE_VERSION_INVALID
+               }
+             }
+           }
+         } #END RealtimePipelineGPRS
+         
+        #-----------------------------------
+          RealtimePipelineZone
+          {
+            Active = TRUE
+            MultiThreaded = FALSE
+     
+            RejectStream = PcmOutput
+     
+            TransactionManager
+            {
+              RedoEnabled = False
+              SingleTransaction = False
+     
+              BinaryLogFileName = ./tam/binaryLogFile_RT.dat
+            }
+     
+            EdrFactory
+            {
+              Description = ./formatDesc/Portal/containerDesc.dsc
+              DataConnection = Login
+            }
+     
+            #---------------------------------
+            # Pipeline Log Section
+            #---------------------------------
+            PipelineLog
+            {
+              ModuleName  = LOG
+              Module
+              {
+                ITO
+                {
+                  FilePath          = ./log/pipeline
+                  FileName          = pipeline_Zone_RT.log
+                  ProcessName       = ifw
+                  MessageGroup      = IFW
+                  ShowOriginator    = TRUE
+                  SuppressErrors
+                  {
+                    ERR_SPEC_VERSION_INVALID
+                    ERR_RELEASE_VERSION_INVALID
+                  }
+                }
+     
+                Buffer
+                {
+                  Size = 1000
+                }
+              }
+            }
+     
+            Input
+            {
+              UnitsPerTransaction = 1
+              NoThread = TRUE
+     
+              InputModule
+              {
+               ModuleName  = INP_Realtime
+               Module
+               {
+                 DefaultOutput = PcmOutput
+                 OpcodeMapping = ./formatDesc/Formats/Realtime/zonemap_event.xml
+                 #MappingScript = <Optional Input IScript> 
+               }
+              }
+            }
+     
+            #---------------------------------
+            # Functions Section
+            #---------------------------------
+            Functions
+            {
+              Standard
+              {
+                FunctionPool
+                {
+                  CallZone
+                  {
+                    ModuleName = FCT_Zone
+                    Module
+                    {
+                      Active = TRUE
+                      DataModule = ifw.DataPool.ZoneDataModule
+                      RealTime = TRUE
+                    }
+                  }
+                    } #FunctionPool
+                  } #Standard
+            } #Function
+     
+     
+            #---------------------------------
+            # Output Section
+            #---------------------------------
+            Output
+            {
+              WriteDefaultEdr              = False
+              SpecificationVersionNumber   = 2
+     
+              SequenceGeneration           = Unit
+              #Unit - Transaction
+     
+              MaxErrorRates
+              {
+                INF_EDR_REJECTED           = 70
+                ERR_CUST_NOT_FOUND         = 55
+                ERR_CHARGED_ZONE_NOT_FOUND = 55
+              }
+     
+              OutputCollection
+              {
+                PcmOutput
+                {
+                  ModuleName = OUT_Realtime
+                  Module
+                  { 
+                     DoRating = false        
+                     #MappingScript = ./iScriptLib/iScriptLib_Standard/ISC_SampleOUTRealtime.isc
+                  } 
+                }
+              }
+     
+              OutputLog
+              {
+                FilePath        = ./log/stream
+                FileName        = streamZone_RT
+                FilePrefix      = log_
+                FileSuffix      = .log
+     
+                SuppressErrors
+                {
+                  ERR_SPEC_VERSION_INVALID
+                  ERR_RELEASE_VERSION_INVALID
+                }
+              }
+            }
+         } #end of RealtimePipelineZone 
+     
+       }  # END pipelines
+     }  # END ifw
+     

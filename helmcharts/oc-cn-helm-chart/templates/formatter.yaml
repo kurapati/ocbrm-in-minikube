@@ -1,0 +1,109 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: formatter-deploy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    application: {{ .Chart.Name }}
+spec:
+  replicas: {{ .Values.ocbrm.formatter.deployment.replicaCount }}
+  selector: 
+    matchLabels:
+      application: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        application: {{ .Chart.Name }}
+        component: formatter
+    spec:
+      containers:
+        - name: formatter
+          image: "{{.Values.imageRepository}}{{.Values.ocbrm.formatter.deployment.imageName}}:{{.Values.ocbrm.formatter.deployment.imageTag}}"
+          workingDir: /oms/sys/formatter
+          {{- if eq .Values.ocbrm.virtual_time.enabled true }}
+          command: ["/bin/sh"]
+          args: ["-c", "sleep 10;/oms/entrypoint.sh formatter"]
+          {{- end }}
+          imagePullPolicy: {{.Values.ocbrm.imagePullPolicy}}
+          env:
+          - name: INIT_DB
+            value: "{{.Values.ocbrm.init_database}}"
+          - name: TZ
+            value: "{{.Values.ocbrm.TZ}}"
+          - name: BINARY
+            value: formatter
+          - name: PIN_LOG_DIR
+            value: /oms_logs
+          - name: PXSLT_ENGINE
+            valueFrom:
+              configMapKeyRef:
+                name: formatter-config
+                key: PXSLT_ENGINE
+          - name: ENABLE_SSL
+            valueFrom:
+              configMapKeyRef:
+                name: oms-common-config
+                key: ENABLE_SSL
+          - name: SERVICE_FQDN
+            valueFrom:
+              configMapKeyRef:
+                name: formatter-config
+                key: SERVICE_FQDN
+          - name: CLIENT_WALLET_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: oms-schema-password
+                key: client_wallet_password
+          - name: OLD_ROOT
+            valueFrom:
+              secretKeyRef:
+                name: oms-schema-password
+                key: old_root
+          - name: OLD_CLIENT
+            valueFrom:
+              secretKeyRef:
+                name: oms-schema-password
+                key: old_client
+          - name: ROOT_WALLET_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: oms-schema-password
+                key: root_wallet_password
+          - name: SERVER_WALLET_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: oms-schema-password
+                key: server_wallet_password
+          - name: BRM_CRYPT_KEY
+            valueFrom:
+              secretKeyRef:
+                name: oms-schema-password
+                key: brm_crypt_key
+          volumeMounts:
+            - name: formatter-config-volume
+              mountPath: /oms/Infranet.properties.tmpl
+              subPath: Infranet.properties
+      volumes:
+        - name: formatter-config-volume
+          configMap: 
+            name: formatter-infranet-properties-config
+
+           
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: formatter
+  namespace: {{ .Release.Namespace }}
+  labels:
+    application: {{ .Chart.Name }}
+spec:
+  type: ClusterIP
+  selector:
+    component: formatter
+  ports:
+    - name: formatter-port
+      port: {{ .Values.ocbrm.formatter.deployment.port }}
+

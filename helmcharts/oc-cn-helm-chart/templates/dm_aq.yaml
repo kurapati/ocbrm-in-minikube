@@ -1,0 +1,203 @@
+---
+### Deployment Descriptor
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dm-aq
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.ocbrm.dm_aq.deployment.replicaCount }}
+  selector:
+    matchLabels:
+      application: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        application: {{ .Chart.Name }}
+        component: oms-dm-aq
+      name: dm-aq
+    spec:
+      containers:
+      - name: dm-aq
+        image: "{{ .Values.imageRepository }}{{ .Values.ocbrm.dm_aq.deployment.imageName }}:{{ .Values.ocbrm.dm_aq.deployment.imageTag }}"
+        {{- if eq .Values.ocbrm.virtual_time.enabled true }}
+        command: ["/bin/sh"]
+        args: ["-c", "sleep 10;/oms/entrypoint.sh dm_aq"]
+        {{- end }}
+        ports:
+          - name: dm-pcp-port
+            containerPort: {{ .Values.ocbrm.dm_aq.deployment.port }}
+        env:
+        - name: INIT_DB
+          value: "{{ .Values.ocbrm.init_database }}" 
+        - name: TZ
+          value: "{{ .Values.ocbrm.TZ }}" 
+        - name: PIN_LOG_DIR
+          value: "{{ .Values.ocbrm.logDir }}" 
+        - name: TNS_ADMIN
+          value: "{{ .Values.ocbrm.tnsAdmin }}"
+        - name: NLS_LANG
+          value: "{{ .Values.ocbrm.db.nls_lang }}"
+        - name: VIRTUAL_TIME_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: VIRTUAL_TIME_ENABLED
+        - name: VIRTUAL_TIME_SETTING
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: VIRTUAL_TIME_SETTING
+        - name: SHARED_VIRTUAL_TIME_FILE
+          value: {{ .Values.ocbrm.virtual_time.pvt }}/pin_virtual_time_file
+        - name: ENABLE_SSL
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: ENABLE_SSL
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: LOG_LEVEL
+        - name: BRM_CRYPT_KEY
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: brm_crypt_key
+        - name: DM_AQ_SERVICE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: DM_AQ_SERVICE_PORT
+        - name: OMS_DB_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: OMS_DB_SERVICE
+        - name: ROOT_WALLET_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: root_wallet_password
+        - name: OLD_ROOT
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: old_root
+        - name: OLD_CLIENT
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: old_client
+        - name: SERVER_WALLET_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: server_wallet_password
+        - name: SERVICE_FQDN
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: DM_AQ_SERVICE_FQDN
+        - name: PIN_SSL_DEBUG
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: PIN_SSL_DEBUG
+        - name: CLIENT_WALLET_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: client_wallet_password
+        - name: OMS_SCHEMA_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: OMS_SCHEMA_USERNAME
+        - name: OMS_SCHEMA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: oms_schema_password
+        - name: OMS_DB_ALIAS
+          valueFrom:
+            configMapKeyRef:
+              name: oms-common-config
+              key: OMS_DB_ALIAS
+        - name: BRM_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: oms-schema-password
+              key: brm_root_password
+        imagePullPolicy: {{ .Values.ocbrm.imagePullPolicy }}
+        terminationMessagePolicy: FallbackToLogsOnError
+        volumeMounts:
+        - name: dm-aq-pin-config-volume
+          mountPath: /oms/pin.conf.tmpl
+          subPath: pin.conf
+        - name: dm-aq-config-volume
+          mountPath: /oms/aq_queuenames
+          subPath: aq_queuenames
+        - name: tnsnames-ora-volume
+          mountPath: {{ .Values.ocbrm.tnsAdmin }}
+        - name: oms-logs
+          mountPath: {{ .Values.ocbrm.logDir }}
+        - name: virtual-time-volume
+          mountPath: {{ .Values.ocbrm.virtual_time.pvt }}
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - netstat -anp | grep LISTEN | grep {{ .Values.ocbrm.dm_aq.deployment.port }} | grep dm
+          initialDelaySeconds: 120
+          periodSeconds: 20
+          failureThreshold: 5
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - netstat -anp | grep LISTEN | grep {{ .Values.ocbrm.dm_aq.deployment.port }} | grep dm
+          initialDelaySeconds: 120
+          periodSeconds: 40
+          timeoutSeconds: 1
+      hostname: dm-aq
+      dnsPolicy: ClusterFirst
+      volumes:
+      - name: dm-aq-pin-config-volume
+        configMap:
+          name: dm-aq-pin-conf-config
+      - name: dm-aq-config-volume
+        configMap:
+          name: dm-aq-config
+      - name: tnsnames-ora-volume
+        configMap:
+            name: db-config
+            items:
+              - key: tnsnames.ora
+                path: tnsnames.ora
+              - key: sqlnet.ora
+                path: sqlnet.ora
+      - name: oms-logs
+        emptyDir: {}
+      - name: virtual-time-volume
+        persistentVolumeClaim:
+          claimName: virtual-time
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: dm-aq
+  namespace: {{ .Release.Namespace }}
+  labels:
+    application: {{ .Chart.Name }}
+spec:
+  selector:
+    component: oms-dm-aq
+  ports:
+  - name: dm-pcp-port
+    port: {{ .Values.ocbrm.dm_aq.deployment.port }}
+    protocol: TCP
+  type: {{ .Values.ocbrm.dm_aq.service.type }}

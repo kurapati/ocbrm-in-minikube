@@ -1,0 +1,41 @@
+# Default values for mychart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# For non-empty repository, "/" MUST be appended
+imageRepository: ""
+
+ocbrm:
+    imagePullPolicy: IfNotPresent
+    TZ: UTC
+    logDir: /oms_logs
+    tnsAdmin: /oms/ora_k8
+    LOG_LEVEL: 1
+    brm_root_pass: QzFnMmIzdSM=
+    wallet:
+        client: QzFnMmIzdSM=
+        server: QzFnMmIzdSM=
+        root: QzFnMmIzdSM=
+        pv: brm-wallet-pv
+        pvc: brm-wallet-pvc
+        storage: 50Mi
+    db:
+        deployment:
+            imageName: init_db
+            imageTag: 12.0.0.2.0
+        host: oracle-database-cluster-ip-service.ocbrm-database.svc.cluster.local
+        port: 1521
+        service: ORCLPDB1
+        alias: ORCLPDB1
+        schemauser: pin
+        schemapass: QzFnMmIzdSM=
+        schematablespace: pin00
+        indextablespace: pinx00
+        nls_lang: AMERICAN_AMERICA.AL32UTF8
+        charset: AL32UTF8
+        pipelineschemauser: pin
+        pipelineschemapass: QzFnMmIzdSM=
+        pipelineschematablespace: pin00
+        pipelineindextablespace: pinx00
+        pipelinealias: ORCLPDB1
+        queuename: IFW_SYNC_QUEUE
